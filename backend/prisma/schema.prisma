@@ -118,6 +118,8 @@ model Application {
   updatedAt      DateTime          @updatedAt
   
   documents      Document[]
+
+  @@unique([studentId, jobPostId])
 }
 
 model Document {

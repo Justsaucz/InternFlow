@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle, XCircle, Clock, Eye, Building, Mail, Briefcase, Calendar } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Building, Mail, Briefcase, Calendar } from 'lucide-react';
 
 interface Application {
   id: string;

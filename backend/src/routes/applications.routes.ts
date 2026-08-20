@@ -123,7 +123,7 @@ router.get('/company', authenticate, authorize([Role.COMPANY_HR]), async (req: A
 // PATCH - Company HR updates application status (Accept/Reject)
 router.patch('/:id/status', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0]! : req.params.id!;
     const { status } = req.body;
 
     const validStatuses: ApplicationStatus[] = ['REVIEWING', 'ACCEPTED', 'REJECTED'];
@@ -184,7 +184,7 @@ router.get('/university', authenticate, authorize([Role.UNIVERSITY_ADMIN]), asyn
 // PATCH - University Admin approves an accepted application
 router.patch('/:id/approve', authenticate, authorize([Role.UNIVERSITY_ADMIN]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0]! : req.params.id!;
 
     const application = await prisma.application.findUnique({ where: { id } });
     if (!application) {

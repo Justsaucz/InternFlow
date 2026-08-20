@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { User, Book, GraduationCap, Award } from 'lucide-react';
+import { Book, Award } from 'lucide-react';
 
 interface StudentProfile {
   id: string;
@@ -35,11 +35,6 @@ export default function StudentProfile() {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      // We don't have a /me route yet that returns the profile. 
-      // Let's create a dedicated profile endpoint instead.
       const profileRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/student/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });

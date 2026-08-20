@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Edit2, Users, MapPin, Briefcase } from 'lucide-react';
+import { Plus, Users, MapPin, Briefcase } from 'lucide-react';
 
 interface Job {
   id: string;

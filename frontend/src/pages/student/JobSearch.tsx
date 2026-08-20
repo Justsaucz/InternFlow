@@ -47,10 +47,14 @@ export default function JobSearch() {
     }
   };
 
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [modalSuccess, setModalSuccess] = useState<boolean>(false);
+
   const submitApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedJobId) return;
     
+    setModalError(null);
     setUploading(true);
     try {
       const token = localStorage.getItem('token');
@@ -71,7 +75,7 @@ export default function JobSearch() {
           const uploadData = await uploadRes.json();
           fileUrl = uploadData.url;
         } else {
-          alert('Failed to upload CV');
+          setModalError('Failed to upload CV. Please try another file.');
           setUploading(false);
           return;
         }
@@ -87,22 +91,25 @@ export default function JobSearch() {
         body: JSON.stringify({ 
           jobPostId: selectedJobId, 
           coverLetter: coverLetter,
-          cvUrl: fileUrl // We'd ideally save this as a Document in the backend, but we'll just pass it for now
+          cvUrl: fileUrl
         })
       });
       
       const data = await res.json();
       if (res.ok) {
-        alert('Application submitted successfully!');
-        setSelectedJobId(null);
-        setCoverLetter('');
-        setCvFile(null);
+        setModalSuccess(true);
+        setTimeout(() => {
+          setSelectedJobId(null);
+          setCoverLetter('');
+          setCvFile(null);
+          setModalSuccess(false);
+        }, 1500);
       } else {
-        alert(`Failed to apply: ${data.error}`);
+        setModalError(data.error || 'Failed to apply.');
       }
     } catch (error) {
       console.error(error);
-      alert('An error occurred while applying.');
+      setModalError('An unexpected error occurred while applying.');
     } finally {
       setUploading(false);
     }
@@ -204,6 +211,16 @@ export default function JobSearch() {
               <button onClick={() => setSelectedJobId(null)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form onSubmit={submitApplication} className="p-6 space-y-4">
+              {modalError && (
+                <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                  {modalError}
+                </div>
+              )}
+              {modalSuccess && (
+                <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  Application submitted successfully!
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Cover Letter (Optional)</label>
                 <textarea 
