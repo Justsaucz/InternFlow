@@ -5,10 +5,12 @@ A modern, cloud-based platform connecting students, university administrators, a
 ## ✨ Features
 
 - **Centralized Job Board** — Students can browse and search for active internship opportunities from partnered companies in a clean Card View format.
-- **One-Click Apply & CV Upload** — Seamless application process allowing students to send their profile and upload their CVs directly to AWS S3.
+- **One-Click Apply & S3 CV Upload** — Seamless application process allowing students to send their profile and upload their CVs directly to AWS S3.
 - **Real-Time Application Tracking** — Students monitor the status of their applications (Pending, Reviewing, Accepted, Rejected).
-- **HR Dashboard** — Company HR can post jobs, review applications in real-time, view student CVs, and update application statuses.
-- **University Approval Workflow** — University administrators monitor their students' progress and officially approve internship placements to ensure academic requirements are met.
+- **Dynamic Role-Based Dashboards** — Real-time analytics and live activity feeds tailored for Students, HRs, and University Admins (`/api/dashboard/stats`).
+- **HR Applicant Review Pipeline** — Company HR can post jobs, review student profiles, preview uploaded CVs directly, and manage application statuses.
+- **University Approval Workflow** — University administrators monitor student progress and officially approve verified internship placements.
+- **Database Integrity & Anti-Duplication** — Enforced Prisma compound unique constraints preventing race-condition duplicate submissions.
 - **Role-Based Access Control (RBAC)** — Secure authentication system separating Student, Company HR, and University Admin workflows.
 
 ## 🏗️ Architecture
@@ -89,7 +91,7 @@ A modern, cloud-based platform connecting students, university administrators, a
 |---|---|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, Lucide React |
 | Backend | Node.js, Express, TypeScript |
-| File Uploads | Multer, AWS SDK v3 (`@aws-sdk/client-s3`) |
+| File Uploads | Multer, AWS SDK v3 (`@aws-sdk/client-s3`), `multer-s3` |
 | Database | Amazon RDS PostgreSQL + Prisma ORM |
 | Application Hosting | Amazon EC2 / Amazon ECS |
 | Frontend Hosting | Amazon S3 + Amazon CloudFront |
@@ -109,7 +111,7 @@ A modern, cloud-based platform connecting students, university administrators, a
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/your-username/InternFlow.git
+git clone https://github.com/Justsaucz/InternFlow.git
 cd InternFlow
 cp backend/.env.example backend/.env
 # Edit .env to add your AWS Keys and JWT Secret
@@ -119,7 +121,7 @@ docker compose up -d --build
 
 # 3. Setup Database Schema
 cd backend
-npx prisma migrate dev --name init
+npx prisma migrate deploy
 
 # 4. Open the app
 # Frontend: http://localhost:3000
@@ -129,11 +131,11 @@ npx prisma migrate dev --name init
 ### First Use
 
 1. Open `http://localhost:3000`
-2. Register an account (Choose Student, Company, or University Admin)
-3. **Company**: Create a job posting.
-4. **Student**: Browse jobs and click "Apply Now" to upload your CV.
-5. **Company**: Review the application and "Accept".
-6. **University**: View the accepted student and "Approve" the internship.
+2. Register an account (Choose Student, Company HR, or University Admin)
+3. **Company**: Post a new internship position.
+4. **Student**: Browse jobs, upload CV/Resume, and submit an application.
+5. **Company**: Review applicants, inspect uploaded CVs, and click "Accept".
+6. **University**: Review placed students and click "Approve Placement" for academic validation.
 
 ## 📂 Project Structure
 
@@ -147,7 +149,7 @@ npx prisma migrate dev --name init
 │   └── src/
 │       ├── index.ts            # Express server entry point
 │       ├── middleware/         # Auth (JWT) & Role verification
-│       ├── routes/             # REST API (auth, jobs, applications, upload)
+│       ├── routes/             # REST API (auth, dashboard, jobs, applications, student, admin, upload)
 │       └── types/              # TypeScript interfaces
 │
 ├── frontend/
@@ -157,9 +159,9 @@ npx prisma migrate dev --name init
 │       ├── index.css           # Tailwind configurations
 │       ├── components/         # Reusable UI components
 │       └── pages/              # Role-specific Dashboards & Landing Page
-│           ├── admin/          # University workflows
+│           ├── admin/          # University workflows (Approvals, Directory)
 │           ├── company/        # HR workflows (Job creation, Applicant review)
-│           ├── student/        # Job search, My applications
+│           ├── student/        # Job search, My applications, Profile
 │           └── Home.tsx        # Modern Landing Page
 ```
 
@@ -171,8 +173,8 @@ The simplest deployment method is provisioning an **Amazon EC2** instance (Ubunt
 
 ```bash
 ssh -i "path/to/key.pem" ubuntu@<EC2_IP>
-git clone https://github.com/your-username/internflow.git
-cd internflow
+git clone https://github.com/Justsaucz/InternFlow.git
+cd InternFlow
 cp backend/.env.example backend/.env
 # Edit .env with your RDS URL and S3 Bucket Keys
 docker compose up -d --build
@@ -205,12 +207,20 @@ Once created, update your `DATABASE_URL` in the `.env` file to point to this RDS
 Key endpoints:
 - `POST /api/auth/register` — Register a new user (Student/HR/Admin)
 - `POST /api/auth/login` — Authenticate and receive JWT
+- `GET /api/dashboard/stats` — Role-based live analytics & activity metrics
 - `POST /api/upload` — Upload CV/Resume to AWS S3 (Returns S3 URL)
 - `GET /api/jobs` — List all active job postings
 - `POST /api/jobs` — Create a new job posting (HR only)
-- `POST /api/applications` — Apply to a job
+- `GET /api/jobs/company` — List jobs posted by logged-in HR
+- `POST /api/applications` — Apply to a job with CV upload
+- `GET /api/applications/my` — Student view of submitted applications
+- `GET /api/applications/company` — Company HR view of incoming applicants
 - `PATCH /api/applications/:id/status` — Accept or Reject an applicant (HR)
+- `GET /api/applications/university` — University Admin view of student placements
 - `PATCH /api/applications/:id/approve` — Final approval of placement (Uni Admin)
+- `GET /api/student/profile` — Fetch student academic profile
+- `PUT /api/student/profile` — Update student profile & skills
+- `GET /api/admin/students` — University student directory
 
 ## 🔒 Security
 
