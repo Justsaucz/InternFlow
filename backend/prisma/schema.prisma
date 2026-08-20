@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  UNIVERSITY_ADMIN
+  STUDENT
+  COMPANY_HR
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  ACCEPTED
+  REJECTED
+  APPROVED_BY_UNIVERSITY
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  universityId   String?
+  university     University?     @relation(fields: [universityId], references: [id])
+  studentProfile StudentProfile?
+  companyProfile CompanyProfile?
+  documents      Document[]
+}
+
+model University {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String   @unique
+  description String?
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  admins   User[]
+  students StudentProfile[]
+}
+
+model StudentProfile {
+  id           String     @id @default(uuid())
+  userId       String     @unique
+  user         User       @relation(fields: [userId], references: [id])
+  universityId String
+  university   University @relation(fields: [universityId], references: [id])
+  
+  studentId    String
+  major        String
+  faculty      String
+  year         Int
+  gpa          Float?
+  skills       String[]
+  bio          String?
+  
+  applications Application[]
+}
+
+model CompanyProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  
+  companyName String
+  industry    String
+  website     String?
+  description String?
+  logoUrl     String?
+  address     String?
+  
+  jobPosts    JobPost[]
+}
+
+model JobPost {
+  id               String         @id @default(uuid())
+  companyProfileId String
+  company          CompanyProfile @relation(fields: [companyProfileId], references: [id])
+  
+  title            String
+  description      String
+  requirements     String
+  location         String
+  isRemote         Boolean        @default(false)
+  positions        Int            @default(1)
+  allowance        String?
+  startDate        DateTime?
+  endDate          DateTime?
+  isActive         Boolean        @default(true)
+  
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  applications     Application[]
+}
+
+model Application {
+  id             String            @id @default(uuid())
+  jobPostId      String
+  jobPost        JobPost           @relation(fields: [jobPostId], references: [id])
+  studentId      String
+  student        StudentProfile    @relation(fields: [studentId], references: [id])
+  
+  status         ApplicationStatus @default(PENDING)
+  coverLetter    String?
+  
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  
+  documents      Document[]
+}
+
+model Document {
+  id            String       @id @default(uuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id])
+  
+  title         String
+  fileUrl       String
+  type          String       // e.g., "CV", "TRANSCRIPT", "REPORT"
+  
+  createdAt     DateTime     @default(now())
+}

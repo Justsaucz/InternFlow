@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: internflow-db
+    environment:
+      POSTGRES_USER: internflow
+      POSTGRES_PASSWORD: internflow_password
+      POSTGRES_DB: internflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: internflow-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://internflow:internflow_password@db:5432/internflow?schema=public
+      - PORT=4000
+      - JWT_SECRET=super_secret_jwt_key
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - db
+    volumes:
+      - ./backend/src:/app/src
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: internflow-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:4000
+    volumes:
+      - ./frontend/src:/app/src
+    command: npm run dev
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
