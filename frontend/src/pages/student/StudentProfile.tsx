@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Book, Award } from 'lucide-react';
+import { useToast } from '../../components/ui/Toast';
 
 interface StudentProfile {
   id: string;
@@ -18,6 +19,7 @@ export default function StudentProfile() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     studentId: '',
     major: '',
@@ -79,10 +81,14 @@ export default function StudentProfile() {
       });
 
       if (res.ok) {
+        success('Profile updated successfully!');
         setEditing(false);
         fetchProfile();
+      } else {
+        showError('Failed to update profile. Please try again.');
       }
     } catch (error) {
+      showError('Network error. Please try again.');
       console.error(error);
     }
   };

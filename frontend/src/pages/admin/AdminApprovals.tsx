@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle, Clock, Users, FileText } from 'lucide-react';
+import { useToast } from '../../components/ui/Toast';
 
 interface Application {
   id: string;
@@ -27,6 +28,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 export default function AdminApprovals() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     fetchApplications();
@@ -39,8 +41,8 @@ export default function AdminApprovals() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) setApplications(await res.json());
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -53,13 +55,16 @@ export default function AdminApprovals() {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) fetchApplications();
-      else {
+      if (res.ok) {
+        success('Application approved successfully!');
+        fetchApplications();
+      } else {
         const err = await res.json();
-        alert(err.error);
+        showError(err.error || 'Failed to approve application');
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      showError('Network error. Please try again.');
+      console.error(err);
     }
   };
 

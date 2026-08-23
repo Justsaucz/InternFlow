@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, Eye, Building, Mail, Briefcase, Calendar } from 'lucide-react';
+import { useToast } from '../../components/ui/Toast';
 
 interface Application {
   id: string;
@@ -26,6 +27,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 export default function CompanyApplicants() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     fetchApplications();
@@ -56,8 +58,15 @@ export default function CompanyApplicants() {
         },
         body: JSON.stringify({ status })
       });
-      if (res.ok) fetchApplications();
+      if (res.ok) {
+        const label = status === 'ACCEPTED' ? 'accepted' : status === 'REJECTED' ? 'rejected' : 'updated';
+        success(`Application ${label} successfully!`);
+        fetchApplications();
+      } else {
+        showError('Failed to update application status.');
+      }
     } catch (error) {
+      showError('Network error. Please try again.');
       console.error(error);
     }
   };

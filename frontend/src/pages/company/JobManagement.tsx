@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Users, MapPin, Briefcase } from 'lucide-react';
+import { useToast } from '../../components/ui/Toast';
 
 interface Job {
   id: string;
@@ -18,6 +19,7 @@ export default function JobManagement() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -62,13 +64,17 @@ export default function JobManagement() {
         body: JSON.stringify(formData)
       });
       if (res.ok) {
+        success('Job posted successfully!');
         setShowModal(false);
         setFormData({
           title: '', description: '', requirements: '', location: '', isRemote: false, positions: 1, allowance: ''
         });
         fetchJobs();
+      } else {
+        showError('Failed to post job. Please check your input.');
       }
     } catch (error) {
+      showError('Network error. Please try again.');
       console.error(error);
     }
   };
