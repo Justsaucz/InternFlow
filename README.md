@@ -15,75 +15,71 @@ A modern, cloud-based platform connecting students, university administrators, a
 
 ## 🏗️ Architecture
 
+![InternFlow System Architecture](docs/architecture.jpg)
+
 ```text
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                              Amazon VPC                                      │
-│                                                                              │
-│  ┌─────────────┐     ┌──────────────────────────────────────────────────┐   │
-│  │ Amazon S3 + │     │           Amazon EC2 / ECS                       │   │
-│  │ CloudFront  │     │                                                  │   │
-│  │ (Frontend)  │     │  ┌─────────────────────────────────────────┐    │   │
-│  │             │     │  │  Backend Service (Node.js + Express)    │    │   │
-│  │ React Build │────▶│  │  REST API + Multer (S3 Upload)          │    │   │
-│  │ Static Site │     │  └────────────┬────────────────────────────┘    │   │
-│  └─────────────┘     │               │                                  │   │
-│                      │     ┌─────────▼─────────┐                       │   │
-│  ┌──────────┐        │     │  Elastic Load     │                       │   │
-│  │ Route 53 │────────│────▶│  Balancer (ALB)   │                       │   │
-│  │ (DNS)    │        │     └───────────────────┘                       │   │
-│  └──────────┘        └──────────────────────────────────────────────────┘   │
-│                                       │                                      │
-│                      ┌────────────────▼────────────────┐                    │
-│                      │   Amazon RDS PostgreSQL 16      │                    │
-│                      │   (Multi-AZ, managed database)  │                    │
-│                      └─────────────────────────────────┘                    │
-│                                                                              │
-│  Security Groups: Frontend SG ─ Backend SG ─ Database SG                   │
-└──────────────────────────────────────────────────────────────────────────────┘
-         │                              │
-         ▼                              ▼
-┌──────────────────┐   ┌────────────────────┐
-│ Amazon S3        │   │ Amazon CloudWatch  │
-│ (CV & Resume     │   │ (Monitoring &      │
-│  File Storage)   │   │  Logging)          │
-└──────────────────┘   └────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                  │
+│   Users / Browsers (Students, Company HR, University Admin)                      │
+│       │                                                                          │
+│       ▼                                                                          │
+│  ┌──────────┐                                                                    │
+│  │ Route 53 │ (DNS Resolution)                                                   │
+│  └────┬─────┘                                                                    │
+│       │                                                                          │
+│       ├─────────────────────────────────┐                                        │
+│       │ Path A: Static Assets           │ Path B: API Requests (/api/*)          │
+│       ▼                                 ▼                                        │
+│  ┌─────────────┐               ┌──────────────────────────────────────────────┐  │
+│  │ CloudFront  │ (Global CDN)  │                 Amazon VPC                   │  │
+│  └────┬────────┘               │                                              │  │
+│       │                        │   ┌──────────────────────────┐               │  │
+│       ▼                        │   │  Elastic Load Balancer   │ (Public       │  │
+│  ┌─────────────┐               │   │         (ALB)            │  Subnet)      │  │
+│  │  Amazon S3  │ (Frontend     │   └──────────┬───────────────┘               │  │
+│  │ (React App) │  Build)       │              │                               │  │
+│  └─────────────┘               │   ┌──────────▼───────────────┐               │  │
+│                                │   │     Amazon EC2 / ECS     │ (Private      │  │
+│                                │   │  Node.js + Express API   │  Subnet)      │  │
+│                                │   └──────────┬───────────────┘               │  │
+│                                │              │                               │  │
+│                                │   ┌──────────┴──────────┐                    │  │
+│                                │   │                     │                    │  │
+│                                │   ▼                     ▼                    │  │
+│                                │ ┌─────────────────┐   ┌────────────────────┐ │  │
+│                                │ │ Amazon RDS      │   │ Amazon S3          │ │  │
+│                                │ │ PostgreSQL 16   │   │ (File Storage)     │ │  │
+│                                │ │ (Prisma ORM)    │   │ (CV/Resume Upload) │ │  │
+│                                │ └─────────────────┘   └────────────────────┘ │  │
+│                                └──────────────────────────────────────────────┘  │
+│                                                                                  │
+│   Supporting Services: Amazon ECR ── Amazon CloudWatch ── AWS IAM                │
+└──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## ☁️ AWS Cloud Technology Components
 
-### Main Components
+### Main Components (Standalone Managed Cloud Services)
 
-| Component Name | AWS Service | Description |
-|---|---|---|
-| DNS Management | Amazon Route 53 | Domain name resolution and routing for the application |
-| Container Registry | Amazon ECR | Fully managed Docker container registry for backend images |
-| Application Hosting | Amazon EC2 / ECS | Virtual servers or serverless container hosting for the Node.js backend |
-| Frontend Hosting | Amazon S3 + CloudFront | Static site hosting with global CDN for fast React app delivery |
-| File Storage | Amazon S3 | Secure cloud storage for uploading student CVs and Resumes |
-| Database | Amazon RDS PostgreSQL | Managed relational database for users, jobs, and applications |
-| Load Balancing | Elastic Load Balancing (ALB) | Distributes traffic to the backend API |
-| Monitoring & Logging | Amazon CloudWatch | Application logs, performance metrics, and health alarms |
-
-### Micro Components
-
-| Component Name | Description |
+| Component Name | Descriptions |
 |---|---|
-| Amazon Virtual Private Cloud (VPC) | Isolated virtual network containing all AWS resources |
-| Security Groups | Firewall rules controlling inbound/outbound traffic per resource |
-| AWS Identity and Access Management (IAM) | Manages permissions for services, especially for S3 file uploads |
-| Elastic Load Balancing (ELB) | Distributes network traffic to improve application scalability |
+| **Amazon Route 53** | Domain Name System (DNS) service for domain name resolution and intelligent traffic routing. |
+| **Amazon CloudFront** | Content Delivery Network (CDN) service caching and delivering frontend static assets globally. |
+| **Amazon Simple Storage Service (S3)** | Scalable object storage service for frontend React hosting and student CV/resume file storage. |
+| **Amazon Elastic Container Service (ECS)** | Fully managed container orchestration service running backend Node.js application containers. |
+| **Amazon Elastic Container Registry (ECR)** | Fully managed Docker container registry for securely storing and managing application images. |
+| **Amazon Relational Database Service (RDS)** | Managed database service running PostgreSQL 16 for all relational data (Users, Jobs, Applications). |
+| **AWS Identity and Access Management (IAM)** | Centralized identity service managing access permissions, roles, and security credentials. |
+| **Amazon CloudWatch** | Observability and monitoring service collecting application logs, performance metrics, and alarms. |
 
-### Cloud Technology Summary
+### Micro Components (Infrastructure & Networking Primitives)
 
-| Component | Technology |
+| Component Name | Descriptions |
 |---|---|
-| **Application Hosting** | Node.js backend deployed on Amazon EC2 / ECS |
-| **Frontend Hosting** | React static build on Amazon S3 with CloudFront CDN |
-| **Database** | Amazon RDS PostgreSQL for structured relational data |
-| **File Storage** | Amazon S3 via `multer-s3` for handling multipart file uploads |
-| **Deployment** | Docker containers pushed to Amazon ECR, deployed via docker-compose/ECS |
-| **Monitoring & Reliability** | Amazon CloudWatch for logs and Elastic Load Balancing for uptime |
-| **Network & Security** | Amazon VPC with Security Groups and IAM policies |
+| **Amazon Virtual Private Cloud (VPC)** | Logically isolated virtual network boundary containing all backend compute and database resources. |
+| **Elastic Load Balancing (ELB / ALB)** | Network appliance component distributing incoming API requests across backend container targets. |
+| **Security Groups** | Stateful virtual firewalls controlling inbound/outbound port-level traffic for VPC resources. |
+| **Amazon Machine Images (AMI)** | Pre-configured operating system template (Ubuntu Linux) used for provisioning compute instances. |
 
 ## 🛠️ Tech Stack
 
