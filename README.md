@@ -98,6 +98,7 @@ A modern, cloud-based platform connecting students, university administrators, a
 | Load Balancer | Elastic Load Balancing (ALB) |
 | DNS | Amazon Route 53 |
 | Deployment | Docker + Docker Compose (local & EC2) |
+| Project Management | Jira Software (Agile Scrum Board & Sprint Tracking) |
 
 ## 🚀 Quick Start (Local Development)
 
