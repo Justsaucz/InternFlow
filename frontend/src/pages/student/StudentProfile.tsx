@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Book, Award, Building2, Calendar, Sparkles, User, Mail, GraduationCap, Edit3, X, Check } from 'lucide-react';
+import { Book, Award, Sparkles, User, Mail, GraduationCap, Edit3, X, Check } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
 interface StudentProfile {
