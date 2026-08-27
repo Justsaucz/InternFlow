@@ -7,9 +7,27 @@
   --color-primary-600: #0284c7;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Inter', system-ui, sans-serif;
   @apply bg-gray-50 text-gray-900;
+}
+
+/* ── Custom Micro-Animations ────────────────────────── */
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 3s ease-in-out infinite;
 }
 
 /* ── Toast Notification Animations ───────────────────── */
@@ -47,3 +65,4 @@ body {
 .toast-slide-out {
   animation: toast-slide-out 0.3s ease-in forwards;
 }
+
