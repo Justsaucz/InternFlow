@@ -47,5 +47,18 @@ services:
     depends_on:
       - backend
 
+  studio:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: internflow-studio
+    ports:
+      - "5555:5555"
+    environment:
+      - DATABASE_URL=postgresql://internflow:internflow_password@db:5432/internflow?schema=public
+    depends_on:
+      - db
+    command: npx tsx node_modules/prisma/build/index.js studio --browser none -p 5555
+
 volumes:
   postgres_data:
