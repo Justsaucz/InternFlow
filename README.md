@@ -1,17 +1,34 @@
 # 🎓💼 InternFlow — Multi-University Internship Management & Tracking Platform
 
-A modern, cloud-based platform connecting students, university administrators, and company HR professionals into a single seamless workflow for finding, applying, and approving internship placements — designed for deployment on **Amazon Web Services (AWS)**.
+A modern, cloud-based platform connecting students, university administrators, and company HR professionals into a single seamless workflow for finding, applying, managing, and evaluating internship placements — designed for deployment on **Amazon Web Services (AWS)**.
 
-## ✨ Features
+---
 
-- **Centralized Job Board** — Students can browse and search for active internship opportunities from partnered companies in a clean Card View format.
-- **One-Click Apply & S3 CV Upload** — Seamless application process allowing students to send their profile and upload their CVs directly to AWS S3.
-- **Real-Time Application Tracking** — Students monitor the status of their applications (Pending, Reviewing, Accepted, Rejected).
-- **Dynamic Role-Based Dashboards** — Real-time analytics and live activity feeds tailored for Students, HRs, and University Admins (`/api/dashboard/stats`).
-- **HR Applicant Review Pipeline** — Company HR can post jobs, review student profiles, preview uploaded CVs directly, and manage application statuses.
-- **University Approval Workflow** — University administrators monitor student progress and officially approve verified internship placements.
-- **Database Integrity & Anti-Duplication** — Enforced Prisma compound unique constraints preventing race-condition duplicate submissions.
-- **Role-Based Access Control (RBAC)** — Secure authentication system separating Student, Company HR, and University Admin workflows.
+## ✨ Key Features
+
+### 1. 🔍 Job Board & Application Pipeline
+- **Centralized Job Board** — Students can browse, filter, and search active internship opportunities from partnered corporate employers in an interactive card view.
+- **One-Click Apply with AWS S3 Upload** — Seamless application submission with direct CV/Resume upload to Amazon S3 storage.
+- **Real-Time Application Status Pipeline** — Multi-stage status lifecycle (`PENDING` ➔ `REVIEWING` ➔ `ACCEPTED` ➔ `APPROVED_BY_UNIVERSITY` or `REJECTED`).
+- **Dynamic Role-Based Dashboards** — Tailored analytics, live statistics, and recent activity feeds for Students, Company HR, and University Admins (`/api/dashboard/stats`).
+
+### 2. 📝 Operational Weekly Logbook & Journal
+- **Dynamic Pin-Point Deliverables** — Students record itemized Planned Objectives and Actual Completed Deliverables with dynamic bullet lists.
+- **Attendance & Work Modality** — Track work modality per week (`🏢 On-site`, `💻 Remote / WFH`, `🔄 Hybrid`).
+- **Supervisor Tracking & Problem-Solving** — Log direct supervisor name, troubleshooting challenges/solutions, and technical learnings.
+- **Labeled Multi-Link Artifacts** — Attach multiple deliverables (GitHub Pull Requests, Figma designs, Google Docs, Timesheet PDFs) with customizable labels.
+
+### 3. 🔍 Dual Verification & Review Workflow
+- **Company Mentor Sign-off & Weekly Rating** — Employers review weekly logs, award a 1–5 star weekly rating (★), provide mentor feedback, and sign off (`Approved by Company Mentor ✓`).
+- **Faculty Advisor Academic Verification** — University staff inspect weekly records, provide academic advice, and verify curricular alignment (`Faculty Verified ✓`).
+- **Complete Artifact Visibility** — Mentors and faculty can inspect all attached artifact links directly from their review drawers.
+
+### 4. 🏆 Employer Rubric & University Academic Grading
+- **3-Stage Employer Performance Rubric** — Companies evaluate interns on **Work Quality**, **Punctuality & Responsibility**, and **Communication & Teamwork** (1–5 Stars) with qualitative remarks.
+- **Academic Letter Grading (A–F)** — University administrators assign official course letter grades (`A`, `B+`, `B`, `C+`, `C`, `D+`, `D`, `F`).
+- **Official Completion Certificate & Report** — Printable official completion document (`window.print()`) consolidating verified hours, dual verification history, employer rubric scores, and university grading.
+
+---
 
 ## 🏗️ Architecture
 
@@ -57,6 +74,8 @@ A modern, cloud-based platform connecting students, university administrators, a
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+---
+
 ## ☁️ AWS Cloud Technology Components
 
 ### Main Components (Standalone Managed Cloud Services)
@@ -68,7 +87,7 @@ A modern, cloud-based platform connecting students, university administrators, a
 | **Amazon Simple Storage Service (S3)** | Scalable object storage service for frontend React hosting and student CV/resume file storage. |
 | **Amazon Elastic Container Service (ECS)** | Fully managed container orchestration service running backend Node.js application containers. |
 | **Amazon Elastic Container Registry (ECR)** | Fully managed Docker container registry for securely storing and managing application images. |
-| **Amazon Relational Database Service (RDS)** | Managed database service running PostgreSQL 16 for all relational data (Users, Jobs, Applications). |
+| **Amazon Relational Database Service (RDS)** | Managed database service running PostgreSQL 16 for all relational data (Users, Jobs, Applications, Logbooks). |
 | **AWS Identity and Access Management (IAM)** | Centralized identity service managing access permissions, roles, and security credentials. |
 | **Amazon CloudWatch** | Observability and monitoring service collecting application logs, performance metrics, and alarms. |
 
@@ -81,20 +100,23 @@ A modern, cloud-based platform connecting students, university administrators, a
 | **Security Groups** | Stateful virtual firewalls controlling inbound/outbound port-level traffic for VPC resources. |
 | **Amazon Machine Images (AMI)** | Pre-configured operating system template (Ubuntu Linux) used for provisioning compute instances. |
 
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, Lucide React |
-| Backend | Node.js, Express, TypeScript |
-| File Uploads | Multer, AWS SDK v3 (`@aws-sdk/client-s3`), `multer-s3` |
-| Database | Amazon RDS PostgreSQL + Prisma ORM |
-| Application Hosting | Amazon EC2 / Amazon ECS |
-| Frontend Hosting | Amazon S3 + Amazon CloudFront |
-| Load Balancer | Elastic Load Balancing (ALB) |
-| DNS | Amazon Route 53 |
-| Deployment | Docker + Docker Compose (local & EC2) |
-| Project Management | Jira Software (Agile Scrum Board & Sprint Tracking) |
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, Lucide React |
+| **Backend** | Node.js, Express 5, TypeScript |
+| **File Uploads** | Multer, AWS SDK v3 (`@aws-sdk/client-s3`), `multer-s3` |
+| **Database & ORM** | PostgreSQL 16 on Amazon RDS + Prisma 7 ORM |
+| **Application Hosting** | Amazon EC2 / Amazon ECS Fargate |
+| **Frontend Hosting** | Amazon S3 + Amazon CloudFront CDN |
+| **Load Balancer & DNS** | AWS Application Load Balancer (ALB) + Amazon Route 53 |
+| **Containerization** | Docker + Docker Compose (local development & production) |
+| **Project Management** | Jira Software (Agile Scrum Board & Sprint Tracking) |
+
+---
 
 ## 🚀 Quick Start (Local Development)
 
@@ -104,108 +126,37 @@ A modern, cloud-based platform connecting students, university administrators, a
 - Docker & Docker Compose
 - AWS Account & Credentials (Optional for local dev, required for S3 uploads)
 
-### Docker Compose (Recommended)
+### Running with Docker Compose
 
 ```bash
-# 1. Clone and configure
+# 1. Clone the repository
 git clone https://github.com/Justsaucz/InternFlow.git
 cd InternFlow
-cp backend/.env.example backend/.env
-# Edit .env to add your AWS Keys and JWT Secret
 
-# 2. Start everything
+# 2. Configure environment variables
+cp backend/.env.example backend/.env
+
+# 3. Start all services (Database, Backend API, Frontend App, Prisma Studio)
 docker compose up -d --build
 
-# 3. Setup Database Schema
-cd backend
-npx prisma migrate deploy
-
-# 4. Open the app
-# Frontend: http://localhost:3000
-# Backend:  http://localhost:4000
+# 4. Access the platform
+# Frontend:      http://localhost:3000
+# Backend API:   http://localhost:4000
+# Prisma Studio: http://localhost:5555
 ```
 
-### First Use
+---
 
-1. Open `http://localhost:3000`
-2. Register an account (Choose Student, Company HR, or University Admin)
-3. **Company**: Post a new internship position.
-4. **Student**: Browse jobs, upload CV/Resume, and submit an application.
-5. **Company**: Review applicants, inspect uploaded CVs, and click "Accept".
-6. **University**: Review placed students and click "Approve Placement" for academic validation.
+## 🔗 REST API Endpoints
 
-## 📂 Project Structure
-
-```text
-├── docker-compose.yml          # Local dev orchestration (mirrors EC2 setup)
-│
-├── backend/
-│   ├── .env.example            # Environment variables template (AWS Keys, DB)
-│   ├── Dockerfile              # Backend build definition
-│   ├── prisma/schema.prisma    # Database schema (User, JobPost, Application, Document)
-│   └── src/
-│       ├── index.ts            # Express server entry point
-│       ├── middleware/         # Auth (JWT) & Role verification
-│       ├── routes/             # REST API (auth, dashboard, jobs, applications, student, admin, upload)
-│       └── types/              # TypeScript interfaces
-│
-├── frontend/
-│   ├── Dockerfile              # Frontend build stage
-│   └── src/
-│       ├── App.tsx             # Root with routing
-│       ├── index.css           # Tailwind configurations
-│       ├── components/         # Reusable UI components
-│       └── pages/              # Role-specific Dashboards & Landing Page
-│           ├── admin/          # University workflows (Approvals, Directory)
-│           ├── company/        # HR workflows (Job creation, Applicant review)
-│           ├── student/        # Job search, My applications, Profile
-│           └── Home.tsx        # Modern Landing Page
-```
-
-## ☁️ AWS Deployment Guide
-
-### Step 1: Push Docker Image or Clone on EC2
-
-The simplest deployment method is provisioning an **Amazon EC2** instance (Ubuntu 24.04, t3.small), installing Docker, and cloning this repository directly.
-
-```bash
-ssh -i "path/to/key.pem" ubuntu@<EC2_IP>
-git clone https://github.com/Justsaucz/InternFlow.git
-cd InternFlow
-cp backend/.env.example backend/.env
-# Edit .env with your RDS URL and S3 Bucket Keys
-docker compose up -d --build
-```
-
-### Step 2: Configure Amazon S3 for File Uploads
-
-1. Go to AWS S3 and create a bucket (e.g., `internflow-bucket`).
-2. Go to AWS IAM and create a user with programmatic access.
-3. Attach the `AmazonS3FullAccess` policy (or a custom restricted policy).
-4. Copy the `Access Key` and `Secret Key` into your `.env` file.
-
-### Step 3: Setup Amazon RDS PostgreSQL
-
-```bash
-aws rds create-db-instance \
-  --db-instance-identifier internflow-db \
-  --engine postgres \
-  --engine-version 16 \
-  --db-instance-class db.t3.micro \
-  --allocated-storage 20 \
-  --master-username admin \
-  --master-user-password <STRONG_PASSWORD> \
-  --vpc-security-group-ids <DB_SG_ID>
-```
-Once created, update your `DATABASE_URL` in the `.env` file to point to this RDS endpoint.
-
-## 🔗 REST API
-
-Key endpoints:
-- `POST /api/auth/register` — Register a new user (Student/HR/Admin)
+### Authentication & Profiles
+- `POST /api/auth/register` — Register a new user (Student / Company HR / University Admin)
 - `POST /api/auth/login` — Authenticate and receive JWT
-- `GET /api/dashboard/stats` — Role-based live analytics & activity metrics
-- `POST /api/upload` — Upload CV/Resume to AWS S3 (Returns S3 URL)
+- `GET /api/student/profile` — Fetch student academic profile
+- `PUT /api/student/profile` — Update student profile & skills
+- `GET /api/admin/students` — University student directory
+
+### Job Postings & Applications
 - `GET /api/jobs` — List all active job postings
 - `POST /api/jobs` — Create a new job posting (HR only)
 - `GET /api/jobs/company` — List jobs posted by logged-in HR
@@ -213,39 +164,37 @@ Key endpoints:
 - `GET /api/applications/my` — Student view of submitted applications
 - `GET /api/applications/company` — Company HR view of incoming applicants
 - `PATCH /api/applications/:id/status` — Accept or Reject an applicant (HR)
-- `GET /api/applications/university` — University Admin view of student placements
-- `PATCH /api/applications/:id/approve` — Final approval of placement (Uni Admin)
-- `GET /api/student/profile` — Fetch student academic profile
-- `PUT /api/student/profile` — Update student profile & skills
-- `GET /api/admin/students` — University student directory
+- `PATCH /api/applications/:id/approve` — Final approval of placement (University Admin)
 
-## 🔒 Security
+### Weekly Logbook & Dual Verification
+- `POST /api/logbook` — Student creates or updates a weekly log with pin points & modality
+- `GET /api/logbook/my` — Student fetches own weekly logbook entries & hour gauge
+- `GET /api/logbook/student/:studentId` — Company HR or University Admin inspects student weekly logs
+- `PUT /api/logbook/:id/approve` — Company HR signs off on weekly log with 1–5★ rating & feedback
+- `PUT /api/logbook/:id/faculty-verify` — University Admin verifies weekly log with academic remarks
+- `DELETE /api/logbook/:id` — Student deletes a weekly log entry
 
-- **Role-Based Access Control (RBAC)**: Strict API route protection ensuring Students cannot access HR routes, and HR cannot approve internships.
-- **JWT Auth**: Tokens used for session management.
-- **Password Hashing**: `bcrypt` used for securing user credentials.
-- **IAM Policies**: AWS SDK uses dedicated IAM keys with least-privilege access for S3 uploads.
-- **Network Isolation**: EC2/RDS deployed in VPC with restricted Security Groups.
+### Performance Evaluation & Grading
+- `GET /api/evaluations/company` — Active interns roster & evaluation statuses for HR
+- `POST /api/evaluations/submit` — HR submits 3-category rubric evaluation (1–5★)
+- `GET /api/evaluations/admin` — University-wide student placement tracking & evaluation overview
+- `PUT /api/evaluations/:id/grade` — University Admin awards final letter grade (A–F)
+- `GET /api/evaluations/report/:studentId` — Generate official printable internship completion report
 
-## 📈 Scalability on AWS
-
-| Concern | AWS Solution |
-|---|---|
-| Multiple server instances | Migrate from single EC2 to ECS Fargate with auto-scaling |
-| File Storage | Amazon S3 ensures infinite scalability for CV uploads |
-| Database performance | Amazon RDS Multi-AZ with read replicas |
-| Global latency | CloudFront CDN for frontend static assets |
+---
 
 ## 👥 Team Responsibilities
 
 | Person | Area |
 |---|---|
 | 1 | Frontend Dashboards (Student, HR, University UI) |
-| 2 | Backend Auth & RBAC Logic |
-| 3 | Database Design (Prisma Schema) & Workflows |
+| 2 | Backend Auth, RBAC Logic & Security |
+| 3 | Database Design (Prisma Schema) & Placement Workflows |
 | 4 | File Upload Integration (Multer + AWS S3) |
-| 5 | DevOps & AWS infrastructure (EC2, RDS, S3, Docker) |
-| 6 | Testing/QA + Documentation |
+| 5 | DevOps & AWS Cloud Infrastructure (EC2, RDS, S3, Docker) |
+| 6 | Testing/QA, Logbook & Dual Verification System, Documentation |
+
+---
 
 ## 📄 License
 
