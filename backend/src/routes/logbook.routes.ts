@@ -131,6 +131,35 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
   }
 });
 
+// DELETE /api/logbook/:id - Student deletes a weekly log
+router.delete('/:id', authenticate, authorize([Role.STUDENT]), async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = req.params.id as string;
+    const userId = req.user?.userId;
+
+    const student = await prisma.studentProfile.findUnique({
+      where: { userId }
+    });
+
+    if (!student) {
+      res.status(404).json({ error: 'Student profile not found.' });
+      return;
+    }
+
+    const log = await prisma.weeklyLog.findUnique({ where: { id } });
+    if (!log || log.studentId !== student.id) {
+      res.status(404).json({ error: 'Log entry not found or unauthorized.' });
+      return;
+    }
+
+    await prisma.weeklyLog.delete({ where: { id } });
+    res.json({ message: 'Log entry deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting weekly log:', error);
+    res.status(500).json({ error: 'Failed to delete weekly log.' });
+  }
+});
+
 // GET /api/logbook/student/:studentId - Company HR or Admin views a student's logs
 router.get('/student/:studentId', authenticate, authorize([Role.COMPANY_HR, Role.UNIVERSITY_ADMIN]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {

@@ -8,7 +8,9 @@ import {
   Building2, 
   ExternalLink, 
   X, 
-  Printer
+  Printer,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
@@ -41,9 +43,11 @@ export default function StudentLogbook() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { success, error: showError } = useToast();
 
   // Form State
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [weekNumber, setWeekNumber] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -77,7 +81,56 @@ export default function StudentLogbook() {
     }
   };
 
-  const handleCreateLog = async (e: React.FormEvent) => {
+  const handleOpenCreate = () => {
+    setEditingId(null);
+    const nextWeek = data?.logs && data.logs.length > 0 ? data.logs.length + 1 : 1;
+    setWeekNumber(nextWeek);
+    setStartDate('');
+    setEndDate('');
+    setTasksDone('');
+    setLearnings('');
+    setHoursWorked(40);
+    setAttachmentUrl('');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (log: WeeklyLog) => {
+    setEditingId(log.id);
+    setWeekNumber(log.weekNumber);
+    setStartDate(log.startDate ? new Date(log.startDate).toISOString().split('T')[0] : '');
+    setEndDate(log.endDate ? new Date(log.endDate).toISOString().split('T')[0] : '');
+    setTasksDone(log.tasksDone || '');
+    setLearnings(log.learnings || '');
+    setHoursWorked(log.hoursWorked || 40);
+    setAttachmentUrl(log.attachmentUrl || '');
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteLog = async (logId: string) => {
+    if (!window.confirm('Are you sure you want to delete this weekly log entry?')) return;
+    setDeletingId(logId);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/${logId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        success('Weekly log deleted successfully!');
+        fetchLogbook();
+      } else {
+        const err = await res.json();
+        showError(err.error || 'Failed to delete weekly log');
+      }
+    } catch (error) {
+      showError('Network error deleting weekly log');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleCreateOrUpdateLog = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
@@ -89,6 +142,7 @@ export default function StudentLogbook() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
+          id: editingId || undefined,
           weekNumber,
           startDate,
           endDate,
@@ -100,8 +154,9 @@ export default function StudentLogbook() {
       });
 
       if (res.ok) {
-        success('Weekly log saved successfully!');
+        success(editingId ? 'Weekly log updated successfully!' : 'Weekly log saved successfully!');
         setIsModalOpen(false);
+        setEditingId(null);
         setTasksDone('');
         setLearnings('');
         setAttachmentUrl('');
@@ -165,7 +220,7 @@ export default function StudentLogbook() {
           )}
 
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleOpenCreate}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs shadow-md shadow-primary-500/20 hover:from-primary-700 hover:to-indigo-700 transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -291,6 +346,25 @@ export default function StudentLogbook() {
                         Awaiting Sign-off
                       </span>
                     )}
+
+                    {/* Edit & Delete Action Buttons */}
+                    <div className="flex items-center gap-1 pl-2 border-l border-slate-200">
+                      <button
+                        onClick={() => handleOpenEdit(log)}
+                        title="Edit Weekly Log"
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-white border border-transparent hover:border-slate-200 transition-all"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLog(log.id)}
+                        disabled={deletingId === log.id}
+                        title="Delete Weekly Log"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-red-200 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -343,7 +417,7 @@ export default function StudentLogbook() {
         )}
       </div>
 
-      {/* ── Add Weekly Log Modal ───────────────────────────────────────────── */}
+      {/* ── Add / Edit Weekly Log Modal ────────────────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
@@ -352,7 +426,9 @@ export default function StudentLogbook() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-primary-400">
                   Internship Logbook
                 </span>
-                <h3 className="text-lg font-extrabold text-white">Record Weekly Entry</h3>
+                <h3 className="text-lg font-extrabold text-white">
+                  {editingId ? `Edit Weekly Log (Week ${weekNumber})` : 'Record Weekly Entry'}
+                </h3>
               </div>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -362,7 +438,7 @@ export default function StudentLogbook() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateLog} className="p-7 space-y-5">
+            <form onSubmit={handleCreateOrUpdateLog} className="p-7 space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
@@ -475,7 +551,7 @@ export default function StudentLogbook() {
                   disabled={submitting}
                   className="flex-1 px-5 py-3 bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs rounded-xl hover:from-primary-700 hover:to-indigo-700 shadow-md shadow-primary-500/20"
                 >
-                  {submitting ? 'Saving...' : 'Save Weekly Log'}
+                  {submitting ? 'Saving...' : editingId ? 'Update Weekly Log' : 'Save Weekly Log'}
                 </button>
               </div>
             </form>

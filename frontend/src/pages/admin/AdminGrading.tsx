@@ -38,7 +38,7 @@ export default function AdminGrading() {
   const [reportLoading, setReportLoading] = useState(false);
 
   // Grade Form State
-  const [finalGrade, setFinalGrade] = useState('S');
+  const [finalGrade, setFinalGrade] = useState('A');
   const [remarks, setRemarks] = useState('');
   const [savingGrade, setSavingGrade] = useState(false);
   const { success, error: showError } = useToast();
@@ -69,10 +69,10 @@ export default function AdminGrading() {
   const handleOpenGrading = (placement: PlacementItem) => {
     setSelectedPlacement(placement);
     if (placement.evaluation) {
-      setFinalGrade(placement.evaluation.finalGrade || 'S');
+      setFinalGrade(placement.evaluation.finalGrade || 'A');
       setRemarks(placement.evaluation.universityRemarks || '');
     } else {
-      setFinalGrade('S');
+      setFinalGrade('A');
       setRemarks('');
     }
     setGradingModalOpen(true);
@@ -338,10 +338,10 @@ export default function AdminGrading() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  Awarded Grade
+                  Awarded Grade (D to A)
                 </label>
                 <div className="grid grid-cols-4 gap-2">
-                  {['S', 'U', 'A', 'B+', 'B', 'C+', 'C', 'D'].map((g) => (
+                  {['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F'].map((g) => (
                     <button
                       key={g}
                       type="button"
