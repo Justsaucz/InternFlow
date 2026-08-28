@@ -65,6 +65,8 @@ model StudentProfile {
   bio          String?
   
   applications Application[]
+  weeklyLogs   WeeklyLog[]
+  evaluations  InternshipEvaluation[]
 }
 
 model CompanyProfile {
@@ -80,6 +82,7 @@ model CompanyProfile {
   address     String?
   
   jobPosts    JobPost[]
+  evaluations InternshipEvaluation[]
 }
 
 model JobPost {
@@ -118,6 +121,8 @@ model Application {
   updatedAt      DateTime          @updatedAt
   
   documents      Document[]
+  weeklyLogs     WeeklyLog[]
+  evaluation     InternshipEvaluation?
 
   @@unique([studentId, jobPostId])
 }
@@ -135,3 +140,53 @@ model Document {
   
   createdAt     DateTime     @default(now())
 }
+
+model WeeklyLog {
+  id             String         @id @default(uuid())
+  studentId      String
+  student        StudentProfile @relation(fields: [studentId], references: [id])
+  applicationId  String?
+  application    Application?   @relation(fields: [applicationId], references: [id])
+  
+  weekNumber     Int
+  startDate      DateTime
+  endDate        DateTime
+  tasksDone      String
+  learnings      String
+  hoursWorked    Float          @default(40.0)
+  attachmentUrl  String?
+  mentorApproved Boolean        @default(false)
+  mentorFeedback String?
+  
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+enum EvaluationStatus {
+  PENDING_REVIEW
+  COMPANY_EVALUATED
+  GRADED
+}
+
+model InternshipEvaluation {
+  id                 String           @id @default(uuid())
+  studentId          String
+  student            StudentProfile   @relation(fields: [studentId], references: [id])
+  companyId          String
+  company            CompanyProfile   @relation(fields: [companyId], references: [id])
+  applicationId      String?          @unique
+  application        Application?     @relation(fields: [applicationId], references: [id])
+  
+  workQualityScore   Int              @default(5)
+  punctualityScore   Int              @default(5)
+  teamworkScore      Int              @default(5)
+  feedback           String
+  
+  status             EvaluationStatus @default(COMPANY_EVALUATED)
+  finalGrade         String?          // e.g., "S", "U", "A", "B+", "A-"
+  universityRemarks  String?
+  
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+

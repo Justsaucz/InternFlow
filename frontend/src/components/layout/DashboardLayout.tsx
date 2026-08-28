@@ -11,7 +11,9 @@ import {
   Building2, 
   ShieldCheck,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  BookOpen,
+  Award
 } from 'lucide-react';
 
 interface UserData {
@@ -66,6 +68,7 @@ export default function DashboardLayout() {
           { name: 'Dashboard', href: '/dashboard', icon: Home },
           { name: 'Find Internships', href: '/dashboard/jobs', icon: Briefcase },
           { name: 'My Applications', href: '/dashboard/applications', icon: FileText },
+          { name: 'Weekly Logbook', href: '/dashboard/logbook', icon: BookOpen },
           { name: 'My Profile', href: '/dashboard/profile', icon: User },
         ];
       case 'COMPANY_HR':
@@ -73,12 +76,14 @@ export default function DashboardLayout() {
           { name: 'Dashboard', href: '/dashboard', icon: Home },
           { name: 'Job Postings', href: '/dashboard/jobs/manage', icon: Briefcase },
           { name: 'Applicants', href: '/dashboard/applicants', icon: Users },
+          { name: 'Intern Evaluations', href: '/dashboard/evaluations', icon: Award },
         ];
       case 'UNIVERSITY_ADMIN':
         return [
           { name: 'Dashboard', href: '/dashboard', icon: Home },
           { name: 'Students', href: '/dashboard/students', icon: Users },
           { name: 'Approval Requests', href: '/dashboard/approvals', icon: FileText },
+          { name: 'Grading & Reports', href: '/dashboard/grading', icon: Award },
         ];
       default:
         return [];

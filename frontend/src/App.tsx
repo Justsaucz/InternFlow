@@ -12,6 +12,10 @@ import CompanyApplicants from './pages/company/CompanyApplicants';
 import AdminStudents from './pages/admin/AdminStudents';
 import AdminApprovals from './pages/admin/AdminApprovals';
 
+import StudentLogbook from './pages/student/StudentLogbook';
+import CompanyEvaluations from './pages/company/CompanyEvaluations';
+import AdminGrading from './pages/admin/AdminGrading';
+
 import Home from './pages/Home';
 
 function App() {
@@ -30,15 +34,18 @@ function App() {
             {/* Student Routes */}
             <Route path="jobs" element={<JobSearch />} />
             <Route path="applications" element={<MyApplications />} />
+            <Route path="logbook" element={<StudentLogbook />} />
             <Route path="profile" element={<StudentProfile />} />
             
             {/* Company Routes */}
             <Route path="jobs/manage" element={<JobManagement />} />
             <Route path="applicants" element={<CompanyApplicants />} />
+            <Route path="evaluations" element={<CompanyEvaluations />} />
 
             {/* Admin Routes */}
             <Route path="students" element={<AdminStudents />} />
             <Route path="approvals" element={<AdminApprovals />} />
+            <Route path="grading" element={<AdminGrading />} />
           </Route>
         </Routes>
       </Router>

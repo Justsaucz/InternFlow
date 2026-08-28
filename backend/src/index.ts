@@ -15,6 +15,8 @@ import adminRoutes from './routes/admin.routes';
 import uploadRoutes from './routes/upload.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import universityRoutes from './routes/university.routes';
+import logbookRoutes from './routes/logbook.routes';
+import evaluationRoutes from './routes/evaluation.routes';
 import path from 'path';
 
 app.use(cors());
@@ -35,6 +37,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/universities', universityRoutes);
+app.use('/api/logbook', logbookRoutes);
+app.use('/api/evaluations', evaluationRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
