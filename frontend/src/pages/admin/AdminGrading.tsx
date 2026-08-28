@@ -338,7 +338,7 @@ export default function AdminGrading() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  Awarded Grade (D to A)
+                  Awarded Grade (A-F)
                 </label>
                 <div className="grid grid-cols-4 gap-2">
                   {['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F'].map((g) => (
