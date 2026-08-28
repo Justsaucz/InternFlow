@@ -67,7 +67,11 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
       weekNumber, 
       startDate, 
       endDate, 
+      workModality,
+      supervisorName,
+      plannedTasks,
       tasksDone, 
+      problemsAndSolutions,
       learnings, 
       hoursWorked, 
       attachmentUrl 
@@ -99,7 +103,11 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
           weekNumber: Number(weekNumber),
           startDate: new Date(startDate),
           endDate: new Date(endDate),
+          workModality: workModality || 'ON_SITE',
+          supervisorName: supervisorName || null,
+          plannedTasks: plannedTasks || null,
           tasksDone,
+          problemsAndSolutions: problemsAndSolutions || null,
           learnings,
           hoursWorked: Number(hoursWorked) || 40.0,
           attachmentUrl: attachmentUrl || null
@@ -117,7 +125,11 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
         weekNumber: Number(weekNumber),
         startDate: new Date(startDate),
         endDate: new Date(endDate),
+        workModality: workModality || 'ON_SITE',
+        supervisorName: supervisorName || null,
+        plannedTasks: plannedTasks || null,
         tasksDone,
+        problemsAndSolutions: problemsAndSolutions || null,
         learnings,
         hoursWorked: Number(hoursWorked) || 40.0,
         attachmentUrl: attachmentUrl || null
@@ -185,12 +197,14 @@ router.get('/student/:studentId', authenticate, authorize([Role.COMPANY_HR, Role
 
     const totalHours = logs.reduce((acc, log) => acc + log.hoursWorked, 0);
     const approvedHours = logs.filter(l => l.mentorApproved).reduce((acc, log) => acc + log.hoursWorked, 0);
+    const facultyVerifiedCount = logs.filter(l => l.facultyVerified).length;
 
     res.json({
       student,
       logs,
       totalHours,
       approvedHours,
+      facultyVerifiedCount,
       targetHours: 400
     });
   } catch (error) {
@@ -199,17 +213,18 @@ router.get('/student/:studentId', authenticate, authorize([Role.COMPANY_HR, Role
   }
 });
 
-// PUT /api/logbook/:id/approve - Company HR approves a weekly log
+// PUT /api/logbook/:id/approve - Company HR approves a weekly log with rating
 router.put('/:id/approve', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const id = req.params.id as string;
-    const { mentorFeedback } = req.body;
+    const { mentorFeedback, mentorRating } = req.body;
 
     const updated = await prisma.weeklyLog.update({
       where: { id },
       data: {
         mentorApproved: true,
-        mentorFeedback: mentorFeedback || null
+        mentorFeedback: mentorFeedback || null,
+        mentorRating: mentorRating ? Number(mentorRating) : null
       }
     });
 
@@ -217,6 +232,28 @@ router.put('/:id/approve', authenticate, authorize([Role.COMPANY_HR]), async (re
   } catch (error) {
     console.error('Error approving weekly log:', error);
     res.status(500).json({ error: 'Failed to approve weekly log.' });
+  }
+});
+
+// PUT /api/logbook/:id/faculty-verify - University Admin verifies a weekly log with remarks
+router.put('/:id/faculty-verify', authenticate, authorize([Role.UNIVERSITY_ADMIN]), async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = req.params.id as string;
+    const { facultyRemarks } = req.body;
+
+    const updated = await prisma.weeklyLog.update({
+      where: { id },
+      data: {
+        facultyVerified: true,
+        facultyRemarks: facultyRemarks || null,
+        facultyVerifiedAt: new Date()
+      }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Error verifying weekly log by faculty:', error);
+    res.status(500).json({ error: 'Failed to verify weekly log.' });
   }
 });
 

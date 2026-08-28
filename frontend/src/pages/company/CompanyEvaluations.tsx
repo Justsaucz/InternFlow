@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { 
   Users, 
   CheckCircle2, 
-  X 
+  X,
+  Calendar,
+  Laptop,
+  Building,
+  RefreshCw,
+  UserCheck
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
@@ -37,16 +42,18 @@ export default function CompanyEvaluations() {
   const [logsLoading, setLogsLoading] = useState(false);
   const { success, error: showError } = useToast();
 
-  // Evaluation Form State
+  // Final Evaluation Rubric State
   const [workQuality, setWorkQuality] = useState(5);
   const [punctuality, setPunctuality] = useState(5);
   const [teamwork, setTeamwork] = useState(5);
   const [feedback, setFeedback] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Mentor Sign-off State
-  const [approvingId, setApprovingId] = useState<string | null>(null);
-  const [mentorFeedback, setMentorFeedback] = useState('');
+  // Weekly Log Sign-off State
+  const [approvingLogId, setApprovingLogId] = useState<string | null>(null);
+  const [logWeeklyRating, setLogWeeklyRating] = useState<number>(5);
+  const [logMentorFeedback, setLogMentorFeedback] = useState<string>('');
+  const [approvingSubmitting, setApprovingSubmitting] = useState(false);
 
   useEffect(() => {
     fetchInterns();
@@ -142,24 +149,29 @@ export default function CompanyEvaluations() {
     }
   };
 
-  const handleApproveLog = async (logId: string) => {
-    setApprovingId(logId);
+  const handleApproveLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!approvingLogId) return;
+    setApprovingSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/${logId}/approve`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/${approvingLogId}/approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          mentorFeedback: mentorFeedback || 'Work verified and approved.'
+          mentorFeedback: logMentorFeedback || 'Work verified and approved by company mentor.',
+          mentorRating: logWeeklyRating
         })
       });
 
       if (res.ok) {
-        success('Weekly log approved!');
-        setMentorFeedback('');
+        success('Weekly log signed off with rating!');
+        setApprovingLogId(null);
+        setLogMentorFeedback('');
+        setLogWeeklyRating(5);
         if (selectedForLogs) {
           openLogsDrawer(selectedForLogs);
         }
@@ -168,7 +180,18 @@ export default function CompanyEvaluations() {
     } catch (error) {
       showError('Error approving weekly log');
     } finally {
-      setApprovingId(null);
+      setApprovingSubmitting(false);
+    }
+  };
+
+  const getModalityBadge = (modality: string) => {
+    switch (modality) {
+      case 'REMOTE':
+        return { label: 'Remote / WFH', icon: Laptop, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+      case 'HYBRID':
+        return { label: 'Hybrid', icon: RefreshCw, color: 'bg-purple-50 text-purple-700 border-purple-200' };
+      default:
+        return { label: 'On-site', icon: Building, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     }
   };
 
@@ -196,11 +219,11 @@ export default function CompanyEvaluations() {
           Active Interns & Evaluations
         </h2>
         <p className="text-sm text-slate-500 mt-1">
-          Inspect student logbooks, acknowledge weekly hours, and submit competency assessments.
+          Inspect student logbooks, rate weekly performance (1-5★), sign off on attendance, and submit competency assessments.
         </p>
       </div>
 
-      {/* ── Interns Table / Cards ──────────────────────────────────────────── */}
+      {/* ── Interns Grid Cards ─────────────────────────────────────────────── */}
       {interns.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {interns.map((item) => {
@@ -258,7 +281,7 @@ export default function CompanyEvaluations() {
                     onClick={() => openLogsDrawer(item)}
                     className="flex-1 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
                   >
-                    View Logs
+                    Review Logs
                   </button>
                   <button
                     onClick={() => openEvaluationModal(item)}
@@ -281,7 +304,7 @@ export default function CompanyEvaluations() {
         </div>
       )}
 
-      {/* ── Rubric Evaluation Modal ────────────────────────────────────────── */}
+      {/* ── Rubric Final Evaluation Modal ──────────────────────────────────── */}
       {selectedIntern && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
@@ -420,68 +443,183 @@ export default function CompanyEvaluations() {
       {/* ── Student Weekly Logs Drawer / Modal ─────────────────────────────── */}
       {selectedForLogs && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
             <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-primary-400">
-                  Weekly Logbook Review
+                  Weekly Logbook Review & Sign-off
                 </span>
                 <h3 className="text-lg font-extrabold text-white">
-                  {selectedForLogs.student.user.name}
+                  {selectedForLogs.student.user.name} ({selectedForLogs.student.studentId})
                 </h3>
               </div>
               <button 
-                onClick={() => setSelectedForLogs(null)}
+                onClick={() => { setSelectedForLogs(null); setApprovingLogId(null); }}
                 className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-7 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="p-7 space-y-6 max-h-[75vh] overflow-y-auto">
               {logsLoading ? (
                 <div className="flex justify-center py-10">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
               ) : studentLogs.length > 0 ? (
-                <div className="space-y-4">
-                  {studentLogs.map((log) => (
-                    <div key={log.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="font-extrabold text-sm text-slate-900">
-                          Week {log.weekNumber} ({new Date(log.startDate).toLocaleDateString()} - {new Date(log.endDate).toLocaleDateString()})
-                        </span>
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white border border-slate-200 text-primary-600">
-                          {log.hoursWorked} Hours
-                        </span>
-                      </div>
+                <div className="space-y-5">
+                  {studentLogs.map((log) => {
+                    const modalityInfo = getModalityBadge(log.workModality);
+                    const ModalityIcon = modalityInfo.icon;
 
-                      <div className="text-xs text-slate-700 bg-white p-3.5 rounded-xl border border-slate-100">
-                        <p className="font-bold text-primary-600 mb-1">Tasks Done:</p>
-                        <p className="leading-relaxed">{log.tasksDone}</p>
-                        <p className="font-bold text-indigo-600 mt-2 mb-1">Learnings:</p>
-                        <p className="leading-relaxed">{log.learnings}</p>
-                      </div>
+                    return (
+                      <div key={log.id} className="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
+                        {/* Log Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-extrabold text-sm text-slate-900">
+                                Week {log.weekNumber} Report
+                              </span>
+                              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${modalityInfo.color}`}>
+                                <ModalityIcon className="w-3 h-3" />
+                                {modalityInfo.label}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                              {new Date(log.startDate).toLocaleDateString()} - {new Date(log.endDate).toLocaleDateString()}
+                              {log.supervisorName && (
+                                <span className="text-slate-400"> • Mentor: <strong className="text-slate-700">{log.supervisorName}</strong></span>
+                              )}
+                            </p>
+                          </div>
 
-                      <div className="flex items-center justify-between pt-2">
-                        {log.mentorApproved ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Approved ✓
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => handleApproveLog(log.id)}
-                            disabled={approvingId === log.id}
-                            className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            {approvingId === log.id ? 'Approving...' : 'Acknowledge & Sign Off'}
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-primary-600 shadow-2xs">
+                              {log.hoursWorked} Hours
+                            </span>
+                            {log.mentorApproved ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Approved {log.mentorRating ? `(${log.mentorRating} ★)` : ''}
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setApprovingLogId(log.id);
+                                  setLogMentorFeedback(log.mentorFeedback || '');
+                                  setLogWeeklyRating(log.mentorRating || 5);
+                                }}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+                              >
+                                Sign Off Week
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Planned vs Actual */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70">
+                            <p className="font-bold text-[10px] text-slate-400 uppercase tracking-wider mb-1">
+                              🎯 Planned Objectives:
+                            </p>
+                            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+                              {log.plannedTasks || 'No planned objectives recorded.'}
+                            </p>
+                          </div>
+                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70">
+                            <p className="font-bold text-[10px] text-primary-600 uppercase tracking-wider mb-1">
+                              ✅ Tasks & Deliverables Completed:
+                            </p>
+                            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+                              {log.tasksDone}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Problems & Solutions */}
+                        {log.problemsAndSolutions && (
+                          <div className="bg-amber-50/60 border border-amber-100 p-3 rounded-xl text-xs">
+                            <p className="font-bold text-amber-900 mb-0.5">⚠️ Problems Encountered & Solutions:</p>
+                            <p className="text-amber-800">{log.problemsAndSolutions}</p>
+                          </div>
+                        )}
+
+                        {/* Mentor Feedback & Faculty Review status */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                          <div className="bg-white p-3 rounded-xl border border-slate-200/70">
+                            <p className="font-bold text-slate-600 text-[10px] uppercase">Company Feedback:</p>
+                            <p className="italic text-slate-700 text-[11px] mt-0.5">
+                              {log.mentorFeedback ? `"${log.mentorFeedback}"` : 'No feedback yet.'}
+                            </p>
+                          </div>
+                          <div className="bg-white p-3 rounded-xl border border-slate-200/70">
+                            <p className="font-bold text-purple-700 text-[10px] uppercase flex items-center gap-1">
+                              <UserCheck className="w-3 h-3" />
+                              Faculty Advisor Review:
+                            </p>
+                            <p className="italic text-slate-700 text-[11px] mt-0.5">
+                              {log.facultyVerified ? `"${log.facultyRemarks || 'Verified'}"` : 'Pending faculty review.'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Inline Sign-off Form */}
+                        {approvingLogId === log.id && (
+                          <form onSubmit={handleApproveLog} className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 space-y-3 mt-2 animate-in fade-in">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-black text-emerald-900">
+                                Sign Off & Rate Week {log.weekNumber}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() => setLogWeeklyRating(star)}
+                                    className={`p-1 rounded-md text-xs font-bold transition-colors ${
+                                      logWeeklyRating >= star ? 'text-amber-500' : 'text-slate-300'
+                                    }`}
+                                  >
+                                    ★
+                                  </button>
+                                ))}
+                                <span className="text-xs font-bold text-emerald-800 ml-1">({logWeeklyRating} / 5)</span>
+                              </div>
+                            </div>
+
+                            <textarea
+                              rows={2}
+                              required
+                              placeholder="Write weekly mentor feedback, verify hours and performance..."
+                              className="w-full border border-emerald-300 bg-white rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500"
+                              value={logMentorFeedback}
+                              onChange={(e) => setLogMentorFeedback(e.target.value)}
+                            ></textarea>
+
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setApprovingLogId(null)}
+                                className="px-3 py-1.5 border border-emerald-300 bg-white text-emerald-800 text-xs font-bold rounded-lg"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="submit"
+                                disabled={approvingSubmitting}
+                                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs"
+                              >
+                                {approvingSubmitting ? 'Signing off...' : 'Confirm Sign-off'}
+                              </button>
+                            </div>
+                          </form>
                         )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-10 text-slate-400 text-xs">

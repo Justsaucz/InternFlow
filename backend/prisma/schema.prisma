@@ -142,24 +142,36 @@ model Document {
 }
 
 model WeeklyLog {
-  id             String         @id @default(uuid())
-  studentId      String
-  student        StudentProfile @relation(fields: [studentId], references: [id])
-  applicationId  String?
-  application    Application?   @relation(fields: [applicationId], references: [id])
+  id                   String         @id @default(uuid())
+  studentId            String
+  student              StudentProfile @relation(fields: [studentId], references: [id])
+  applicationId        String?
+  application          Application?   @relation(fields: [applicationId], references: [id])
   
-  weekNumber     Int
-  startDate      DateTime
-  endDate        DateTime
-  tasksDone      String
-  learnings      String
-  hoursWorked    Float          @default(40.0)
-  attachmentUrl  String?
-  mentorApproved Boolean        @default(false)
-  mentorFeedback String?
+  weekNumber           Int
+  startDate            DateTime
+  endDate              DateTime
+  workModality         String         @default("ON_SITE") // ON_SITE, REMOTE, HYBRID
+  supervisorName       String?
+  plannedTasks         String?
+  tasksDone            String
+  problemsAndSolutions String?
+  learnings            String
+  hoursWorked          Float          @default(40.0)
+  attachmentUrl        String?
   
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  // Company Sign-off
+  mentorApproved       Boolean        @default(false)
+  mentorRating         Int?           // 1-5 stars
+  mentorFeedback       String?
+  
+  // Faculty Verification
+  facultyVerified      Boolean        @default(false)
+  facultyRemarks       String?
+  facultyVerifiedAt    DateTime?
+  
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 }
 
 enum EvaluationStatus {

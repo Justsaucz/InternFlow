@@ -3,7 +3,13 @@ import {
   Building2, 
   Printer, 
   Search, 
-  X
+  X,
+  CheckCircle2,
+  Calendar,
+  Laptop,
+  Building,
+  RefreshCw,
+  UserCheck
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
@@ -36,6 +42,14 @@ export default function AdminGrading() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportData, setReportData] = useState<any>(null);
   const [reportLoading, setReportLoading] = useState(false);
+
+  // University Logbook Inspection State
+  const [selectedStudentForLogs, setSelectedStudentForLogs] = useState<PlacementItem | null>(null);
+  const [studentLogs, setStudentLogs] = useState<any[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [verifyingLogId, setVerifyingLogId] = useState<string | null>(null);
+  const [facultyRemarks, setFacultyRemarks] = useState('');
+  const [verifyingSubmitting, setVerifyingSubmitting] = useState(false);
 
   // Grade Form State
   const [finalGrade, setFinalGrade] = useState('A');
@@ -115,6 +129,62 @@ export default function AdminGrading() {
     }
   };
 
+  const openLogbookInspector = async (placement: PlacementItem) => {
+    setSelectedStudentForLogs(placement);
+    setLogsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/student/${placement.student.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStudentLogs(data.logs || []);
+      }
+    } catch (error) {
+      console.error(error);
+      showError('Failed to fetch student logbook');
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  const handleFacultyVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verifyingLogId) return;
+    setVerifyingSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/${verifyingLogId}/faculty-verify`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          facultyRemarks: facultyRemarks || 'Internship progress verified and approved by faculty advisor.'
+        })
+      });
+
+      if (res.ok) {
+        success('Weekly log verified by faculty!');
+        setVerifyingLogId(null);
+        setFacultyRemarks('');
+        if (selectedStudentForLogs) {
+          openLogbookInspector(selectedStudentForLogs);
+        }
+        fetchGradingOverview();
+      } else {
+        const err = await res.json();
+        showError(err.error || 'Failed to verify log');
+      }
+    } catch (error) {
+      showError('Network error verifying log');
+    } finally {
+      setVerifyingSubmitting(false);
+    }
+  };
+
   const handleOpenReport = async (studentId: string) => {
     setReportLoading(true);
     setReportModalOpen(true);
@@ -132,6 +202,17 @@ export default function AdminGrading() {
       showError('Failed to load completion report');
     } finally {
       setReportLoading(false);
+    }
+  };
+
+  const getModalityBadge = (modality: string) => {
+    switch (modality) {
+      case 'REMOTE':
+        return { label: 'Remote / WFH', icon: Laptop, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+      case 'HYBRID':
+        return { label: 'Hybrid', icon: RefreshCw, color: 'bg-purple-50 text-purple-700 border-purple-200' };
+      default:
+        return { label: 'On-site', icon: Building, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     }
   };
 
@@ -165,10 +246,10 @@ export default function AdminGrading() {
             </span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Internship Grading & Reports
+            Internship Grading & Oversight
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Inspect total accumulated hours, company evaluation rubrics, and award final course grades.
+            Inspect weekly logbooks, verify student hours, review company rubric scores, and award final academic grades (A-F).
           </p>
         </div>
 
@@ -190,11 +271,11 @@ export default function AdminGrading() {
           <table className="min-w-full divide-y divide-slate-100 text-left">
             <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
               <tr>
-                <th className="px-6 py-4">Student</th>
-                <th className="px-6 py-4">Placement / Host</th>
+                <th className="px-6 py-4">Student Candidate</th>
+                <th className="px-6 py-4">Host Organization</th>
                 <th className="px-6 py-4">Hours Logged</th>
                 <th className="px-6 py-4">Company Rubric</th>
-                <th className="px-6 py-4">Final Grade</th>
+                <th className="px-6 py-4">Academic Grade</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -278,6 +359,12 @@ export default function AdminGrading() {
 
                       {/* Action Buttons */}
                       <td className="px-6 py-4.5 whitespace-nowrap text-right space-x-2">
+                        <button
+                          onClick={() => openLogbookInspector(p)}
+                          className="px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 text-primary-700 border border-primary-200 font-bold text-xs transition-colors"
+                        >
+                          Inspect Logbook
+                        </button>
                         {evalItem && (
                           <button
                             onClick={() => handleOpenGrading(p)}
@@ -290,7 +377,7 @@ export default function AdminGrading() {
                           onClick={() => handleOpenReport(p.student.id)}
                           className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
                         >
-                          Official Report
+                          Report
                         </button>
                       </td>
                     </tr>
@@ -307,6 +394,183 @@ export default function AdminGrading() {
           </table>
         </div>
       </div>
+
+      {/* ── University Logbook Inspector Drawer ────────────────────────────── */}
+      {selectedStudentForLogs && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-primary-400">
+                  Faculty Logbook Oversight & Verification
+                </span>
+                <h3 className="text-lg font-extrabold text-white">
+                  {selectedStudentForLogs.student.user.name} ({selectedStudentForLogs.student.studentId})
+                </h3>
+              </div>
+              <button 
+                onClick={() => { setSelectedStudentForLogs(null); setVerifyingLogId(null); }}
+                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-7 space-y-6 max-h-[75vh] overflow-y-auto">
+              {logsLoading ? (
+                <div className="flex justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                </div>
+              ) : studentLogs.length > 0 ? (
+                <div className="space-y-5">
+                  {studentLogs.map((log) => {
+                    const modalityInfo = getModalityBadge(log.workModality);
+                    const ModalityIcon = modalityInfo.icon;
+
+                    return (
+                      <div key={log.id} className="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
+                        {/* Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-extrabold text-sm text-slate-900">
+                                Week {log.weekNumber} Report
+                              </span>
+                              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${modalityInfo.color}`}>
+                                <ModalityIcon className="w-3 h-3" />
+                                {modalityInfo.label}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                              {new Date(log.startDate).toLocaleDateString()} - {new Date(log.endDate).toLocaleDateString()}
+                              {log.supervisorName && (
+                                <span className="text-slate-400"> • Mentor: <strong className="text-slate-700">{log.supervisorName}</strong></span>
+                              )}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-primary-600 shadow-2xs">
+                              {log.hoursWorked} Hours
+                            </span>
+
+                            {log.facultyVerified ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Faculty Verified ✓
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setVerifyingLogId(log.id);
+                                  setFacultyRemarks(log.facultyRemarks || '');
+                                }}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+                              >
+                                Verify & Add Remarks
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Planned vs Actual */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70">
+                            <p className="font-bold text-[10px] text-slate-400 uppercase tracking-wider mb-1">
+                              🎯 Planned Objectives:
+                            </p>
+                            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+                              {log.plannedTasks || 'No planned objectives recorded.'}
+                            </p>
+                          </div>
+                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70">
+                            <p className="font-bold text-[10px] text-primary-600 uppercase tracking-wider mb-1">
+                              ✅ Tasks & Deliverables Completed:
+                            </p>
+                            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+                              {log.tasksDone}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Problems & Solutions */}
+                        {log.problemsAndSolutions && (
+                          <div className="bg-amber-50/60 border border-amber-100 p-3 rounded-xl text-xs">
+                            <p className="font-bold text-amber-900 mb-0.5">⚠️ Problems Encountered & Solutions:</p>
+                            <p className="text-amber-800">{log.problemsAndSolutions}</p>
+                          </div>
+                        )}
+
+                        {/* Mentor & Faculty Feedback */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                          <div className="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 text-emerald-900">
+                            <p className="font-bold text-[10px] uppercase flex items-center justify-between">
+                              <span>Company Mentor Review:</span>
+                              {log.mentorRating && <span>{log.mentorRating} ★</span>}
+                            </p>
+                            <p className="italic text-[11px] mt-0.5">
+                              {log.mentorFeedback ? `"${log.mentorFeedback}"` : 'Pending company feedback.'}
+                            </p>
+                          </div>
+                          <div className="bg-purple-50/60 p-3 rounded-xl border border-purple-100 text-purple-900">
+                            <p className="font-bold text-[10px] uppercase flex items-center gap-1">
+                              <UserCheck className="w-3 h-3" />
+                              Faculty Advisor Remarks:
+                            </p>
+                            <p className="italic text-[11px] mt-0.5">
+                              {log.facultyRemarks ? `"${log.facultyRemarks}"` : 'Pending faculty review.'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Inline Faculty Verification Form */}
+                        {verifyingLogId === log.id && (
+                          <form onSubmit={handleFacultyVerify} className="p-4 bg-purple-50/80 rounded-2xl border border-purple-200 space-y-3 mt-2 animate-in fade-in">
+                            <span className="text-xs font-black text-purple-900 block">
+                              Faculty Verification & Academic Advice (Week {log.weekNumber})
+                            </span>
+
+                            <textarea
+                              rows={2}
+                              required
+                              placeholder="Add academic remarks, confirm alignment with curriculum, and verify progress..."
+                              className="w-full border border-purple-300 bg-white rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-purple-500"
+                              value={facultyRemarks}
+                              onChange={(e) => setFacultyRemarks(e.target.value)}
+                            ></textarea>
+
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setVerifyingLogId(null)}
+                                className="px-3 py-1.5 border border-purple-300 bg-white text-purple-800 text-xs font-bold rounded-lg"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="submit"
+                                disabled={verifyingSubmitting}
+                                className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg shadow-xs"
+                              >
+                                {verifyingSubmitting ? 'Verifying...' : 'Confirm Faculty Verification'}
+                              </button>
+                            </div>
+                          </form>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-10 text-slate-400 text-xs">
+                  No weekly logs submitted by this student yet.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Assign Grade Modal ──────────────────────────────────────────────── */}
       {gradingModalOpen && selectedPlacement && (
@@ -446,6 +710,22 @@ export default function AdminGrading() {
                     <p><span className="font-bold text-slate-500">Host Organization:</span> <span className="font-extrabold">{reportData.activeApp?.jobPost?.company?.companyName || 'Corporate Partner'}</span></p>
                     <p><span className="font-bold text-slate-500">Position Title:</span> {reportData.activeApp?.jobPost?.title || 'Intern'}</p>
                     <p><span className="font-bold text-slate-500">Total Hours Completed:</span> <span className="font-extrabold text-emerald-700">{reportData.totalHours} / 400 Hours</span></p>
+                  </div>
+                </div>
+
+                {/* Dual Inspection Verification Summary in Certificate */}
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="p-4 bg-emerald-50/70 rounded-xl border border-emerald-200">
+                    <p className="font-bold text-emerald-900 uppercase text-[10px]">Company Sign-offs</p>
+                    <p className="text-base font-black text-emerald-800 mt-0.5">
+                      {reportData.weeklyLogs?.filter((l: any) => l.mentorApproved).length || 0} Weeks Approved
+                    </p>
+                  </div>
+                  <div className="p-4 bg-purple-50/70 rounded-xl border border-purple-200">
+                    <p className="font-bold text-purple-900 uppercase text-[10px]">Faculty Verifications</p>
+                    <p className="text-base font-black text-purple-800 mt-0.5">
+                      {reportData.weeklyLogs?.filter((l: any) => l.facultyVerified).length || 0} Weeks Verified
+                    </p>
                   </div>
                 </div>
 
