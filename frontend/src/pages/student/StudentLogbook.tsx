@@ -14,9 +14,55 @@ import {
   UserCheck,
   Laptop,
   Building,
-  RefreshCw
+  RefreshCw,
+  Link as LinkIcon
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
+
+export interface AttachmentLink {
+  title: string;
+  url: string;
+}
+
+export function parsePinPoints(text: string | null | undefined): string[] {
+  if (!text) return [];
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((item) => typeof item === 'string' && item.trim().length > 0);
+    }
+  } catch {
+    // fallback
+  }
+  return text
+    .split('\n')
+    .map((line) => line.replace(/^[•\-\*\d+\.\s]+/, '').trim())
+    .filter((line) => line.length > 0);
+}
+
+export function parseAttachmentLinks(attachmentUrl: string | null | undefined): AttachmentLink[] {
+  if (!attachmentUrl) return [];
+  try {
+    const parsed = JSON.parse(attachmentUrl);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map((item) => {
+          if (typeof item === 'string' && item.trim()) return { title: 'Artifact Link', url: item.trim() };
+          if (typeof item === 'object' && item?.url) return { title: item.title?.trim() || 'Artifact Link', url: item.url.trim() };
+          return null;
+        })
+        .filter(Boolean) as AttachmentLink[];
+    }
+  } catch {
+    // fallback
+  }
+
+  return attachmentUrl
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('http://') || line.startsWith('https://'))
+    .map((url) => ({ title: 'Artifact Link', url }));
+}
 
 interface WeeklyLog {
   id: string;
@@ -66,12 +112,14 @@ export default function StudentLogbook() {
   const [endDate, setEndDate] = useState('');
   const [workModality, setWorkModality] = useState<'ON_SITE' | 'REMOTE' | 'HYBRID'>('ON_SITE');
   const [supervisorName, setSupervisorName] = useState('');
-  const [plannedTasks, setPlannedTasks] = useState('');
-  const [tasksDone, setTasksDone] = useState('');
   const [problemsAndSolutions, setProblemsAndSolutions] = useState('');
   const [learnings, setLearnings] = useState('');
   const [hoursWorked, setHoursWorked] = useState(40);
-  const [attachmentUrl, setAttachmentUrl] = useState('');
+
+  // Pin Points State
+  const [plannedObjectives, setPlannedObjectives] = useState<string[]>(['']);
+  const [actualDeliverables, setActualDeliverables] = useState<string[]>(['']);
+  const [attachmentLinks, setAttachmentLinks] = useState<AttachmentLink[]>([]);
 
   useEffect(() => {
     fetchLogbook();
@@ -106,12 +154,12 @@ export default function StudentLogbook() {
     setEndDate('');
     setWorkModality('ON_SITE');
     setSupervisorName('');
-    setPlannedTasks('');
-    setTasksDone('');
+    setPlannedObjectives(['']);
+    setActualDeliverables(['']);
     setProblemsAndSolutions('');
     setLearnings('');
     setHoursWorked(40);
-    setAttachmentUrl('');
+    setAttachmentLinks([]);
     setIsModalOpen(true);
   };
 
@@ -122,12 +170,20 @@ export default function StudentLogbook() {
     setEndDate(log.endDate ? new Date(log.endDate).toISOString().split('T')[0] : '');
     setWorkModality(log.workModality || 'ON_SITE');
     setSupervisorName(log.supervisorName || '');
-    setPlannedTasks(log.plannedTasks || '');
-    setTasksDone(log.tasksDone || '');
+    
+    const parsedPlanned = parsePinPoints(log.plannedTasks);
+    setPlannedObjectives(parsedPlanned.length > 0 ? parsedPlanned : ['']);
+
+    const parsedActual = parsePinPoints(log.tasksDone);
+    setActualDeliverables(parsedActual.length > 0 ? parsedActual : ['']);
+
     setProblemsAndSolutions(log.problemsAndSolutions || '');
     setLearnings(log.learnings || '');
     setHoursWorked(log.hoursWorked || 40);
-    setAttachmentUrl(log.attachmentUrl || '');
+
+    const parsedLinks = parseAttachmentLinks(log.attachmentUrl);
+    setAttachmentLinks(parsedLinks);
+
     setIsModalOpen(true);
   };
 
@@ -155,9 +211,67 @@ export default function StudentLogbook() {
     }
   };
 
+  // Planned Objectives Handlers
+  const handleAddObjective = () => {
+    setPlannedObjectives([...plannedObjectives, '']);
+  };
+  const handleObjectiveChange = (index: number, val: string) => {
+    const updated = [...plannedObjectives];
+    updated[index] = val;
+    setPlannedObjectives(updated);
+  };
+  const handleRemoveObjective = (index: number) => {
+    if (plannedObjectives.length === 1) {
+      setPlannedObjectives(['']);
+    } else {
+      setPlannedObjectives(plannedObjectives.filter((_, i) => i !== index));
+    }
+  };
+
+  // Actual Deliverables Handlers
+  const handleAddDeliverable = () => {
+    setActualDeliverables([...actualDeliverables, '']);
+  };
+  const handleDeliverableChange = (index: number, val: string) => {
+    const updated = [...actualDeliverables];
+    updated[index] = val;
+    setActualDeliverables(updated);
+  };
+  const handleRemoveDeliverable = (index: number) => {
+    if (actualDeliverables.length === 1) {
+      setActualDeliverables(['']);
+    } else {
+      setActualDeliverables(actualDeliverables.filter((_, i) => i !== index));
+    }
+  };
+
+  // Attachment Links Handlers
+  const handleAddAttachmentLink = () => {
+    setAttachmentLinks([...attachmentLinks, { title: '', url: '' }]);
+  };
+  const handleAttachmentChange = (index: number, field: 'title' | 'url', val: string) => {
+    const updated = [...attachmentLinks];
+    updated[index] = { ...updated[index], [field]: val };
+    setAttachmentLinks(updated);
+  };
+  const handleRemoveAttachmentLink = (index: number) => {
+    setAttachmentLinks(attachmentLinks.filter((_, i) => i !== index));
+  };
+
   const handleCreateOrUpdateLog = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+
+    const validPlanned = plannedObjectives.map((s) => s.trim()).filter((s) => s.length > 0);
+    const validActual = actualDeliverables.map((s) => s.trim()).filter((s) => s.length > 0);
+    const validLinks = attachmentLinks.filter((l) => l.url.trim().length > 0);
+
+    if (validActual.length === 0) {
+      showError('Please add at least one task or deliverable completed.');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook`, {
@@ -173,12 +287,12 @@ export default function StudentLogbook() {
           endDate,
           workModality,
           supervisorName,
-          plannedTasks,
-          tasksDone,
+          plannedTasks: JSON.stringify(validPlanned),
+          tasksDone: JSON.stringify(validActual),
           problemsAndSolutions,
           learnings,
           hoursWorked,
-          attachmentUrl
+          attachmentUrl: validLinks.length > 0 ? JSON.stringify(validLinks) : null
         })
       });
 
@@ -234,14 +348,14 @@ export default function StudentLogbook() {
               Operational Logbook
             </span>
             <span className="text-xs font-semibold text-slate-500">
-              Dual Inspection & Verification
+              Pin-Point Deliverables & Multi-Artifacts
             </span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Internship Weekly Journal
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Log real-world tasks, track planned vs actual outcomes, and receive dual verification from both Mentor & University.
+            Track itemized objectives, deliverables, problem-solving, and attached artifacts with dual review.
           </p>
         </div>
 
@@ -320,7 +434,7 @@ export default function StudentLogbook() {
                   {activePlacement.jobPost?.company?.companyName}
                 </p>
                 <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Final Academic Grade:</span>
+                  <span className="text-slate-500 font-medium">Academic Grade:</span>
                   <span className={`font-black px-2.5 py-0.5 rounded-full ${
                     evaluation?.finalGrade 
                       ? 'bg-purple-50 text-purple-700 border border-purple-200'
@@ -344,7 +458,7 @@ export default function StudentLogbook() {
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-lg font-bold text-slate-900">Weekly Log Entries</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Chronological record of attendance, tasks, problem solving, and dual reviews</p>
+            <p className="text-xs text-slate-500 mt-0.5">Chronological record of planned objectives, actual deliverables, and dual verification</p>
           </div>
           <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-600">
             {logs.length} Total Entries
@@ -352,10 +466,13 @@ export default function StudentLogbook() {
         </div>
 
         {logs.length > 0 ? (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {logs.map((log) => {
               const modalityInfo = getModalityBadge(log.workModality);
               const ModalityIcon = modalityInfo.icon;
+              const plannedItems = parsePinPoints(log.plannedTasks);
+              const actualItems = parsePinPoints(log.tasksDone);
+              const linkItems = parseAttachmentLinks(log.attachmentUrl);
 
               return (
                 <div 
@@ -417,23 +534,40 @@ export default function StudentLogbook() {
                     </div>
                   </div>
 
-                  {/* Planned vs Actual Tasks */}
+                  {/* Planned Objectives vs Actual Deliverables (Pin Points) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
-                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                        🎯 Planned Objectives (Start of Week)
+                    {/* Objectives Pin Points */}
+                    <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                        🎯 Planned Objectives (Pin Points)
                       </p>
-                      <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-                        {log.plannedTasks || 'No planned objectives recorded.'}
-                      </p>
+                      {plannedItems.length > 0 ? (
+                        <ul className="space-y-1.5 text-slate-700">
+                          {plannedItems.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0"></span>
+                              <span className="leading-relaxed">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-slate-400 italic">No planned objectives recorded.</p>
+                      )}
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
-                      <p className="font-bold text-[10px] uppercase tracking-wider text-primary-600 mb-1 flex items-center gap-1">
-                        ✅ Actual Tasks & Deliverables Completed
+
+                    {/* Deliverables Pin Points */}
+                    <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-primary-600 flex items-center gap-1">
+                        ✅ Actual Tasks & Deliverables Completed (Pin Points)
                       </p>
-                      <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-                        {log.tasksDone}
-                      </p>
+                      <ul className="space-y-1.5 text-slate-700">
+                        {actualItems.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                            <span className="leading-relaxed">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
 
@@ -456,6 +590,30 @@ export default function StudentLogbook() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Attached Artifacts & Deliverable Links (Pin Points) */}
+                  {linkItems.length > 0 && (
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                        <LinkIcon className="w-3 h-3 text-primary-500" />
+                        Attached Artifacts & Deliverables ({linkItems.length})
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {linkItems.map((link, idx) => (
+                          <a
+                            key={idx}
+                            href={link.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 shadow-2xs transition-all"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            {link.title || 'View Artifact Link'}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Dual Verification Feedback Bar */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
@@ -509,20 +667,6 @@ export default function StudentLogbook() {
                       </p>
                     </div>
                   </div>
-
-                  {log.attachmentUrl && (
-                    <div className="pt-1">
-                      <a 
-                        href={log.attachmentUrl} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        View Attached Work / Timesheet / Deliverable
-                      </a>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -559,7 +703,7 @@ export default function StudentLogbook() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateOrUpdateLog} className="p-7 space-y-5">
+            <form onSubmit={handleCreateOrUpdateLog} className="p-7 space-y-5 max-h-[80vh] overflow-y-auto">
               {/* Row 1: Week # & Hours */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -662,33 +806,85 @@ export default function StudentLogbook() {
                 </div>
               </div>
 
-              {/* Row 4: Planned Objectives */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Planned Objectives (Start of Week)
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g., 1. Setup CI/CD pipeline in GitHub Actions, 2. Resolve authentication race condition..."
-                  className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-500"
-                  value={plannedTasks}
-                  onChange={(e) => setPlannedTasks(e.target.value)}
-                ></textarea>
+              {/* Row 4: Planned Objectives (Pin Points) */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Planned Objectives (Pin Points)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddObjective}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Objective
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {plannedObjectives.map((obj, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-400 w-5">{idx + 1}.</span>
+                      <input
+                        type="text"
+                        placeholder="e.g., Setup Docker Compose & integrate Postgres pooling..."
+                        className="flex-1 border border-slate-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-primary-500"
+                        value={obj}
+                        onChange={(e) => handleObjectiveChange(idx, e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveObjective(idx)}
+                        className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                        title="Remove"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Row 5: Actual Tasks Completed */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Actual Tasks & Deliverables Completed
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="e.g., Successfully integrated Docker container builds, tested with Jest with 100% test pass rate..."
-                  className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-500"
-                  value={tasksDone}
-                  onChange={(e) => setTasksDone(e.target.value)}
-                ></textarea>
+              {/* Row 5: Actual Tasks Completed (Pin Points) */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Actual Tasks & Deliverables Completed (Pin Points) *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddDeliverable}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Deliverable
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {actualDeliverables.map((task, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-primary-600 w-5">{idx + 1}.</span>
+                      <input
+                        type="text"
+                        required={idx === 0}
+                        placeholder="e.g., Successfully integrated Docker container builds and tested with Jest..."
+                        className="flex-1 border border-slate-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-primary-500"
+                        value={task}
+                        onChange={(e) => handleDeliverableChange(idx, e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDeliverable(idx)}
+                        className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                        title="Remove"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Row 6: Problems & Solutions */}
@@ -720,18 +916,57 @@ export default function StudentLogbook() {
                 ></textarea>
               </div>
 
-              {/* Row 8: Attachment Link */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Attachment / Artifact Link (Optional)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://github.com/... or https://figma.com/..."
-                  className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-500"
-                  value={attachmentUrl}
-                  onChange={(e) => setAttachmentUrl(e.target.value)}
-                />
+              {/* Row 8: Attachment / Artifact Links (Pin Points) */}
+              <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <LinkIcon className="w-3.5 h-3.5 text-primary-600" />
+                    Attachment / Artifact Links (Pin Points)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddAttachmentLink}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Link
+                  </button>
+                </div>
+
+                {attachmentLinks.length > 0 ? (
+                  <div className="space-y-2">
+                    {attachmentLinks.map((link, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="Label (e.g., GitHub PR #12, Figma UI)"
+                          className="w-1/3 border border-slate-200 bg-white rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-primary-500"
+                          value={link.title}
+                          onChange={(e) => handleAttachmentChange(idx, 'title', e.target.value)}
+                        />
+                        <input
+                          type="url"
+                          placeholder="https://github.com/..."
+                          className="flex-1 border border-slate-200 bg-white rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-primary-500"
+                          value={link.url}
+                          onChange={(e) => handleAttachmentChange(idx, 'url', e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAttachmentLink(idx)}
+                          className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                          title="Remove"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">
+                    No attachment links added yet. Click "+ Add Link" to attach GitHub PRs, Figma links, or Drive documents.
+                  </p>
+                )}
               </div>
 
               <div className="pt-2 flex gap-3">

@@ -7,9 +7,12 @@ import {
   Laptop,
   Building,
   RefreshCw,
-  UserCheck
+  UserCheck,
+  ExternalLink,
+  Link as LinkIcon
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
+import { parsePinPoints, parseAttachmentLinks } from '../student/StudentLogbook';
 
 interface StudentInfo {
   id: string;
@@ -219,7 +222,7 @@ export default function CompanyEvaluations() {
           Active Interns & Evaluations
         </h2>
         <p className="text-sm text-slate-500 mt-1">
-          Inspect student logbooks, rate weekly performance (1-5★), sign off on attendance, and submit competency assessments.
+          Inspect student logbooks, review pin-point deliverables & attached artifacts, rate performance (1-5★), and sign off.
         </p>
       </div>
 
@@ -471,6 +474,9 @@ export default function CompanyEvaluations() {
                   {studentLogs.map((log) => {
                     const modalityInfo = getModalityBadge(log.workModality);
                     const ModalityIcon = modalityInfo.icon;
+                    const plannedItems = parsePinPoints(log.plannedTasks);
+                    const actualItems = parsePinPoints(log.tasksDone);
+                    const linkItems = parseAttachmentLinks(log.attachmentUrl);
 
                     return (
                       <div key={log.id} className="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
@@ -519,23 +525,38 @@ export default function CompanyEvaluations() {
                           </div>
                         </div>
 
-                        {/* Planned vs Actual */}
+                        {/* Planned vs Actual (Pin Points) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70">
-                            <p className="font-bold text-[10px] text-slate-400 uppercase tracking-wider mb-1">
+                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70 space-y-1.5">
+                            <p className="font-bold text-[10px] text-slate-400 uppercase tracking-wider">
                               🎯 Planned Objectives:
                             </p>
-                            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-                              {log.plannedTasks || 'No planned objectives recorded.'}
-                            </p>
+                            {plannedItems.length > 0 ? (
+                              <ul className="space-y-1 text-slate-700">
+                                {plannedItems.map((item, idx) => (
+                                  <li key={idx} className="flex items-start gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1 shrink-0"></span>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-slate-400 italic">No planned objectives recorded.</p>
+                            )}
                           </div>
-                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70">
-                            <p className="font-bold text-[10px] text-primary-600 uppercase tracking-wider mb-1">
+
+                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70 space-y-1.5">
+                            <p className="font-bold text-[10px] text-primary-600 uppercase tracking-wider">
                               ✅ Tasks & Deliverables Completed:
                             </p>
-                            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-                              {log.tasksDone}
-                            </p>
+                            <ul className="space-y-1 text-slate-700">
+                              {actualItems.map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-1.5">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         </div>
 
@@ -544,6 +565,30 @@ export default function CompanyEvaluations() {
                           <div className="bg-amber-50/60 border border-amber-100 p-3 rounded-xl text-xs">
                             <p className="font-bold text-amber-900 mb-0.5">⚠️ Problems Encountered & Solutions:</p>
                             <p className="text-amber-800">{log.problemsAndSolutions}</p>
+                          </div>
+                        )}
+
+                        {/* Attached Artifacts & Deliverables (Visible in Company Portal!) */}
+                        {linkItems.length > 0 && (
+                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                            <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                              <LinkIcon className="w-3 h-3 text-primary-500" />
+                              Attached Artifacts & Deliverables ({linkItems.length})
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {linkItems.map((link, idx) => (
+                                <a
+                                  key={idx}
+                                  href={link.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 shadow-2xs transition-all"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                  {link.title || 'View Attached Artifact'}
+                                </a>
+                              ))}
+                            </div>
                           </div>
                         )}
 
