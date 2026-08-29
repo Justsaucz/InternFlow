@@ -37,13 +37,16 @@ model User {
 }
 
 model University {
-  id          String   @id @default(uuid())
-  name        String
-  domain      String   @unique
-  description String?
-  logoUrl     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  domain       String   @unique
+  description  String?
+  logoUrl      String?
+  address      String?
+  contactEmail String?
+  contactPhone String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   admins   User[]
   students StudentProfile[]
@@ -70,19 +73,21 @@ model StudentProfile {
 }
 
 model CompanyProfile {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id])
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
   
-  companyName String
-  industry    String
-  website     String?
-  description String?
-  logoUrl     String?
-  address     String?
+  companyName  String
+  industry     String
+  website      String?
+  description  String?
+  logoUrl      String?
+  address      String?
+  contactEmail String?
+  contactPhone String?
   
-  jobPosts    JobPost[]
-  evaluations InternshipEvaluation[]
+  jobPosts     JobPost[]
+  evaluations  InternshipEvaluation[]
 }
 
 model JobPost {
@@ -97,6 +102,11 @@ model JobPost {
   isRemote         Boolean        @default(false)
   positions        Int            @default(1)
   allowance        String?
+  workingHours     String?
+  contactEmail     String?
+  contactPhone     String?
+  contactLine      String?
+  applicationLink  String?
   startDate        DateTime?
   endDate          DateTime?
   isActive         Boolean        @default(true)
@@ -201,4 +211,3 @@ model InternshipEvaluation {
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 }
-

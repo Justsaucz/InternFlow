@@ -15,7 +15,9 @@ import {
   Laptop,
   Building,
   RefreshCw,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Upload,
+  FileText
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
@@ -102,6 +104,7 @@ export default function StudentLogbook() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { success, error: showError } = useToast();
 
@@ -258,6 +261,50 @@ export default function StudentLogbook() {
     setAttachmentLinks(attachmentLinks.filter((_, i) => i !== index));
   };
 
+  // Direct File Upload Handler
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      showError('File size must be under 10MB');
+      return;
+    }
+
+    setUploadingFile(true);
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'REPORT');
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        const fileUrl = result.document?.fileUrl || result.url;
+        const newAttachment: AttachmentLink = {
+          title: `[File] ${file.name}`,
+          url: fileUrl
+        };
+        setAttachmentLinks([...attachmentLinks, newAttachment]);
+        success(`Uploaded ${file.name} successfully!`);
+      } else {
+        const err = await res.json();
+        showError(err.error || 'Failed to upload file');
+      }
+    } catch (error) {
+      showError('Network error uploading file');
+    } finally {
+      setUploadingFile(false);
+      e.target.value = '';
+    }
+  };
+
   const handleCreateOrUpdateLog = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -338,8 +385,14 @@ export default function StudentLogbook() {
     }
   };
 
+  const isFileAttachment = (link: AttachmentLink) => {
+    return link.title.startsWith('[File]') || 
+           link.url.includes('/uploads/') || 
+           /\.(pdf|png|jpg|jpeg|doc|docx|zip)$/i.test(link.url);
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-200">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -363,7 +416,7 @@ export default function StudentLogbook() {
           {evaluation && (
             <button
               onClick={() => setShowReportModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 font-bold text-xs shadow-2xs transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 font-bold text-xs shadow-2xs transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               View Official Report
@@ -372,7 +425,7 @@ export default function StudentLogbook() {
 
           <button
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs shadow-md shadow-primary-500/20 hover:from-primary-700 hover:to-indigo-700 transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs shadow-md shadow-primary-500/20 hover:from-primary-700 hover:to-indigo-700 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add Weekly Log
@@ -437,7 +490,7 @@ export default function StudentLogbook() {
                   <span className="text-slate-500 font-medium">Academic Grade:</span>
                   <span className={`font-black px-2.5 py-0.5 rounded-full ${
                     evaluation?.finalGrade 
-                      ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                       ? 'bg-purple-50 text-purple-700 border border-purple-200'
                       : 'bg-amber-50 text-amber-700'
                   }`}>
                     {evaluation?.finalGrade ? `Grade: ${evaluation.finalGrade}` : 'In Progress'}
@@ -450,23 +503,22 @@ export default function StudentLogbook() {
               </div>
             )}
           </div>
+
+          <div className="pt-4 border-t border-slate-100 text-xs text-slate-400 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            Standard Requirement: 40 hrs / week
+          </div>
         </div>
       </div>
 
-      {/* ── Weekly Logs Timeline ───────────────────────────────────────────── */}
-      <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">Weekly Log Entries</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Chronological record of planned objectives, actual deliverables, and dual verification</p>
-          </div>
-          <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-600">
-            {logs.length} Total Entries
-          </span>
-        </div>
+      {/* ── Weekly Logs Timeline Cards ─────────────────────────────────────── */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-black text-slate-900">
+          Weekly Activity Entries
+        </h3>
 
         {logs.length > 0 ? (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {logs.map((log) => {
               const modalityInfo = getModalityBadge(log.workModality);
               const ModalityIcon = modalityInfo.icon;
@@ -477,64 +529,58 @@ export default function StudentLogbook() {
               return (
                 <div 
                   key={log.id} 
-                  className="p-6 rounded-2xl bg-slate-50/70 border border-slate-200/70 space-y-4 hover:bg-slate-50 transition-colors"
+                  className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm hover:shadow-md transition-all space-y-4"
                 >
-                  {/* Top Bar */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary-600 to-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
-                        W{log.weekNumber}
+                  {/* Card Top Row */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-extrabold text-slate-900">
+                          Week {log.weekNumber} Report
+                        </span>
+                        <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full border ${modalityInfo.color}`}>
+                          <ModalityIcon className="w-3 h-3" />
+                          {modalityInfo.label}
+                        </span>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-extrabold text-slate-900">
-                            Week {log.weekNumber} Report
-                          </h4>
-                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${modalityInfo.color}`}>
-                            <ModalityIcon className="w-3 h-3" />
-                            {modalityInfo.label}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          {new Date(log.startDate).toLocaleDateString()} – {new Date(log.endDate).toLocaleDateString()}
-                          {log.supervisorName && (
-                            <span className="text-slate-400 font-medium">
-                              • Mentor: <strong className="text-slate-700">{log.supervisorName}</strong>
-                            </span>
-                          )}
-                        </p>
-                      </div>
+                      <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        {new Date(log.startDate).toLocaleDateString()} - {new Date(log.endDate).toLocaleDateString()}
+                        {log.supervisorName && (
+                          <span className="text-slate-400"> • Supervisor: <strong className="text-slate-700">{log.supervisorName}</strong></span>
+                        )}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 shadow-2xs">
-                        <Clock className="w-3.5 h-3.5 text-primary-600" />
+                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-700">
                         {log.hoursWorked} Hours
                       </span>
 
-                      {/* Edit & Delete */}
-                      <div className="flex items-center gap-1 pl-2 border-l border-slate-200">
+                      {!log.mentorApproved && (
                         <button
                           onClick={() => handleOpenEdit(log)}
-                          title="Edit Weekly Log"
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-white border border-transparent hover:border-slate-200 transition-all"
+                          className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+                          title="Edit Log"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                      )}
+
+                      {!log.mentorApproved && (
                         <button
                           onClick={() => handleDeleteLog(log.id)}
                           disabled={deletingId === log.id}
-                          title="Delete Weekly Log"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-red-200 transition-all"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                          title="Delete Log"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Planned Objectives vs Actual Deliverables (Pin Points) */}
+                  {/* Pin Points: Objectives vs Deliverables */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                     {/* Objectives Pin Points */}
                     <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
@@ -573,47 +619,52 @@ export default function StudentLogbook() {
 
                   {/* Problems/Solutions & Learnings */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
-                      <p className="font-bold text-[10px] uppercase tracking-wider text-amber-600 mb-1 flex items-center gap-1">
+                    <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-100">
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1">
                         ⚠️ Problems Encountered & Solutions
                       </p>
-                      <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-                        {log.problemsAndSolutions || 'No major issues encountered this week.'}
+                      <p className="text-amber-900 leading-relaxed whitespace-pre-line">
+                        {log.problemsAndSolutions || 'No specific blockers reported this week.'}
                       </p>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
-                      <p className="font-bold text-[10px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-1">
+                    <div className="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100">
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-indigo-800 mb-1 flex items-center gap-1">
                         💡 Key Learnings & Technical Growth
                       </p>
-                      <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-                        {log.learnings}
+                      <p className="text-indigo-900 leading-relaxed whitespace-pre-line">
+                        {log.learnings || 'General internship duties and routine milestones.'}
                       </p>
                     </div>
                   </div>
 
-                  {/* Attached Artifacts & Deliverable Links (Pin Points) */}
-                  {linkItems.length > 0 && (
-                    <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
-                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                        <LinkIcon className="w-3 h-3 text-primary-500" />
-                        Attached Artifacts & Deliverables ({linkItems.length})
-                      </p>
+                  {/* Attached Artifacts & Deliverables (Files & Links) */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                    <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                      <LinkIcon className="w-3 h-3 text-primary-500" />
+                      Attached Artifacts & Deliverables ({linkItems.length})
+                    </p>
+                    {linkItems.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
-                        {linkItems.map((link, idx) => (
-                          <a
-                            key={idx}
-                            href={link.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 shadow-2xs transition-all"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            {link.title || 'View Artifact Link'}
-                          </a>
-                        ))}
+                        {linkItems.map((link, idx) => {
+                          const isFile = isFileAttachment(link);
+                          return (
+                            <a
+                              key={idx}
+                              href={link.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 shadow-2xs transition-all"
+                            >
+                              {isFile ? <FileText className="w-3.5 h-3.5 text-indigo-600" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                              {link.title || 'View Artifact'}
+                            </a>
+                          );
+                        })}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-slate-400 italic text-xs">No attached files or links for this week.</p>
+                    )}
+                  </div>
 
                   {/* Dual Verification Feedback Bar */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
@@ -815,7 +866,7 @@ export default function StudentLogbook() {
                   <button
                     type="button"
                     onClick={handleAddObjective}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Add Objective
@@ -855,7 +906,7 @@ export default function StudentLogbook() {
                   <button
                     type="button"
                     onClick={handleAddDeliverable}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Add Deliverable
@@ -916,21 +967,34 @@ export default function StudentLogbook() {
                 ></textarea>
               </div>
 
-              {/* Row 8: Attachment / Artifact Links (Pin Points) */}
-              <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+              {/* Row 8: Attachment / Artifact Links & File Uploads (Pin Points) */}
+              <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                     <LinkIcon className="w-3.5 h-3.5 text-primary-600" />
-                    Attachment / Artifact Links (Pin Points)
+                    Attached Artifacts & Files (Pin Points)
                   </label>
-                  <button
-                    type="button"
-                    onClick={handleAddAttachmentLink}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Add Link
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <label className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200 cursor-pointer transition-all">
+                      <Upload className="w-3.5 h-3.5" />
+                      {uploadingFile ? 'Uploading...' : 'Upload File'}
+                      <input 
+                        type="file" 
+                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip" 
+                        className="hidden" 
+                        disabled={uploadingFile} 
+                        onChange={handleFileUpload} 
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleAddAttachmentLink}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Link
+                    </button>
+                  </div>
                 </div>
 
                 {attachmentLinks.length > 0 ? (
@@ -939,14 +1003,14 @@ export default function StudentLogbook() {
                       <div key={idx} className="flex items-center gap-2">
                         <input
                           type="text"
-                          placeholder="Label (e.g., GitHub PR #12, Figma UI)"
+                          placeholder="Label (e.g., GitHub PR #12, Figma UI, Timesheet PDF)"
                           className="w-1/3 border border-slate-200 bg-white rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-primary-500"
                           value={link.title}
                           onChange={(e) => handleAttachmentChange(idx, 'title', e.target.value)}
                         />
                         <input
                           type="url"
-                          placeholder="https://github.com/..."
+                          placeholder="https://github.com/... or uploaded URL"
                           className="flex-1 border border-slate-200 bg-white rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-primary-500"
                           value={link.url}
                           onChange={(e) => handleAttachmentChange(idx, 'url', e.target.value)}
@@ -964,7 +1028,7 @@ export default function StudentLogbook() {
                   </div>
                 ) : (
                   <p className="text-xs text-slate-400 italic">
-                    No attachment links added yet. Click "+ Add Link" to attach GitHub PRs, Figma links, or Drive documents.
+                    No attachments added yet. Click "Upload File" for PDF/images or "+ Add Link" to paste GitHub/Figma URLs.
                   </p>
                 )}
               </div>

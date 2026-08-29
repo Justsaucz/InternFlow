@@ -77,6 +77,7 @@ export default function DashboardLayout() {
           { name: 'Job Postings', href: '/dashboard/jobs/manage', icon: Briefcase },
           { name: 'Applicants', href: '/dashboard/applicants', icon: Users },
           { name: 'Intern Evaluations', href: '/dashboard/evaluations', icon: Award },
+          { name: 'Company Profile', href: '/dashboard/company/profile', icon: Building2 },
         ];
       case 'UNIVERSITY_ADMIN':
         return [
@@ -84,6 +85,7 @@ export default function DashboardLayout() {
           { name: 'Students', href: '/dashboard/students', icon: Users },
           { name: 'Approval Requests', href: '/dashboard/approvals', icon: FileText },
           { name: 'Grading & Reports', href: '/dashboard/grading', icon: Award },
+          { name: 'University Profile', href: '/dashboard/university/profile', icon: ShieldCheck },
         ];
       default:
         return [];
@@ -196,4 +198,3 @@ export default function DashboardLayout() {
     </div>
   );
 }
-

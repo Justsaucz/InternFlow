@@ -9,7 +9,8 @@ import {
   RefreshCw,
   UserCheck,
   ExternalLink,
-  Link as LinkIcon
+  Link as LinkIcon,
+  FileText
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import { parsePinPoints, parseAttachmentLinks } from '../student/StudentLogbook';
@@ -65,7 +66,7 @@ export default function CompanyEvaluations() {
   const fetchInterns = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/company`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/company/interns`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -74,7 +75,7 @@ export default function CompanyEvaluations() {
       }
     } catch (error) {
       console.error(error);
-      showError('Failed to load interns roster');
+      showError('Failed to load active interns');
     } finally {
       setLoading(false);
     }
@@ -95,44 +96,7 @@ export default function CompanyEvaluations() {
     }
   };
 
-  const handleSubmitEvaluation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedIntern) return;
-    setSubmitting(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          studentId: selectedIntern.student.id,
-          applicationId: selectedIntern.applicationId,
-          workQualityScore: workQuality,
-          punctualityScore: punctuality,
-          teamworkScore: teamwork,
-          feedback
-        })
-      });
-
-      if (res.ok) {
-        success('Evaluation submitted successfully!');
-        setSelectedIntern(null);
-        fetchInterns();
-      } else {
-        const err = await res.json();
-        showError(err.error || 'Failed to submit evaluation');
-      }
-    } catch (error) {
-      showError('Network error submitting evaluation');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const openLogsDrawer = async (intern: ActiveIntern) => {
+  const openLogsModal = async (intern: ActiveIntern) => {
     setSelectedForLogs(intern);
     setLogsLoading(true);
     try {
@@ -155,35 +119,75 @@ export default function CompanyEvaluations() {
   const handleApproveLog = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!approvingLogId) return;
+
     setApprovingSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/${approvingLogId}/approve`, {
-        method: 'PUT',
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/approve/${approvingLogId}`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          mentorFeedback: logMentorFeedback || 'Work verified and approved by company mentor.',
-          mentorRating: logWeeklyRating
+          mentorRating: logWeeklyRating,
+          mentorFeedback: logMentorFeedback
         })
       });
 
       if (res.ok) {
-        success('Weekly log signed off with rating!');
+        success('Weekly log sign-off submitted successfully!');
         setApprovingLogId(null);
-        setLogMentorFeedback('');
-        setLogWeeklyRating(5);
         if (selectedForLogs) {
-          openLogsDrawer(selectedForLogs);
+          openLogsModal(selectedForLogs);
         }
         fetchInterns();
+      } else {
+        const err = await res.json();
+        showError(err.error || 'Failed to sign off weekly log');
       }
     } catch (error) {
-      showError('Error approving weekly log');
+      showError('Network error while signing off log');
     } finally {
       setApprovingSubmitting(false);
+    }
+  };
+
+  const handleSubmitEvaluation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedIntern) return;
+
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          applicationId: selectedIntern.applicationId,
+          workQualityScore: workQuality,
+          punctualityScore: punctuality,
+          teamworkScore: teamwork,
+          feedback
+        })
+      });
+
+      if (res.ok) {
+        success('Employer rubric evaluation submitted successfully!');
+        setSelectedIntern(null);
+        fetchInterns();
+      } else {
+        const err = await res.json();
+        showError(err.error || 'Failed to submit evaluation');
+      }
+    } catch (error) {
+      console.error(error);
+      showError('Network error while submitting evaluation');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -198,252 +202,147 @@ export default function CompanyEvaluations() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
+  const isFileAttachment = (url: string, title: string) => {
+    return title.startsWith('[File]') || url.includes('/uploads/') || /\.(pdf|png|jpg|jpeg|doc|docx|zip)$/i.test(url);
+  };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-200">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
-            Company Portal
-          </span>
-          <span className="text-xs font-semibold text-slate-500">
-            {interns.length} Active Interns
-          </span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          Active Interns & Evaluations
-        </h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Inspect student logbooks, review pin-point deliverables & attached artifacts, rate performance (1-5★), and sign off.
-        </p>
-      </div>
-
-      {/* ── Interns Grid Cards ─────────────────────────────────────────────── */}
-      {interns.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {interns.map((item) => {
-            const hasEvaluated = Boolean(item.evaluation);
-            const percent = Math.min(100, Math.round((item.totalHours / item.targetHours) * 100));
-
-            return (
-              <div 
-                key={item.applicationId}
-                className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between space-y-5"
-              >
-                <div className="space-y-4">
-                  {/* Top Bar */}
-                  <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary-600 to-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-sm">
-                      {item.student.user.name.charAt(0)}
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                      hasEvaluated 
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                        : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
-                      {hasEvaluated ? 'Evaluated ✓' : 'Pending Evaluation'}
-                    </span>
-                  </div>
-
-                  {/* Student Details */}
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900 leading-snug">
-                      {item.student.user.name}
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {item.student.faculty} • {item.student.major}
-                    </p>
-                    <p className="text-xs font-semibold text-primary-600 mt-1">
-                      Role: {item.jobTitle}
-                    </p>
-                  </div>
-
-                  {/* Hours Progress Bar */}
-                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5">
-                    <div className="flex justify-between text-xs font-bold text-slate-700">
-                      <span>Logged Hours</span>
-                      <span className="text-primary-600">{item.totalHours} / {item.targetHours}h ({percent}%)</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                      <div className="bg-primary-600 h-full rounded-full" style={{ width: `${percent}%` }}></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="pt-2 border-t border-slate-100 flex gap-2">
-                  <button
-                    onClick={() => openLogsDrawer(item)}
-                    className="flex-1 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
-                  >
-                    Review Logs
-                  </button>
-                  <button
-                    onClick={() => openEvaluationModal(item)}
-                    className="flex-1 px-3 py-2.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all"
-                  >
-                    {hasEvaluated ? 'Edit Rubric' : 'Evaluate'}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 border-dashed space-y-3">
-          <Users className="w-12 h-12 text-slate-300 mx-auto" />
-          <h4 className="text-base font-bold text-slate-900">No Active Interns</h4>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            When you accept student applicants and university approvals are completed, they will appear here.
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
+              Mentor Supervision
+            </span>
+            <span className="text-xs font-semibold text-slate-500">
+              {interns.length} Active Interns Placed
+            </span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Internship Logbook Review & Rubrics
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Review weekly planned objectives, deliverables, problem-solving, and submit performance evaluations.
           </p>
         </div>
-      )}
+      </div>
 
-      {/* ── Rubric Final Evaluation Modal ──────────────────────────────────── */}
-      {selectedIntern && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-primary-400">
-                  Performance Evaluation Rubric
-                </span>
-                <h3 className="text-lg font-extrabold text-white">
-                  {selectedIntern.student.user.name}
-                </h3>
-              </div>
-              <button 
-                onClick={() => setSelectedIntern(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* ── Interns Table ──────────────────────────────────────────────────── */}
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-100 text-left">
+              <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <tr>
+                  <th className="px-6 py-4">Student & University</th>
+                  <th className="px-6 py-4">Position Title</th>
+                  <th className="px-6 py-4">Hours Logged & Signed</th>
+                  <th className="px-6 py-4">Company Rubric Status</th>
+                  <th className="px-6 py-4 text-right">Supervision Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {interns.length > 0 ? (
+                  interns.map((intern) => {
+                    const percent = Math.min(100, Math.round((intern.totalHours / intern.targetHours) * 100));
+                    const isEvaluated = !!intern.evaluation;
 
-            <form onSubmit={handleSubmitEvaluation} className="p-7 space-y-6">
-              {/* Criterion 1 */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    1. Work Quality & Competence
-                  </label>
-                  <span className="text-sm font-black text-primary-600">{workQuality} / 5</span>
-                </div>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setWorkQuality(val)}
-                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                        workQuality === val 
-                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm' 
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {val} ★
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    return (
+                      <tr key={intern.applicationId} className="hover:bg-slate-50/60 transition-colors">
+                        {/* Student Name */}
+                        <td className="px-6 py-4.5">
+                          <div className="font-black text-slate-900 text-sm">
+                            {intern.student.user.name}
+                          </div>
+                          <div className="text-slate-500 text-xs font-semibold">
+                            {intern.student.studentId} • {intern.student.university.name}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {intern.student.faculty} ({intern.student.major})
+                          </div>
+                        </td>
 
-              {/* Criterion 2 */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    2. Punctuality & Responsibility
-                  </label>
-                  <span className="text-sm font-black text-primary-600">{punctuality} / 5</span>
-                </div>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setPunctuality(val)}
-                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                        punctuality === val 
-                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm' 
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {val} ★
-                    </button>
-                  ))}
-                </div>
-              </div>
+                        {/* Position */}
+                        <td className="px-6 py-4.5 whitespace-nowrap">
+                          <span className="font-bold text-slate-800 text-xs block">
+                            {intern.jobTitle}
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            Target: {intern.targetHours} Hours
+                          </span>
+                        </td>
 
-              {/* Criterion 3 */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    3. Communication & Teamwork
-                  </label>
-                  <span className="text-sm font-black text-primary-600">{teamwork} / 5</span>
-                </div>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setTeamwork(val)}
-                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                        teamwork === val 
-                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm' 
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {val} ★
-                    </button>
-                  ))}
-                </div>
-              </div>
+                        {/* Hours */}
+                        <td className="px-6 py-4.5 whitespace-nowrap">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-black text-slate-900 text-xs">
+                              {intern.totalHours} hrs
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                              {intern.approvedHours} hrs approved
+                            </span>
+                          </div>
+                          <div className="w-32 bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div 
+                              className="bg-primary-600 h-full rounded-full" 
+                              style={{ width: `${percent}%` }}
+                            ></div>
+                          </div>
+                        </td>
 
-              {/* Feedback Textarea */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Supervisor Feedback & Highlights
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Summarize the intern's achievements, strengths, and areas of recommendation..."
-                  className="w-full border border-slate-200 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-primary-500"
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                ></textarea>
-              </div>
+                        {/* Rubric Status */}
+                        <td className="px-6 py-4.5 whitespace-nowrap">
+                          {isEvaluated ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Rubric Submitted
+                            </span>
+                          ) : (
+                            <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                              Pending Evaluation
+                            </span>
+                          )}
+                        </td>
 
-              <div className="pt-2 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedIntern(null)}
-                  className="flex-1 px-5 py-3 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 px-5 py-3 bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs rounded-xl hover:from-primary-700 hover:to-indigo-700 shadow-md shadow-primary-500/20"
-                >
-                  {submitting ? 'Submitting...' : 'Save Evaluation'}
-                </button>
-              </div>
-            </form>
+                        {/* Actions */}
+                        <td className="px-6 py-4.5 whitespace-nowrap text-right space-x-2">
+                          <button
+                            onClick={() => openLogsModal(intern)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors cursor-pointer"
+                          >
+                            Review Logbook ({intern.student.weeklyLogs?.length || 0})
+                          </button>
+                          <button
+                            onClick={() => openEvaluationModal(intern)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+                          >
+                            {isEvaluated ? 'Edit Rubric' : 'Evaluate'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-16 text-center text-slate-400">
+                      <Users className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                      <p className="font-bold text-slate-700">No active interns found.</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Approved applicants will appear here for weekly supervision.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      {/* ── Student Weekly Logs Drawer / Modal ─────────────────────────────── */}
+      {/* ── Logbook Review Drawer Modal ────────────────────────────────────── */}
       {selectedForLogs && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
@@ -458,7 +357,7 @@ export default function CompanyEvaluations() {
               </div>
               <button 
                 onClick={() => { setSelectedForLogs(null); setApprovingLogId(null); }}
-                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -517,7 +416,7 @@ export default function CompanyEvaluations() {
                                   setLogMentorFeedback(log.mentorFeedback || '');
                                   setLogWeeklyRating(log.mentorRating || 5);
                                 }}
-                                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
                               >
                                 Sign Off Week
                               </button>
@@ -560,37 +459,54 @@ export default function CompanyEvaluations() {
                           </div>
                         </div>
 
-                        {/* Problems & Solutions */}
-                        {log.problemsAndSolutions && (
-                          <div className="bg-amber-50/60 border border-amber-100 p-3 rounded-xl text-xs">
-                            <p className="font-bold text-amber-900 mb-0.5">⚠️ Problems Encountered & Solutions:</p>
-                            <p className="text-amber-800">{log.problemsAndSolutions}</p>
+                        {/* Problems & Solutions AND Key Learnings (Both Guaranteed Visible) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                          <div className="bg-amber-50/60 border border-amber-100 p-3.5 rounded-xl">
+                            <p className="font-bold text-amber-900 mb-0.5 flex items-center gap-1">
+                              ⚠️ Problems Encountered & Solutions:
+                            </p>
+                            <p className="text-amber-800 whitespace-pre-line leading-relaxed">
+                              {log.problemsAndSolutions || 'No specific blockers reported this week.'}
+                            </p>
                           </div>
-                        )}
+                          <div className="bg-indigo-50/60 border border-indigo-100 p-3.5 rounded-xl">
+                            <p className="font-bold text-indigo-900 mb-0.5 flex items-center gap-1">
+                              💡 Key Learnings & Technical Growth:
+                            </p>
+                            <p className="text-indigo-800 whitespace-pre-line leading-relaxed">
+                              {log.learnings || 'General internship duties and routine progress.'}
+                            </p>
+                          </div>
+                        </div>
 
                         {/* Attached Artifacts & Deliverables (Visible in Company Portal!) */}
-                        {linkItems.length > 0 && (
-                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
-                            <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                              <LinkIcon className="w-3 h-3 text-primary-500" />
-                              Attached Artifacts & Deliverables ({linkItems.length})
-                            </p>
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                          <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                            <LinkIcon className="w-3 h-3 text-primary-500" />
+                            Attached Artifacts & Deliverables ({linkItems.length})
+                          </p>
+                          {linkItems.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
-                              {linkItems.map((link, idx) => (
-                                <a
-                                  key={idx}
-                                  href={link.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 shadow-2xs transition-all"
-                                >
-                                  <ExternalLink className="w-3.5 h-3.5" />
-                                  {link.title || 'View Attached Artifact'}
-                                </a>
-                              ))}
+                              {linkItems.map((link, idx) => {
+                                const isFile = isFileAttachment(link.url, link.title);
+                                return (
+                                  <a
+                                    key={idx}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 shadow-2xs transition-all"
+                                  >
+                                    {isFile ? <FileText className="w-3.5 h-3.5 text-indigo-600" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                                    {link.title || 'View Attached Artifact'}
+                                  </a>
+                                );
+                              })}
                             </div>
-                          </div>
-                        )}
+                          ) : (
+                            <p className="text-slate-400 italic text-[11px]">No attached files or links for this week.</p>
+                          )}
+                        </div>
 
                         {/* Mentor Feedback & Faculty Review status */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
@@ -624,7 +540,7 @@ export default function CompanyEvaluations() {
                                     key={star}
                                     type="button"
                                     onClick={() => setLogWeeklyRating(star)}
-                                    className={`p-1 rounded-md text-xs font-bold transition-colors ${
+                                    className={`p-1 rounded-md text-xs font-bold transition-colors cursor-pointer ${
                                       logWeeklyRating >= star ? 'text-amber-500' : 'text-slate-300'
                                     }`}
                                   >
@@ -648,14 +564,14 @@ export default function CompanyEvaluations() {
                               <button
                                 type="button"
                                 onClick={() => setApprovingLogId(null)}
-                                className="px-3 py-1.5 border border-emerald-300 bg-white text-emerald-800 text-xs font-bold rounded-lg"
+                                className="px-3 py-1.5 border border-emerald-300 bg-white text-emerald-800 text-xs font-bold rounded-lg cursor-pointer"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="submit"
                                 disabled={approvingSubmitting}
-                                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs"
+                                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer"
                               >
                                 {approvingSubmitting ? 'Signing off...' : 'Confirm Sign-off'}
                               </button>
@@ -672,6 +588,119 @@ export default function CompanyEvaluations() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Final Evaluation Rubric Modal ──────────────────────────────────── */}
+      {selectedIntern && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-primary-400">
+                  Host Organization Assessment
+                </span>
+                <h3 className="text-lg font-extrabold text-white">
+                  {selectedIntern.student.user.name}
+                </h3>
+              </div>
+              <button 
+                onClick={() => setSelectedIntern(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitEvaluation} className="p-7 space-y-5">
+              {/* Score 1: Work Quality */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Work Quality & Technical Competence (1-5)
+                  </label>
+                  <span className="text-xs font-black text-primary-600">{workQuality} / 5</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                  value={workQuality}
+                  onChange={(e) => setWorkQuality(Number(e.target.value))}
+                />
+              </div>
+
+              {/* Score 2: Punctuality */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Punctuality & Reliability (1-5)
+                  </label>
+                  <span className="text-xs font-black text-primary-600">{punctuality} / 5</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                  value={punctuality}
+                  onChange={(e) => setPunctuality(Number(e.target.value))}
+                />
+              </div>
+
+              {/* Score 3: Teamwork */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Teamwork & Communication (1-5)
+                  </label>
+                  <span className="text-xs font-black text-primary-600">{teamwork} / 5</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                  value={teamwork}
+                  onChange={(e) => setTeamwork(Number(e.target.value))}
+                />
+              </div>
+
+              {/* Qualitative Feedback */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Mentor Performance Remarks & Recommendation
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Provide detailed feedback on project deliverables, problem-solving, and general attitude..."
+                  className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-500"
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                ></textarea>
+              </div>
+
+              {/* Buttons */}
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedIntern(null)}
+                  className="flex-1 py-3 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 py-3 bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs rounded-xl hover:from-primary-700 hover:to-indigo-700 shadow-md shadow-primary-500/20 disabled:opacity-50 cursor-pointer"
+                >
+                  {submitting ? 'Submitting...' : 'Submit Evaluation'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

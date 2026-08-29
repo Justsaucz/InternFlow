@@ -11,7 +11,8 @@ import {
   RefreshCw,
   UserCheck,
   ExternalLink,
-  Link as LinkIcon
+  Link as LinkIcon,
+  FileText
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import { parsePinPoints, parseAttachmentLinks } from '../student/StudentLogbook';
@@ -155,24 +156,24 @@ export default function AdminGrading() {
   const handleFacultyVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!verifyingLogId) return;
+
     setVerifyingSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/${verifyingLogId}/faculty-verify`, {
-        method: 'PUT',
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/verify/${verifyingLogId}`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          facultyRemarks: facultyRemarks || 'Internship progress verified and approved by faculty advisor.'
+          facultyRemarks
         })
       });
 
       if (res.ok) {
-        success('Weekly log verified by faculty!');
+        success('Weekly log faculty verification recorded!');
         setVerifyingLogId(null);
-        setFacultyRemarks('');
         if (selectedStudentForLogs) {
           openLogbookInspector(selectedStudentForLogs);
         }
@@ -182,27 +183,30 @@ export default function AdminGrading() {
         showError(err.error || 'Failed to verify log');
       }
     } catch (error) {
-      showError('Network error verifying log');
+      showError('Network error while verifying log');
     } finally {
       setVerifyingSubmitting(false);
     }
   };
 
-  const handleOpenReport = async (studentId: string) => {
+  const handleOpenReport = async (placement: PlacementItem) => {
+    setSelectedPlacement(placement);
     setReportLoading(true);
     setReportModalOpen(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/report/${studentId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/report/${placement.student.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
         setReportData(data);
+      } else {
+        showError('Failed to load official report');
       }
     } catch (error) {
       console.error(error);
-      showError('Failed to load completion report');
+      showError('Network error loading report');
     } finally {
       setReportLoading(false);
     }
@@ -219,193 +223,209 @@ export default function AdminGrading() {
     }
   };
 
-  const filteredPlacements = placements.filter((p) => {
-    const name = p.student.user.name.toLowerCase();
-    const id = p.student.studentId.toLowerCase();
-    const major = p.student.major.toLowerCase();
-    const q = searchTerm.toLowerCase();
-    return name.includes(q) || id.includes(q) || major.includes(q);
-  });
+  const isFileAttachment = (url: string, title: string) => {
+    return title.startsWith('[File]') || url.includes('/uploads/') || /\.(pdf|png|jpg|jpeg|doc|docx|zip)$/i.test(url);
+  };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
+  const filteredPlacements = placements.filter(p => 
+    p.student.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.student.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.student.major.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.activeApp?.jobPost?.company?.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-200">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
-              Academic Oversight
+            <span className="text-xs font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100">
+              Academic Assessment Committee
             </span>
             <span className="text-xs font-semibold text-slate-500">
-              {university?.name || 'University Portal'}
+              {placements.length} Total Internship Placements
             </span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Internship Grading & Oversight
+            Academic Grading & Dual Verification
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Inspect weekly pin points, artifacts, company ratings, and award final academic grades (A-F).
+            Audit weekly operational logs, verify curriculum alignment, review employer rubrics, and award final letter grades.
           </p>
         </div>
 
-        <div className="w-full sm:w-72 relative">
+        <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by student name or ID..."
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl bg-white text-sm text-slate-900 focus:ring-2 focus:ring-primary-500 shadow-2xs"
+            placeholder="Search by student, ID, company..."
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      {/* ── Placements Table ────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-100 text-left">
-            <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              <tr>
-                <th className="px-6 py-4">Student Candidate</th>
-                <th className="px-6 py-4">Host Organization</th>
-                <th className="px-6 py-4">Hours Logged</th>
-                <th className="px-6 py-4">Company Rubric</th>
-                <th className="px-6 py-4">Academic Grade</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
-              {filteredPlacements.length > 0 ? (
-                filteredPlacements.map((p) => {
-                  const evalItem = p.evaluation;
-                  const companyScore = evalItem 
-                    ? ((evalItem.workQualityScore + evalItem.punctualityScore + evalItem.teamworkScore) / 3).toFixed(1)
-                    : null;
+      {/* ── Placements & Grading Table ─────────────────────────────────────── */}
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-100 text-left">
+              <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <tr>
+                  <th className="px-6 py-4">Student & Major</th>
+                  <th className="px-6 py-4">Placement Organization</th>
+                  <th className="px-6 py-4">Hours & Dual Verification</th>
+                  <th className="px-6 py-4">Employer Rubric</th>
+                  <th className="px-6 py-4">Academic Grade</th>
+                  <th className="px-6 py-4 text-right">Committee Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {filteredPlacements.length > 0 ? (
+                  filteredPlacements.map((p) => {
+                    const percent = Math.min(100, Math.round((p.totalHours / p.targetHours) * 100));
+                    const isEvaluated = !!p.evaluation;
+                    const finalGradeVal = p.evaluation?.finalGrade;
 
-                  return (
-                    <tr key={p.student.id} className="hover:bg-slate-50/60 transition-colors">
-                      {/* Student Info */}
-                      <td className="px-6 py-4.5 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-primary-100 text-primary-700 font-bold flex items-center justify-center">
-                            {p.student.user.name.charAt(0)}
+                    return (
+                      <tr key={p.student.id} className="hover:bg-slate-50/60 transition-colors">
+                        {/* Student */}
+                        <td className="px-6 py-4.5">
+                          <div className="font-black text-slate-900 text-sm">
+                            {p.student.user.name}
                           </div>
-                          <div>
-                            <p className="font-bold text-slate-900 text-sm">{p.student.user.name}</p>
-                            <p className="text-slate-500 text-[11px]">ID: {p.student.studentId} • {p.student.major}</p>
+                          <div className="text-slate-500 font-bold">
+                            {p.student.studentId} • Year {p.student.year}
                           </div>
-                        </div>
-                      </td>
-
-                      {/* Host Company */}
-                      <td className="px-6 py-4.5 whitespace-nowrap">
-                        {p.activeApp ? (
-                          <div>
-                            <p className="font-bold text-slate-800">{p.activeApp.jobPost.title}</p>
-                            <p className="text-slate-500 text-[11px] flex items-center gap-1 mt-0.5">
-                              <Building2 className="w-3 h-3 text-slate-400" />
-                              {p.activeApp.jobPost.company.companyName}
-                            </p>
+                          <div className="text-[11px] text-slate-400">
+                            {p.student.faculty} ({p.student.major})
                           </div>
-                        ) : (
-                          <span className="text-slate-400 italic">No placement</span>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* Hours */}
-                      <td className="px-6 py-4.5 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 text-sm">{p.totalHours}</span>
-                          <span className="text-slate-400">/ 400 hrs</span>
-                        </div>
-                        <div className="w-24 bg-slate-100 rounded-full h-1.5 mt-1 overflow-hidden">
-                          <div 
-                            className="bg-emerald-500 h-full rounded-full" 
-                            style={{ width: `${Math.min(100, (p.totalHours / 400) * 100)}%` }}
-                          ></div>
-                        </div>
-                      </td>
+                        {/* Company */}
+                        <td className="px-6 py-4.5 whitespace-nowrap">
+                          {p.activeApp ? (
+                            <div>
+                              <span className="font-bold text-slate-800 flex items-center gap-1">
+                                <Building2 className="w-3.5 h-3.5 text-primary-600" />
+                                {p.activeApp.jobPost?.company?.companyName}
+                              </span>
+                              <span className="text-[11px] text-slate-500 block mt-0.5">
+                                Role: {p.activeApp.jobPost?.title}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 italic">No placement</span>
+                          )}
+                        </td>
 
-                      {/* Company Rubric */}
-                      <td className="px-6 py-4.5 whitespace-nowrap">
-                        {evalItem ? (
-                          <div className="flex items-center gap-2">
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
-                              ★ {companyScore} / 5.0
+                        {/* Hours & Progress */}
+                        <td className="px-6 py-4.5 whitespace-nowrap">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-black text-slate-900 text-xs">
+                              {p.totalHours} / {p.targetHours} hrs
+                            </span>
+                            <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                              {p.approvedHours} hrs signed
                             </span>
                           </div>
-                        ) : (
-                          <span className="text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 text-[11px]">
-                            Pending Evaluation
-                          </span>
-                        )}
-                      </td>
+                          <div className="w-32 bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div 
+                              className="bg-purple-600 h-full rounded-full" 
+                              style={{ width: `${percent}%` }}
+                            ></div>
+                          </div>
+                        </td>
 
-                      {/* Final Grade */}
-                      <td className="px-6 py-4.5 whitespace-nowrap">
-                        {evalItem?.finalGrade ? (
-                          <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-black text-xs">
-                            Grade: {evalItem.finalGrade}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-[11px]">Not Graded</span>
-                        )}
-                      </td>
+                        {/* Company Evaluation */}
+                        <td className="px-6 py-4.5 whitespace-nowrap">
+                          {isEvaluated ? (
+                            <div>
+                              <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1 text-[11px]">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Score: {(p.evaluation.workQualityScore + p.evaluation.punctualityScore + p.evaluation.teamworkScore) / 3}/5
+                              </span>
+                              <div className="text-[10px] text-slate-500 mt-1">
+                                Q: {p.evaluation.workQualityScore} • P: {p.evaluation.punctualityScore} • T: {p.evaluation.teamworkScore}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                              Pending Employer
+                            </span>
+                          )}
+                        </td>
 
-                      {/* Action Buttons */}
-                      <td className="px-6 py-4.5 whitespace-nowrap text-right space-x-2">
-                        <button
-                          onClick={() => openLogbookInspector(p)}
-                          className="px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 text-primary-700 border border-primary-200 font-bold text-xs transition-colors"
-                        >
-                          Inspect Logbook
-                        </button>
-                        {evalItem && (
+                        {/* Academic Grade */}
+                        <td className="px-6 py-4.5 whitespace-nowrap">
+                          {finalGradeVal ? (
+                            <span className="px-3 py-1 font-black text-sm rounded-xl bg-purple-100 text-purple-900 border border-purple-300">
+                              Grade {finalGradeVal}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic text-xs">Ungraded</span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-6 py-4.5 whitespace-nowrap text-right space-x-2">
                           <button
-                            onClick={() => handleOpenGrading(p)}
-                            className="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs transition-colors"
+                            onClick={() => openLogbookInspector(p)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors cursor-pointer"
                           >
-                            {evalItem.finalGrade ? 'Edit Grade' : 'Assign Grade'}
+                            Inspect Logs
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleOpenReport(p.student.id)}
-                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
-                        >
-                          Report
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    No student placement records found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      {/* ── University Logbook Inspector Drawer ────────────────────────────── */}
+                          {isEvaluated && (
+                            <button
+                              onClick={() => handleOpenGrading(p)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+                            >
+                              {finalGradeVal ? 'Edit Grade' : 'Assign Grade'}
+                            </button>
+                          )}
+
+                          {isEvaluated && (
+                            <button
+                              onClick={() => handleOpenReport(p)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs transition-colors cursor-pointer"
+                            >
+                              <Printer className="w-3 h-3" />
+                              Certificate
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-16 text-center text-slate-400">
+                      <Search className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                      <p className="font-bold text-slate-700">No student placement records found.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── University Logbook Inspector Modal ──────────────────────────────── */}
       {selectedStudentForLogs && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
+            <div className="px-7 py-5 bg-gradient-to-r from-purple-900 to-slate-950 text-white flex justify-between items-center">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-primary-400">
-                  Faculty Logbook Oversight & Verification
+                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300">
+                  Academic Logbook Inspector & Dual Verification
                 </span>
                 <h3 className="text-lg font-extrabold text-white">
                   {selectedStudentForLogs.student.user.name} ({selectedStudentForLogs.student.studentId})
@@ -413,7 +433,7 @@ export default function AdminGrading() {
               </div>
               <button 
                 onClick={() => { setSelectedStudentForLogs(null); setVerifyingLogId(null); }}
-                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-purple-950 text-purple-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -422,7 +442,7 @@ export default function AdminGrading() {
             <div className="p-7 space-y-6 max-h-[75vh] overflow-y-auto">
               {logsLoading ? (
                 <div className="flex justify-center py-10">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                 </div>
               ) : studentLogs.length > 0 ? (
                 <div className="space-y-5">
@@ -457,7 +477,7 @@ export default function AdminGrading() {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-primary-600 shadow-2xs">
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-purple-700 shadow-2xs">
                               {log.hoursWorked} Hours
                             </span>
 
@@ -472,7 +492,7 @@ export default function AdminGrading() {
                                   setVerifyingLogId(log.id);
                                   setFacultyRemarks(log.facultyRemarks || '');
                                 }}
-                                className="inline-flex items-center gap-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
                               >
                                 Verify & Add Remarks
                               </button>
@@ -515,37 +535,54 @@ export default function AdminGrading() {
                           </div>
                         </div>
 
-                        {/* Problems & Solutions */}
-                        {log.problemsAndSolutions && (
-                          <div className="bg-amber-50/60 border border-amber-100 p-3 rounded-xl text-xs">
-                            <p className="font-bold text-amber-900 mb-0.5">⚠️ Problems Encountered & Solutions:</p>
-                            <p className="text-amber-800">{log.problemsAndSolutions}</p>
-                          </div>
-                        )}
-
-                        {/* Attached Artifacts & Deliverables */}
-                        {linkItems.length > 0 && (
-                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
-                            <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                              <LinkIcon className="w-3 h-3 text-primary-500" />
-                              Attached Artifacts & Deliverables ({linkItems.length})
+                        {/* Problems & Solutions AND Key Learnings (Both Guaranteed Visible) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                          <div className="bg-amber-50/60 border border-amber-100 p-3.5 rounded-xl">
+                            <p className="font-bold text-amber-900 mb-0.5 flex items-center gap-1">
+                              ⚠️ Problems Encountered & Solutions:
                             </p>
-                            <div className="flex flex-wrap gap-2">
-                              {linkItems.map((link, idx) => (
-                                <a
-                                  key={idx}
-                                  href={link.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 shadow-2xs transition-all"
-                                >
-                                  <ExternalLink className="w-3.5 h-3.5" />
-                                  {link.title || 'View Attached Artifact'}
-                                </a>
-                              ))}
-                            </div>
+                            <p className="text-amber-800 whitespace-pre-line leading-relaxed">
+                              {log.problemsAndSolutions || 'No specific blockers reported this week.'}
+                            </p>
                           </div>
-                        )}
+                          <div className="bg-indigo-50/60 border border-indigo-100 p-3.5 rounded-xl">
+                            <p className="font-bold text-indigo-900 mb-0.5 flex items-center gap-1">
+                              💡 Key Learnings & Technical Growth:
+                            </p>
+                            <p className="text-indigo-800 whitespace-pre-line leading-relaxed">
+                              {log.learnings || 'General internship duties and routine progress.'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Attached Artifacts & Deliverables (Guaranteed Visible) */}
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                          <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                            <LinkIcon className="w-3 h-3 text-primary-500" />
+                            Attached Artifacts & Deliverables ({linkItems.length})
+                          </p>
+                          {linkItems.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {linkItems.map((link, idx) => {
+                                const isFile = isFileAttachment(link.url, link.title);
+                                return (
+                                  <a
+                                    key={idx}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 shadow-2xs transition-all"
+                                  >
+                                    {isFile ? <FileText className="w-3.5 h-3.5 text-indigo-600" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                                    {link.title || 'View Attached Artifact'}
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="text-slate-400 italic text-[11px]">No attached files or links for this week.</p>
+                          )}
+                        </div>
 
                         {/* Mentor & Faculty Feedback */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
@@ -589,14 +626,14 @@ export default function AdminGrading() {
                               <button
                                 type="button"
                                 onClick={() => setVerifyingLogId(null)}
-                                className="px-3 py-1.5 border border-purple-300 bg-white text-purple-800 text-xs font-bold rounded-lg"
+                                className="px-3 py-1.5 border border-purple-300 bg-white text-purple-800 text-xs font-bold rounded-lg cursor-pointer"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="submit"
                                 disabled={verifyingSubmitting}
-                                className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg shadow-xs"
+                                className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer"
                               >
                                 {verifyingSubmitting ? 'Verifying...' : 'Confirm Faculty Verification'}
                               </button>
@@ -632,7 +669,7 @@ export default function AdminGrading() {
               </div>
               <button 
                 onClick={() => setGradingModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-purple-950 text-purple-300 hover:text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-purple-950 text-purple-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -655,7 +692,7 @@ export default function AdminGrading() {
                       key={g}
                       type="button"
                       onClick={() => setFinalGrade(g)}
-                      className={`py-2.5 rounded-xl text-xs font-black border transition-all ${
+                      className={`py-2.5 rounded-xl text-xs font-black border transition-all cursor-pointer ${
                         finalGrade === g
                           ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
                           : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
@@ -684,14 +721,14 @@ export default function AdminGrading() {
                 <button
                   type="button"
                   onClick={() => setGradingModalOpen(false)}
-                  className="flex-1 px-5 py-3 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50"
+                  className="flex-1 px-5 py-3 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingGrade}
-                  className="flex-1 px-5 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-xl hover:from-purple-700 hover:to-indigo-700 shadow-md shadow-purple-500/20"
+                  className="flex-1 px-5 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-xl hover:from-purple-700 hover:to-indigo-700 shadow-md shadow-purple-500/20 disabled:opacity-50 cursor-pointer"
                 >
                   {savingGrade ? 'Recording...' : 'Confirm Grade'}
                 </button>
@@ -711,14 +748,14 @@ export default function AdminGrading() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold rounded-lg"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold rounded-lg cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   Print / Save PDF
                 </button>
                 <button
                   onClick={() => setReportModalOpen(false)}
-                  className="text-slate-400 hover:text-white text-sm font-bold ml-2"
+                  className="text-slate-400 hover:text-white text-sm font-bold ml-2 cursor-pointer"
                 >
                   ✕
                 </button>

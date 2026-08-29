@@ -9,8 +9,10 @@ import JobManagement from './pages/company/JobManagement';
 import StudentProfile from './pages/student/StudentProfile';
 import MyApplications from './pages/student/MyApplications';
 import CompanyApplicants from './pages/company/CompanyApplicants';
+import CompanyProfile from './pages/company/CompanyProfile';
 import AdminStudents from './pages/admin/AdminStudents';
 import AdminApprovals from './pages/admin/AdminApprovals';
+import AdminProfile from './pages/admin/AdminProfile';
 
 import StudentLogbook from './pages/student/StudentLogbook';
 import CompanyEvaluations from './pages/company/CompanyEvaluations';
@@ -41,11 +43,13 @@ function App() {
             <Route path="jobs/manage" element={<JobManagement />} />
             <Route path="applicants" element={<CompanyApplicants />} />
             <Route path="evaluations" element={<CompanyEvaluations />} />
+            <Route path="company/profile" element={<CompanyProfile />} />
 
             {/* Admin Routes */}
             <Route path="students" element={<AdminStudents />} />
             <Route path="approvals" element={<AdminApprovals />} />
             <Route path="grading" element={<AdminGrading />} />
+            <Route path="university/profile" element={<AdminProfile />} />
           </Route>
         </Routes>
       </Router>
@@ -54,4 +58,3 @@ function App() {
 }
 
 export default App;
-
