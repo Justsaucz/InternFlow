@@ -8,8 +8,9 @@ A modern, cloud-based platform connecting students, university administrators, a
 
 ### 1. 🔍 Job Board & Application Pipeline
 - **Centralized Job Board** — Students can browse, filter, and search active internship opportunities from partnered corporate employers in an interactive card view with working hours, stipend, and contact channels.
-- **Job Editing & Rich Details** — Company HR can create, update, and manage job postings with working hours/schedule, allowance, contact info (Email, Phone, LINE ID), and career links.
-- **One-Click Apply with AWS S3 Upload** — Seamless application submission with direct CV/Resume upload to Amazon S3 storage.
+- **Job Editing & Safe Cascade Deletion** — Company HR can create, update, and manage job postings with working hours/schedule, allowance, contact info (Email, Phone, LINE ID), and career links, with safe in-app confirmation modal and transactional cascade cleanup.
+- **Multi-File & Multi-Link Pinpoint Applications** — Students can attach multiple documents (CV, Resumes, Portfolios, Transcripts, Project PDFs) and external links (GitHub, Figma, Google Drive) as itemized pinpoints with direct AWS S3 upload.
+- **One Active Application Per Company Rule** — Enforces single active application constraint per company to prevent candidate spamming and maintain organized employer review workflows.
 - **Real-Time Application Status Pipeline** — Multi-stage status lifecycle (`PENDING` ➔ `REVIEWING` ➔ `ACCEPTED` ➔ `APPROVED_BY_UNIVERSITY` or `REJECTED`).
 - **Profile Management** — Dedicated profile pages for Students, Company HR, and University Admins.
 - **Dynamic Role-Based Dashboards** — Tailored analytics, live statistics, and recent activity feeds for Students, Company HR, and University Admins (`/api/dashboard/stats`).
@@ -169,9 +170,9 @@ docker compose up -d --build
 - `PUT /api/jobs/:id` — Edit an existing job posting (HR only)
 - `DELETE /api/jobs/:id` — Delete a job posting (HR only)
 - `GET /api/jobs/company` — List jobs posted by logged-in HR
-- `POST /api/applications` — Apply to a job with CV upload
-- `GET /api/applications/my` — Student view of submitted applications
-- `GET /api/applications/company` — Company HR view of incoming applicants
+- `POST /api/applications` — Apply to a job with multi-attachment pinpoint files & links
+- `GET /api/applications/my` — Student view of submitted applications & attached artifacts
+- `GET /api/applications/company` — Company HR view of incoming applicants & multi-documents
 - `GET /api/applications/university` — University Admin view of all student applications
 - `PATCH /api/applications/:id/status` — Accept or Reject an applicant (HR)
 - `PATCH /api/applications/:id/approve` — Final approval of placement (University Admin)
@@ -186,7 +187,7 @@ docker compose up -d --build
 - `POST /api/upload` — Direct file upload endpoint (CVs, weekly logbook files, reports)
 
 ### Performance Evaluation & Grading
-- `GET /api/evaluations/company` — Active interns roster & evaluation statuses for HR
+- `GET /api/evaluations/company` — Active interns roster & evaluation statuses for HR (alias: `/company/interns`)
 - `POST /api/evaluations/submit` — HR submits 3-category rubric evaluation (1–5★)
 - `GET /api/evaluations/admin` — University-wide student placement tracking & evaluation overview
 - `PUT /api/evaluations/:id/grade` — University Admin awards final letter grade (A–F)
