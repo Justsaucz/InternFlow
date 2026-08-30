@@ -73,7 +73,7 @@ router.post('/', authenticate, upload.single('file'), (req: Request, res: Respon
       fileUrl = `/uploads/${req.file.filename}`;
     }
     
-    res.status(200).json({ url: fileUrl });
+    res.status(200).json({ url: fileUrl, fileUrl: fileUrl });
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ error: 'Internal server error during file upload' });

@@ -15,6 +15,7 @@ export default function AdminProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [localLogoPreview, setLocalLogoPreview] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const { success, error: showError } = useToast();
 
@@ -69,6 +70,10 @@ export default function AdminProfile() {
       return;
     }
 
+    // Instant local preview
+    const previewUrl = URL.createObjectURL(file);
+    setLocalLogoPreview(previewUrl);
+
     setUploadingLogo(true);
     try {
       const token = localStorage.getItem('token');
@@ -84,7 +89,8 @@ export default function AdminProfile() {
 
       if (res.ok) {
         const result = await res.json();
-        setFormData(prev => ({ ...prev, logoUrl: result.fileUrl }));
+        const uploadedUrl = result.fileUrl || result.url;
+        setFormData(prev => ({ ...prev, logoUrl: uploadedUrl }));
         success('University emblem/logo uploaded! Click "Save Profile Changes" to apply.');
       } else {
         const err = await res.json();
@@ -175,10 +181,13 @@ export default function AdminProfile() {
         {/* University Header Overview */}
         <div className="flex items-center gap-5 pb-6 border-b border-slate-100">
           <div className="relative group">
-            <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-md border-2 border-slate-200 overflow-hidden flex items-center justify-center">
-              {formData.logoUrl ? (
+            <div 
+              onClick={() => logoInputRef.current?.click()}
+              className="w-20 h-20 rounded-2xl bg-white p-1 shadow-md border-2 border-slate-200 overflow-hidden flex items-center justify-center relative cursor-pointer hover:border-amber-300 transition-all"
+            >
+              {(localLogoPreview || formData.logoUrl) ? (
                 <img 
-                  src={formData.logoUrl.startsWith('http') ? formData.logoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${formData.logoUrl}`} 
+                  src={(localLogoPreview || formData.logoUrl).startsWith('blob:') || (localLogoPreview || formData.logoUrl).startsWith('http') ? (localLogoPreview || formData.logoUrl) : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${(localLogoPreview || formData.logoUrl)}`} 
                   alt={formData.universityName} 
                   className="w-full h-full object-contain rounded-xl"
                 />
@@ -187,19 +196,33 @@ export default function AdminProfile() {
                   {formData.universityName ? formData.universityName.charAt(0) : 'U'}
                 </div>
               )}
+
+              {/* Hover Overlay */}
+              {!uploadingLogo && (
+                <div className="absolute inset-0 rounded-xl bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-center p-1">
+                  <Camera className="w-5 h-5 mb-0.5" />
+                  <span className="text-[9px] font-bold">Change</span>
+                </div>
+              )}
+
+              {/* Uploading Spinner */}
+              {uploadingLogo && (
+                <div className="absolute inset-0 rounded-xl bg-slate-950/70 flex flex-col items-center justify-center text-white">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mb-0.5"></div>
+                  <span className="text-[8px] font-bold">Uploading...</span>
+                </div>
+              )}
             </div>
 
+            {/* Corner Camera Button */}
             <button
               type="button"
               onClick={() => logoInputRef.current?.click()}
               disabled={uploadingLogo}
-              className="absolute inset-0 rounded-2xl bg-slate-900/60 text-white flex flex-col items-center justify-center gap-0.5 opacity-90 hover:opacity-100 transition-opacity backdrop-blur-[2px] cursor-pointer"
+              className="absolute -bottom-1 -right-1 bg-amber-600 hover:bg-amber-700 text-white p-1.5 rounded-xl shadow-md border-2 border-white cursor-pointer hover:scale-110 active:scale-95 transition-all z-10"
               title="Upload university emblem/logo"
             >
-              <Camera className="w-5 h-5" />
-              <span className="text-[9px] font-bold">
-                {uploadingLogo ? '...' : 'Logo'}
-              </span>
+              <Camera className="w-3.5 h-3.5" />
             </button>
           </div>
 

@@ -21,6 +21,7 @@ export default function StudentProfile() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const { success, error: showError } = useToast();
   
@@ -78,6 +79,10 @@ export default function StudentProfile() {
       return;
     }
 
+    // Instant local preview
+    const previewUrl = URL.createObjectURL(file);
+    setLocalAvatarPreview(previewUrl);
+
     setUploadingAvatar(true);
     try {
       const token = localStorage.getItem('token');
@@ -93,7 +98,8 @@ export default function StudentProfile() {
 
       if (res.ok) {
         const result = await res.json();
-        setFormData(prev => ({ ...prev, avatarUrl: result.fileUrl }));
+        const uploadedUrl = result.fileUrl || result.url;
+        setFormData(prev => ({ ...prev, avatarUrl: uploadedUrl }));
         success('Profile photo uploaded! Click "Save Changes" to apply.');
       } else {
         const err = await res.json();
@@ -136,6 +142,7 @@ export default function StudentProfile() {
           if (formData.avatarUrl) parsed.avatarUrl = formData.avatarUrl;
           localStorage.setItem('user', JSON.stringify(parsed));
         }
+        setLocalAvatarPreview(null);
         setEditing(false);
         fetchProfile();
       } else {
@@ -157,7 +164,7 @@ export default function StudentProfile() {
   
   if (!profile) return <div className="text-center py-12 text-gray-500">Profile not found</div>;
 
-  const currentAvatar = editing ? formData.avatarUrl : (profile.avatarUrl || profile.user.avatarUrl);
+  const currentAvatar = localAvatarPreview || (editing ? formData.avatarUrl : (profile.avatarUrl || profile.user.avatarUrl));
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -188,6 +195,7 @@ export default function StudentProfile() {
           <button
             onClick={() => {
               setEditing(false);
+              setLocalAvatarPreview(null);
               fetchProfile();
             }}
             className="inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all cursor-pointer"
@@ -208,10 +216,15 @@ export default function StudentProfile() {
           {/* Avatar Badge positioned cleanly over bottom edge */}
           <div className="absolute left-6 sm:left-8 -bottom-12 z-10">
             <div className="relative group">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white p-1.5 shadow-xl border-4 border-white overflow-hidden">
+              <div 
+                onClick={() => {
+                  if (editing) avatarInputRef.current?.click();
+                }}
+                className={`w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white p-1 shadow-xl border-4 border-white overflow-hidden relative ${editing ? 'cursor-pointer hover:border-primary-200' : ''} transition-all`}
+              >
                 {currentAvatar ? (
                   <img 
-                    src={currentAvatar.startsWith('http') ? currentAvatar : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${currentAvatar}`} 
+                    src={currentAvatar.startsWith('blob:') || currentAvatar.startsWith('http') ? currentAvatar : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${currentAvatar}`} 
                     alt={profile.user.name} 
                     className="w-full h-full object-cover rounded-xl"
                   />
@@ -220,20 +233,34 @@ export default function StudentProfile() {
                     {profile.user.name ? profile.user.name.charAt(0).toUpperCase() : 'S'}
                   </div>
                 )}
+
+                {/* Subtle Hover Overlay during editing */}
+                {editing && !uploadingAvatar && (
+                  <div className="absolute inset-0 rounded-xl bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-center p-1">
+                    <Camera className="w-5 h-5 mb-0.5" />
+                    <span className="text-[10px] font-bold">Change</span>
+                  </div>
+                )}
+
+                {/* Uploading Spinner */}
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 rounded-xl bg-slate-950/70 flex flex-col items-center justify-center text-white">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mb-1"></div>
+                    <span className="text-[9px] font-bold">Uploading...</span>
+                  </div>
+                )}
               </div>
 
+              {/* Corner Camera Action Button */}
               {editing && (
                 <button
                   type="button"
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={uploadingAvatar}
-                  className="absolute inset-0 rounded-2xl bg-slate-900/60 text-white flex flex-col items-center justify-center gap-1 opacity-90 hover:opacity-100 transition-opacity backdrop-blur-[2px] cursor-pointer"
+                  className="absolute -bottom-1.5 -right-1.5 bg-primary-600 hover:bg-primary-700 text-white p-2 rounded-xl shadow-lg border-2 border-white cursor-pointer hover:scale-110 active:scale-95 transition-all z-20"
                   title="Upload profile photo"
                 >
-                  <Camera className="w-6 h-6" />
-                  <span className="text-[10px] font-bold">
-                    {uploadingAvatar ? 'Uploading...' : 'Change Photo'}
-                  </span>
+                  <Camera className="w-4 h-4" />
                 </button>
               )}
             </div>
