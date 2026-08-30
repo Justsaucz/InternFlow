@@ -164,6 +164,7 @@ docker compose up -d --build
 
 ### Job Postings & Applications
 - `GET /api/jobs` — List all active job postings
+- `GET /api/jobs/:id` — Get a single job posting by ID
 - `POST /api/jobs` — Create a new job posting (HR only)
 - `PUT /api/jobs/:id` — Edit an existing job posting (HR only)
 - `DELETE /api/jobs/:id` — Delete a job posting (HR only)
@@ -171,6 +172,7 @@ docker compose up -d --build
 - `POST /api/applications` — Apply to a job with CV upload
 - `GET /api/applications/my` — Student view of submitted applications
 - `GET /api/applications/company` — Company HR view of incoming applicants
+- `GET /api/applications/university` — University Admin view of all student applications
 - `PATCH /api/applications/:id/status` — Accept or Reject an applicant (HR)
 - `PATCH /api/applications/:id/approve` — Final approval of placement (University Admin)
 
@@ -178,13 +180,13 @@ docker compose up -d --build
 - `POST /api/logbook` — Student creates or updates a weekly log with pin points & modality
 - `GET /api/logbook/my` — Student fetches own weekly logbook entries & hour gauge
 - `GET /api/logbook/student/:studentId` — Company HR or University Admin inspects student weekly logs
-- `POST /api/logbook/approve/:id` — Company HR signs off on weekly log with 1–5★ rating & feedback
-- `POST /api/logbook/verify/:id` — University Admin verifies weekly log with academic remarks
+- `PUT /api/logbook/:id/approve` — Company HR signs off on weekly log with 1–5★ rating & feedback
+- `PUT /api/logbook/:id/faculty-verify` — University Admin verifies weekly log with academic remarks
 - `DELETE /api/logbook/:id` — Student deletes a weekly log entry
 - `POST /api/upload` — Direct file upload endpoint (CVs, weekly logbook files, reports)
 
 ### Performance Evaluation & Grading
-- `GET /api/evaluations/company/interns` — Active interns roster & evaluation statuses for HR
+- `GET /api/evaluations/company` — Active interns roster & evaluation statuses for HR
 - `POST /api/evaluations/submit` — HR submits 3-category rubric evaluation (1–5★)
 - `GET /api/evaluations/admin` — University-wide student placement tracking & evaluation overview
 - `PUT /api/evaluations/:id/grade` — University Admin awards final letter grade (A–F)

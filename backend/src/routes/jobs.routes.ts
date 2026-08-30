@@ -24,6 +24,32 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
   }
 });
 
+// GET jobs posted by the logged-in company (MUST be before /:id to avoid route conflict)
+router.get('/company', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    const companyProfile = await prisma.companyProfile.findUnique({ where: { userId } });
+    
+    if (!companyProfile) {
+      res.status(404).json({ error: 'Company profile not found' });
+      return;
+    }
+
+    const jobs = await prisma.jobPost.findMany({
+      where: { companyProfileId: companyProfile.id },
+      include: {
+        _count: { select: { applications: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(jobs);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // GET single job details
 router.get('/:id', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -190,32 +216,6 @@ router.delete('/:id', authenticate, authorize([Role.COMPANY_HR]), async (req: Au
 
     await prisma.jobPost.delete({ where: { id } });
     res.json({ message: 'Job deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// GET jobs posted by the logged-in company
-router.get('/company', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const userId = req.user?.userId;
-    const companyProfile = await prisma.companyProfile.findUnique({ where: { userId } });
-    
-    if (!companyProfile) {
-      res.status(404).json({ error: 'Company profile not found' });
-      return;
-    }
-
-    const jobs = await prisma.jobPost.findMany({
-      where: { companyProfileId: companyProfile.id },
-      include: {
-        _count: { select: { applications: true } }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    res.json(jobs);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
