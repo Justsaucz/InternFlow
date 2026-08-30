@@ -15,7 +15,10 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const cleanEmail = email.trim().toLowerCase();
+    const existingUser = await prisma.user.findFirst({
+      where: { email: { equals: cleanEmail, mode: 'insensitive' } }
+    });
     if (existingUser) {
       res.status(400).json({ error: 'Email already in use' });
       return;
@@ -25,7 +28,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: cleanEmail,
         password: hashedPassword,
         name,
         role: role as Role,
@@ -66,7 +69,18 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    if (!email || !password) {
+      res.status(400).json({ error: 'Email and password are required' });
+      return;
+    }
+
+    const cleanEmail = email.trim();
+    const user = await prisma.user.findFirst({
+      where: {
+        email: { equals: cleanEmail, mode: 'insensitive' }
+      }
+    });
+
     if (!user) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
