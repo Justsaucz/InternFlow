@@ -6,13 +6,18 @@ A modern, cloud-based platform connecting students, university administrators, a
 
 ## ✨ Key Features
 
-### 1. 🔍 Job Board & Application Pipeline
+### 1. 🔍 Job Board, Application Pipeline & Cross-Profiles
 - **Centralized Job Board** — Students can browse, filter, and search active internship opportunities from partnered corporate employers in an interactive card view with working hours, stipend, and contact channels.
+- **Cross-Profile Viewing Modal (`PublicProfileModal`)** — Seamless in-app slide-over modal allowing all platform participants to inspect public profiles:
+  - *Students* can inspect detailed Company profiles with full overview, website, contact info, and live job openings.
+  - *Company HR* can click candidate names/avatars to view student education, bio, tech skills, and GPA.
+  - *University Admins* can inspect both student and company profiles.
+- **Custom Profile Picture & Logo Uploads** — Direct image upload (JPG/PNG/WebP max 5MB) on Profile Edit pages with instant live previews and persistent cloud avatar display across the sidebar, candidate list, and profile modals.
 - **Job Editing & Safe Cascade Deletion** — Company HR can create, update, and manage job postings with working hours/schedule, allowance, contact info (Email, Phone, LINE ID), and career links, with safe in-app confirmation modal and transactional cascade cleanup.
 - **Multi-File & Multi-Link Pinpoint Applications** — Students can attach multiple documents (CV, Resumes, Portfolios, Transcripts, Project PDFs) and external links (GitHub, Figma, Google Drive) as itemized pinpoints with direct AWS S3 upload.
 - **One Active Application Per Company Rule** — Enforces single active application constraint per company to prevent candidate spamming and maintain organized employer review workflows.
 - **Real-Time Application Status Pipeline** — Multi-stage status lifecycle (`PENDING` ➔ `REVIEWING` ➔ `ACCEPTED` ➔ `APPROVED_BY_UNIVERSITY` or `REJECTED`).
-- **Profile Management** — Dedicated profile pages for Students, Company HR, and University Admins.
+- **Role-Based Privacy & GPA Masking** — Academic GPA is protected and masked from unauthorized public viewers, visible only to verified corporate employers and university administrators.
 - **Dynamic Role-Based Dashboards** — Tailored analytics, live statistics, and recent activity feeds for Students, Company HR, and University Admins (`/api/dashboard/stats`).
 
 ### 2. 📝 Operational Weekly Logbook & Journal
