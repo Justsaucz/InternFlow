@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle, XCircle, Eye, Building, Mail, Briefcase, Calendar } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Building, Mail, Briefcase, Calendar, FileText, ExternalLink } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
 interface Application {
   id: string;
   status: string;
+  coverLetter?: string | null;
   createdAt: string;
   jobPost: { title: string };
-  documents: { fileUrl: string }[];
+  documents: { id: string; title: string; fileUrl: string; type?: string }[];
   student: {
     studentId: string;
     major: string;
@@ -97,20 +98,26 @@ export default function CompanyApplicants() {
                       <span className="flex items-center"><Calendar className="w-4 h-4 mr-1 text-gray-400" /> {new Date(app.createdAt).toLocaleDateString()}</span>
                     </div>
                     
-                    <div className="mt-3 flex gap-2 items-center">
+                    <div className="mt-3 flex flex-wrap gap-2 items-center">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
                         {status.label}
                       </span>
-                      {app.documents && app.documents.length > 0 && (
-                        <a 
-                          href={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${app.documents[0].fileUrl}`}
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 flex items-center transition-colors"
-                        >
-                          <Eye className="w-3 h-3 mr-1" /> View CV
-                        </a>
-                      )}
+                      {app.documents && app.documents.length > 0 && app.documents.map((doc, dIdx) => {
+                        const isLink = doc.fileUrl.startsWith('http://') || doc.fileUrl.startsWith('https://');
+                        const url = isLink ? doc.fileUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${doc.fileUrl}`;
+                        return (
+                          <a 
+                            key={doc.id || dIdx}
+                            href={url}
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 flex items-center gap-1 transition-colors"
+                          >
+                            {isLink ? <ExternalLink className="w-3 h-3 text-indigo-600" /> : <FileText className="w-3 h-3 text-indigo-600" />}
+                            <span>{doc.title || 'Attachment'}</span>
+                          </a>
+                        );
+                      })}
                     </div>
                   </div>
 

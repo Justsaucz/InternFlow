@@ -14,8 +14,17 @@ import {
   Mail,
   Phone,
   ExternalLink,
-  MessageSquare
+  MessageSquare,
+  FileText,
+  Plus,
+  Trash2
 } from 'lucide-react';
+import { useToast } from '../../components/ui/Toast';
+
+export interface AttachmentLink {
+  title: string;
+  url: string;
+}
 
 interface Job {
   id: string;
@@ -49,10 +58,12 @@ export default function JobSearch() {
 
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [coverLetter, setCoverLetter] = useState('');
-  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [attachments, setAttachments] = useState<AttachmentLink[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const [modalSuccess, setModalSuccess] = useState<boolean>(false);
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     fetchJobs();
@@ -75,6 +86,70 @@ export default function JobSearch() {
     }
   };
 
+  // Attachment Pin-Point Handlers
+  const handleAddAttachmentLink = () => {
+    setAttachments([...attachments, { title: '', url: '' }]);
+  };
+
+  const handleAttachmentChange = (index: number, field: 'title' | 'url', val: string) => {
+    const updated = [...attachments];
+    updated[index] = { ...updated[index], [field]: val };
+    setAttachments(updated);
+  };
+
+  const handleRemoveAttachment = (index: number) => {
+    setAttachments(attachments.filter((_, i) => i !== index));
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      showError('File size must be under 10MB');
+      return;
+    }
+
+    setUploadingFile(true);
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'CV');
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        const fileUrl = result.document?.fileUrl || result.url;
+        const newAttachment: AttachmentLink = {
+          title: `[File] ${file.name}`,
+          url: fileUrl
+        };
+        setAttachments([...attachments, newAttachment]);
+        success(`Uploaded ${file.name} successfully!`);
+      } else {
+        const err = await res.json();
+        showError(err.error || 'Failed to upload file');
+      }
+    } catch (error) {
+      showError('Network error uploading file');
+    } finally {
+      setUploadingFile(false);
+      e.target.value = '';
+    }
+  };
+
+  const isFileAttachment = (link: AttachmentLink) => {
+    return link.title.startsWith('[File]') || 
+           link.url.includes('/uploads/') || 
+           /\.(pdf|png|jpg|jpeg|doc|docx|zip)$/i.test(link.url);
+  };
+
   const submitApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedJobId) return;
@@ -83,31 +158,9 @@ export default function JobSearch() {
     setUploading(true);
     try {
       const token = localStorage.getItem('token');
-      let fileUrl = '';
+      const validAttachments = attachments.filter(a => a.url && a.url.trim().length > 0);
 
-      // 1. Upload CV if provided
-      if (cvFile) {
-        const formData = new FormData();
-        formData.append('file', cvFile);
-        formData.append('type', 'CV');
-        
-        const uploadRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData
-        });
-        
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          fileUrl = uploadData.document?.fileUrl || uploadData.url;
-        } else {
-          setModalError('Failed to upload CV. Please try another file.');
-          setUploading(false);
-          return;
-        }
-      }
-
-      // 2. Submit Application
+      // Submit Application
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications`, {
         method: 'POST',
         headers: { 
@@ -117,7 +170,8 @@ export default function JobSearch() {
         body: JSON.stringify({ 
           jobPostId: selectedJobId, 
           coverLetter: coverLetter,
-          cvUrl: fileUrl
+          attachments: validAttachments,
+          cvUrl: validAttachments[0]?.url || ''
         })
       });
       
@@ -127,7 +181,7 @@ export default function JobSearch() {
         setTimeout(() => {
           setSelectedJobId(null);
           setCoverLetter('');
-          setCvFile(null);
+          setAttachments([]);
           setModalSuccess(false);
         }, 1500);
       } else {
@@ -420,26 +474,88 @@ export default function JobSearch() {
                     ></textarea>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                      Attach CV / Resume (PDF, Max 10MB)
-                    </label>
-                    <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:border-primary-400 transition-colors">
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        id="cv-upload"
-                        className="hidden"
-                        onChange={(e) => setCvFile(e.target.files?.[0] || null)}
-                      />
-                      <label htmlFor="cv-upload" className="cursor-pointer flex flex-col items-center gap-1.5">
-                        <UploadCloud className="w-8 h-8 text-slate-400" />
-                        <span className="text-xs font-bold text-primary-600">
-                          {cvFile ? cvFile.name : 'Click to select file from device'}
-                        </span>
-                        <span className="text-[10px] text-slate-400">PDF or Word Documents</span>
+                  {/* Pin Point Attachments (Multi-File Upload & Links) */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        📎 Attachments & Artifacts (CV, Resume, Portfolio, Links)
                       </label>
+                      <div className="flex items-center gap-2">
+                        <label className="cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 px-2.5 py-1 rounded-lg transition-colors">
+                          <UploadCloud className="w-3.5 h-3.5" />
+                          {uploadingFile ? 'Uploading...' : 'Upload File'}
+                          <input 
+                            type="file" 
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip" 
+                            className="hidden" 
+                            onChange={handleFileUpload} 
+                            disabled={uploadingFile}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleAddAttachmentLink}
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1 rounded-lg transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          + Add Link
+                        </button>
+                      </div>
                     </div>
+
+                    {attachments.length > 0 ? (
+                      <div className="space-y-2 max-h-48 overflow-y-auto p-2 bg-slate-50 rounded-2xl border border-slate-200/80">
+                        {attachments.map((link, idx) => {
+                          const isFile = isFileAttachment(link);
+                          return (
+                            <div key={idx} className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                              <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600 shrink-0">
+                                {isFile ? <FileText className="w-4 h-4 text-primary-600" /> : <ExternalLink className="w-4 h-4 text-indigo-600" />}
+                              </span>
+                              <input
+                                type="text"
+                                placeholder="Label / Document Name (e.g. CV_John.pdf, Portfolio)"
+                                value={link.title}
+                                onChange={(e) => handleAttachmentChange(idx, 'title', e.target.value)}
+                                className="flex-1 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-primary-500 bg-white"
+                              />
+                              <input
+                                type="text"
+                                placeholder="URL (https://... or uploaded file path)"
+                                value={link.url}
+                                onChange={(e) => handleAttachmentChange(idx, 'url', e.target.value)}
+                                className="flex-1 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-primary-500 bg-slate-50 font-mono text-[11px]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveAttachment(idx)}
+                                className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
+                                title="Remove attachment"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:border-primary-400 transition-colors bg-slate-50/50">
+                        <label className="cursor-pointer flex flex-col items-center gap-1.5">
+                          <UploadCloud className="w-7 h-7 text-slate-400" />
+                          <span className="text-xs font-bold text-primary-600">
+                            {uploadingFile ? 'Uploading file...' : 'Click to upload CV / Resume or add links'}
+                          </span>
+                          <span className="text-[10px] text-slate-400">PDF, Word docs, portfolios, GitHub, or Figma links</span>
+                          <input 
+                            type="file" 
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip" 
+                            className="hidden" 
+                            onChange={handleFileUpload} 
+                            disabled={uploadingFile}
+                          />
+                        </label>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-2 flex gap-3">

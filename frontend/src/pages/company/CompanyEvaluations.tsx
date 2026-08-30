@@ -66,7 +66,7 @@ export default function CompanyEvaluations() {
   const fetchInterns = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/company/interns`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/company`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {

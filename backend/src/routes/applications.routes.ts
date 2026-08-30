@@ -5,11 +5,11 @@ import { Role, ApplicationStatus } from '@prisma/client';
 
 const router = Router();
 
-// POST - Student applies for a job
+// POST - Student applies for a job with multi-attachment pinpoint documents & links
 router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
-    const { jobPostId, coverLetter, cvUrl } = req.body;
+    const { jobPostId, coverLetter, cvUrl, attachments } = req.body;
 
     const student = await prisma.studentProfile.findUnique({ where: { userId } });
     if (!student) {
@@ -26,7 +26,7 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
       return;
     }
 
-    // Create Application and Document in a transaction
+    // Create Application and Documents in a transaction
     const application = await prisma.$transaction(async (tx) => {
       const app = await tx.application.create({
         data: {
@@ -36,10 +36,26 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
         }
       });
 
-      if (cvUrl && userId) {
+      if (Array.isArray(attachments) && attachments.length > 0 && userId) {
+        for (const att of attachments) {
+          if (att.url && typeof att.url === 'string' && att.url.trim().length > 0) {
+            const title = att.title && att.title.trim() ? att.title.trim() : 'Document';
+            const isCV = title.toLowerCase().includes('cv') || title.toLowerCase().includes('resume');
+            await tx.document.create({
+              data: {
+                userId,
+                applicationId: app.id,
+                title,
+                fileUrl: att.url.trim(),
+                type: isCV ? 'CV' : 'REPORT'
+              }
+            });
+          }
+        }
+      } else if (cvUrl && userId) {
         await tx.document.create({
           data: {
-            userId: userId, // Assuming Document needs userId (from User model)
+            userId: userId,
             applicationId: app.id,
             title: 'Resume/CV',
             fileUrl: cvUrl,
@@ -53,7 +69,7 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
 
     res.status(201).json({ message: 'Application submitted successfully', application });
   } catch (error) {
-    console.error(error);
+    console.error('Error creating application:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -71,6 +87,7 @@ router.get('/my', authenticate, authorize([Role.STUDENT]), async (req: AuthReque
     const applications = await prisma.application.findMany({
       where: { studentId: student.id },
       include: {
+        documents: true,
         jobPost: {
           include: {
             company: { select: { companyName: true, logoUrl: true } }
@@ -160,6 +177,7 @@ router.get('/university', authenticate, authorize([Role.UNIVERSITY_ADMIN]), asyn
         student: { universityId: admin.universityId }
       },
       include: {
+        documents: true,
         jobPost: {
           include: {
             company: { select: { companyName: true } }

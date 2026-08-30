@@ -191,7 +191,7 @@ router.put('/:id', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthR
   }
 });
 
-// DELETE a job (For Company HR)
+// DELETE a job (For Company HR with safe cascade cleanup)
 router.delete('/:id', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
@@ -214,11 +214,45 @@ router.delete('/:id', authenticate, authorize([Role.COMPANY_HR]), async (req: Au
       return;
     }
 
-    await prisma.jobPost.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      // 1. Find all applications for this job
+      const applications = await tx.application.findMany({
+        where: { jobPostId: id },
+        select: { id: true }
+      });
+      const appIds = applications.map(a => a.id);
+
+      if (appIds.length > 0) {
+        // Unbind or cleanup evaluations for these applications
+        await tx.internshipEvaluation.deleteMany({
+          where: { applicationId: { in: appIds } }
+        });
+
+        // Unlink weekly logs from these applications (preserve student log history)
+        await tx.weeklyLog.updateMany({
+          where: { applicationId: { in: appIds } },
+          data: { applicationId: null }
+        });
+
+        // Delete documents linked to these applications
+        await tx.document.deleteMany({
+          where: { applicationId: { in: appIds } }
+        });
+
+        // Delete the applications
+        await tx.application.deleteMany({
+          where: { id: { in: appIds } }
+        });
+      }
+
+      // 2. Finally delete the job post
+      await tx.jobPost.delete({ where: { id } });
+    });
+
     res.json({ message: 'Job deleted successfully' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error deleting job post:', error);
+    res.status(500).json({ error: 'Failed to delete job post.' });
   }
 });
 

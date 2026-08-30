@@ -5,8 +5,8 @@ import { Role, EvaluationStatus } from '@prisma/client';
 
 const router = Router();
 
-// GET /api/evaluations/company - Company HR gets their active intern roster & evaluation status
-router.get('/company', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
+// Handler function for fetching company interns
+const getCompanyInternsHandler = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
     const company = await prisma.companyProfile.findUnique({
@@ -30,7 +30,9 @@ router.get('/company', authenticate, authorize([Role.COMPANY_HR]), async (req: A
           include: {
             user: { select: { name: true, email: true } },
             university: { select: { name: true } },
-            weeklyLogs: true,
+            weeklyLogs: {
+              orderBy: { weekNumber: 'asc' }
+            },
             evaluations: {
               where: { companyId: company.id }
             }
@@ -63,7 +65,13 @@ router.get('/company', authenticate, authorize([Role.COMPANY_HR]), async (req: A
     console.error('Error fetching company interns:', error);
     res.status(500).json({ error: 'Failed to fetch interns.' });
   }
-});
+};
+
+// GET /api/evaluations/company - Company HR gets their active intern roster & evaluation status
+router.get('/company', authenticate, authorize([Role.COMPANY_HR]), getCompanyInternsHandler);
+
+// GET /api/evaluations/company/interns - Alias endpoint for frontend compatibility
+router.get('/company/interns', authenticate, authorize([Role.COMPANY_HR]), getCompanyInternsHandler);
 
 // POST /api/evaluations/submit - Company HR submits evaluation
 router.post('/submit', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
