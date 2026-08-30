@@ -40,6 +40,7 @@ export default function JobManagement() {
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
   const { success, error: showError } = useToast();
 
   const [formData, setFormData] = useState({
@@ -158,7 +159,6 @@ export default function JobManagement() {
   };
 
   const handleDeleteJob = async (jobId: string) => {
-    if (!window.confirm('Are you sure you want to delete this job posting? This cannot be undone.')) return;
     setDeletingId(jobId);
     try {
       const token = localStorage.getItem('token');
@@ -169,6 +169,7 @@ export default function JobManagement() {
 
       if (res.ok) {
         success('Job posting deleted successfully');
+        setJobToDelete(null);
         fetchJobs();
       } else {
         const err = await res.json();
@@ -306,9 +307,9 @@ export default function JobManagement() {
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDeleteJob(job.id)}
-                          disabled={deletingId === job.id}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors disabled:opacity-50"
+                          onClick={() => setJobToDelete(job)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors cursor-pointer"
+                          title="Delete Job"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -548,6 +549,55 @@ export default function JobManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Confirmation Modal ──────────────────────────────────────── */}
+      {jobToDelete && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900">Delete Job Posting</h3>
+                <p className="text-xs text-slate-500 mt-0.5">This action will remove the position permanently.</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs space-y-1.5">
+              <p className="font-extrabold text-slate-900 text-sm">{jobToDelete.title}</p>
+              <p className="text-slate-500">
+                📍 {jobToDelete.location} • {jobToDelete._count?.applications || 0} candidate(s)
+              </p>
+              {jobToDelete._count?.applications > 0 && (
+                <p className="text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 font-semibold pt-1">
+                  ⚠️ Note: {jobToDelete._count.applications} candidate application(s) linked to this post will also be safely removed.
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setJobToDelete(null)}
+                disabled={deletingId !== null}
+                className="flex-1 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteJob(jobToDelete.id)}
+                disabled={deletingId !== null}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-500/20 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {deletingId === jobToDelete.id ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}

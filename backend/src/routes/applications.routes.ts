@@ -17,12 +17,37 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
       return;
     }
 
-    // Check if student already applied to this job
+    const targetJob = await prisma.jobPost.findUnique({
+      where: { id: jobPostId },
+      include: { company: { select: { companyName: true } } }
+    });
+    if (!targetJob) {
+      res.status(404).json({ error: 'Job not found' });
+      return;
+    }
+
+    // 1. Check if student already applied to this specific job
     const existingApplication = await prisma.application.findFirst({
       where: { studentId: student.id, jobPostId }
     });
     if (existingApplication) {
       res.status(400).json({ error: 'You have already applied to this job.' });
+      return;
+    }
+
+    // 2. Check if student already has an active application with this same company
+    const existingCompanyApp = await prisma.application.findFirst({
+      where: {
+        studentId: student.id,
+        jobPost: { companyProfileId: targetJob.companyProfileId },
+        status: { in: ['PENDING', 'REVIEWING', 'ACCEPTED', 'APPROVED_BY_UNIVERSITY'] }
+      },
+      include: { jobPost: { select: { title: true } } }
+    });
+    if (existingCompanyApp) {
+      res.status(400).json({ 
+        error: `You already have an active application (${existingCompanyApp.jobPost.title}) with ${targetJob.company.companyName}. You can only have 1 active application per company at a time.` 
+      });
       return;
     }
 
