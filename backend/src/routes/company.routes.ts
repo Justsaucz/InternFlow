@@ -62,11 +62,14 @@ router.put('/profile', authenticate, authorize([Role.COMPANY_HR]), async (req: A
       return;
     }
 
-    // Update HR user name
-    if (name) {
+    // Update HR user name and avatar
+    if (name || logoUrl !== undefined) {
       await prisma.user.update({
         where: { id: userId },
-        data: { name }
+        data: { 
+          name: name || undefined,
+          avatarUrl: logoUrl !== undefined ? logoUrl : undefined
+        }
       });
     }
 

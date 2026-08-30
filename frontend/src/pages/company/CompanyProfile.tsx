@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { 
   Building2, 
   Globe, 
   MapPin, 
   Mail, 
   Phone, 
-  Save 
+  Save,
+  Camera
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
 export default function CompanyProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
   const { success, error: showError } = useToast();
 
   const [formData, setFormData] = useState({
@@ -44,7 +47,7 @@ export default function CompanyProfile() {
           industry: data.profile?.industry || '',
           website: data.profile?.website || '',
           description: data.profile?.description || '',
-          logoUrl: data.profile?.logoUrl || '',
+          logoUrl: data.profile?.logoUrl || data.user?.avatarUrl || '',
           address: data.profile?.address || '',
           contactEmail: data.profile?.contactEmail || '',
           contactPhone: data.profile?.contactPhone || ''
@@ -55,6 +58,43 @@ export default function CompanyProfile() {
       showError('Failed to load company profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Image file size must be less than 5MB');
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const token = localStorage.getItem('token');
+      const data = new FormData();
+      data.append('file', file);
+      data.append('type', 'AVATAR');
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: data
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        setFormData(prev => ({ ...prev, logoUrl: result.fileUrl }));
+        success('Company logo uploaded! Click "Save Profile Changes" to apply.');
+      } else {
+        const err = await res.json();
+        showError(err.error || 'Failed to upload logo');
+      }
+    } catch (error) {
+      showError('Error uploading logo');
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -79,6 +119,7 @@ export default function CompanyProfile() {
         if (localUser) {
           const parsed = JSON.parse(localUser);
           parsed.name = formData.name;
+          if (formData.logoUrl) parsed.avatarUrl = formData.logoUrl;
           localStorage.setItem('user', JSON.stringify(parsed));
         }
       } else {
@@ -102,6 +143,15 @@ export default function CompanyProfile() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
+      {/* Hidden File Input */}
+      <input 
+        type="file" 
+        ref={logoInputRef} 
+        onChange={handleLogoFileChange} 
+        accept="image/png,image/jpeg,image/jpg,image/webp" 
+        className="hidden" 
+      />
+
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -125,10 +175,36 @@ export default function CompanyProfile() {
       {/* ── Profile Form ────────────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-7 sm:p-9 space-y-6">
         {/* Company Header Overview */}
-        <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary-600 to-indigo-600 flex items-center justify-center text-white text-2xl font-black shadow-md shadow-primary-500/20">
-            {formData.companyName ? formData.companyName.charAt(0) : 'C'}
+        <div className="flex items-center gap-5 pb-6 border-b border-slate-100">
+          <div className="relative group">
+            <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-md border-2 border-slate-200 overflow-hidden flex items-center justify-center">
+              {formData.logoUrl ? (
+                <img 
+                  src={formData.logoUrl.startsWith('http') ? formData.logoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${formData.logoUrl}`} 
+                  alt={formData.companyName} 
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              ) : (
+                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-primary-600 to-indigo-600 flex items-center justify-center text-white text-2xl font-black shadow-inner">
+                  {formData.companyName ? formData.companyName.charAt(0) : 'C'}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => logoInputRef.current?.click()}
+              disabled={uploadingLogo}
+              className="absolute inset-0 rounded-2xl bg-slate-900/60 text-white flex flex-col items-center justify-center gap-0.5 opacity-90 hover:opacity-100 transition-opacity backdrop-blur-[2px] cursor-pointer"
+              title="Upload company logo"
+            >
+              <Camera className="w-5 h-5" />
+              <span className="text-[9px] font-bold">
+                {uploadingLogo ? '...' : 'Logo'}
+              </span>
+            </button>
           </div>
+
           <div>
             <h3 className="text-lg font-extrabold text-slate-900">
               {formData.companyName || 'Your Company Name'}
@@ -136,6 +212,13 @@ export default function CompanyProfile() {
             <p className="text-xs font-bold text-slate-500 mt-0.5">
               {formData.industry || 'Industry / Sector'} • {formData.address || 'Location'}
             </p>
+            <button
+              type="button"
+              onClick={() => logoInputRef.current?.click()}
+              className="mt-1 text-[11px] font-bold text-primary-600 hover:text-primary-700 underline cursor-pointer"
+            >
+              Upload New Logo
+            </button>
           </div>
         </div>
 

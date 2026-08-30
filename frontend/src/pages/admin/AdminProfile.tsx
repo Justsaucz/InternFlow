@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { 
   GraduationCap, 
   Globe, 
@@ -6,13 +6,16 @@ import {
   Mail, 
   Phone, 
   Save, 
-  Building
+  Building,
+  Camera
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
 export default function AdminProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
   const { success, error: showError } = useToast();
 
   const [formData, setFormData] = useState({
@@ -43,7 +46,7 @@ export default function AdminProfile() {
           universityName: data.university?.name || '',
           domain: data.university?.domain || '',
           description: data.university?.description || '',
-          logoUrl: data.university?.logoUrl || '',
+          logoUrl: data.university?.logoUrl || data.user?.avatarUrl || '',
           address: data.university?.address || '',
           contactEmail: data.university?.contactEmail || '',
           contactPhone: data.university?.contactPhone || ''
@@ -54,6 +57,43 @@ export default function AdminProfile() {
       showError('Failed to load university profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Image file size must be less than 5MB');
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const token = localStorage.getItem('token');
+      const data = new FormData();
+      data.append('file', file);
+      data.append('type', 'AVATAR');
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: data
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        setFormData(prev => ({ ...prev, logoUrl: result.fileUrl }));
+        success('University emblem/logo uploaded! Click "Save Profile Changes" to apply.');
+      } else {
+        const err = await res.json();
+        showError(err.error || 'Failed to upload emblem');
+      }
+    } catch (error) {
+      showError('Error uploading emblem');
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -77,6 +117,7 @@ export default function AdminProfile() {
         if (localUser) {
           const parsed = JSON.parse(localUser);
           parsed.name = formData.name;
+          if (formData.logoUrl) parsed.avatarUrl = formData.logoUrl;
           localStorage.setItem('user', JSON.stringify(parsed));
         }
       } else {
@@ -100,6 +141,15 @@ export default function AdminProfile() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
+      {/* Hidden File Input */}
+      <input 
+        type="file" 
+        ref={logoInputRef} 
+        onChange={handleLogoFileChange} 
+        accept="image/png,image/jpeg,image/jpg,image/webp" 
+        className="hidden" 
+      />
+
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -123,10 +173,36 @@ export default function AdminProfile() {
       {/* ── Profile Form ────────────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-7 sm:p-9 space-y-6">
         {/* University Header Overview */}
-        <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-primary-600 flex items-center justify-center text-white text-2xl font-black shadow-md shadow-amber-500/20">
-            {formData.universityName ? formData.universityName.charAt(0) : 'U'}
+        <div className="flex items-center gap-5 pb-6 border-b border-slate-100">
+          <div className="relative group">
+            <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-md border-2 border-slate-200 overflow-hidden flex items-center justify-center">
+              {formData.logoUrl ? (
+                <img 
+                  src={formData.logoUrl.startsWith('http') ? formData.logoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${formData.logoUrl}`} 
+                  alt={formData.universityName} 
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              ) : (
+                <div className="w-full h-full rounded-xl bg-gradient-to-tr from-amber-500 to-primary-600 flex items-center justify-center text-white text-2xl font-black shadow-inner">
+                  {formData.universityName ? formData.universityName.charAt(0) : 'U'}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => logoInputRef.current?.click()}
+              disabled={uploadingLogo}
+              className="absolute inset-0 rounded-2xl bg-slate-900/60 text-white flex flex-col items-center justify-center gap-0.5 opacity-90 hover:opacity-100 transition-opacity backdrop-blur-[2px] cursor-pointer"
+              title="Upload university emblem/logo"
+            >
+              <Camera className="w-5 h-5" />
+              <span className="text-[9px] font-bold">
+                {uploadingLogo ? '...' : 'Logo'}
+              </span>
+            </button>
           </div>
+
           <div>
             <h3 className="text-lg font-extrabold text-slate-900">
               {formData.universityName || 'Your University Name'}
@@ -134,6 +210,13 @@ export default function AdminProfile() {
             <p className="text-xs font-bold text-slate-500 mt-0.5">
               Domain: {formData.domain || 'domain.edu'} • {formData.address || 'Campus Location'}
             </p>
+            <button
+              type="button"
+              onClick={() => logoInputRef.current?.click()}
+              className="mt-1 text-[11px] font-bold text-amber-600 hover:text-amber-700 underline cursor-pointer"
+            >
+              Upload Official Emblem
+            </button>
           </div>
         </div>
 

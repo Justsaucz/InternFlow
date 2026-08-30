@@ -12,7 +12,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
       where: { isActive: true },
       include: {
         company: {
-          select: { companyName: true, logoUrl: true, address: true, industry: true, website: true }
+          select: { id: true, companyName: true, logoUrl: true, address: true, industry: true, website: true }
         }
       },
       orderBy: { createdAt: 'desc' }

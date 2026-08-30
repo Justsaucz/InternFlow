@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import { parsePinPoints, parseAttachmentLinks } from '../student/StudentLogbook';
+import PublicProfileModal from '../../components/modals/PublicProfileModal';
 
 interface StudentInfo {
   id: string;
@@ -21,7 +22,8 @@ interface StudentInfo {
   faculty: string;
   major: string;
   year: number;
-  user: { name: string; email: string };
+  avatarUrl?: string | null;
+  user: { id?: string; name: string; email: string; avatarUrl?: string | null };
   university: { name: string };
   weeklyLogs: any[];
 }
@@ -42,6 +44,7 @@ export default function CompanyEvaluations() {
   const [loading, setLoading] = useState(true);
   const [selectedIntern, setSelectedIntern] = useState<ActiveIntern | null>(null);
   const [selectedForLogs, setSelectedForLogs] = useState<ActiveIntern | null>(null);
+  const [viewingStudentId, setViewingStudentId] = useState<string | null>(null);
   const [studentLogs, setStudentLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const { success, error: showError } = useToast();
@@ -254,16 +257,43 @@ export default function CompanyEvaluations() {
 
                     return (
                       <tr key={intern.applicationId} className="hover:bg-slate-50/60 transition-colors">
-                        {/* Student Name */}
+                        {/* Student Name & Avatar */}
                         <td className="px-6 py-4.5">
-                          <div className="font-black text-slate-900 text-sm">
-                            {intern.student.user.name}
-                          </div>
-                          <div className="text-slate-500 text-xs font-semibold">
-                            {intern.student.studentId} • {intern.student.university.name}
-                          </div>
-                          <div className="text-[11px] text-slate-400">
-                            {intern.student.faculty} ({intern.student.major})
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setViewingStudentId(intern.student.id || intern.student.user.id || null)}
+                              className="w-10 h-10 rounded-xl bg-white p-0.5 border border-slate-200 shadow-2xs flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer hover:border-primary-400 hover:scale-105 transition-all"
+                              title="View Student Profile"
+                            >
+                              {intern.student.avatarUrl || intern.student.user.avatarUrl ? (
+                                <img
+                                  src={(intern.student.avatarUrl || intern.student.user.avatarUrl)!.startsWith('http') ? (intern.student.avatarUrl || intern.student.user.avatarUrl)! : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${intern.student.avatarUrl || intern.student.user.avatarUrl}`}
+                                  alt={intern.student.user.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                />
+                              ) : (
+                                <div className="w-full h-full rounded-lg bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-xs font-black shadow-inner">
+                                  {intern.student.user.name ? intern.student.user.name.charAt(0).toUpperCase() : 'S'}
+                                </div>
+                              )}
+                            </button>
+
+                            <div>
+                              <button
+                                type="button"
+                                onClick={() => setViewingStudentId(intern.student.id || intern.student.user.id || null)}
+                                className="font-black text-slate-900 text-sm hover:text-primary-600 transition-colors text-left cursor-pointer block"
+                              >
+                                {intern.student.user.name}
+                              </button>
+                              <div className="text-slate-500 text-xs font-semibold">
+                                {intern.student.studentId} • {intern.student.university.name}
+                              </div>
+                              <div className="text-[11px] text-slate-400">
+                                {intern.student.faculty} ({intern.student.major})
+                              </div>
+                            </div>
                           </div>
                         </td>
 
@@ -704,6 +734,14 @@ export default function CompanyEvaluations() {
           </div>
         </div>
       )}
+
+      {/* ── Student Profile Modal ───────────────────────────────────────────── */}
+      <PublicProfileModal
+        isOpen={!!viewingStudentId}
+        onClose={() => setViewingStudentId(null)}
+        profileType="student"
+        profileId={viewingStudentId}
+      />
     </div>
   );
 }

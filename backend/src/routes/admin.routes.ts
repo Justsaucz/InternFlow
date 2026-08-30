@@ -72,11 +72,14 @@ router.put('/profile', authenticate, authorize([Role.UNIVERSITY_ADMIN]), async (
       return;
     }
 
-    // Update Admin User Name
-    if (name) {
+    // Update Admin User Name and Avatar
+    if (name || logoUrl !== undefined) {
       await prisma.user.update({
         where: { id: userId },
-        data: { name }
+        data: { 
+          name: name || undefined,
+          avatarUrl: logoUrl !== undefined ? logoUrl : undefined
+        }
       });
     }
 

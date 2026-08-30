@@ -28,7 +28,7 @@ const getCompanyInternsHandler = async (req: AuthRequest, res: Response): Promis
         jobPost: true,
         student: {
           include: {
-            user: { select: { name: true, email: true } },
+            user: { select: { id: true, name: true, email: true, avatarUrl: true } },
             university: { select: { name: true } },
             weeklyLogs: {
               orderBy: { weekNumber: 'asc' }

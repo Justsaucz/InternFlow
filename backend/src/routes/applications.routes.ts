@@ -115,7 +115,7 @@ router.get('/my', authenticate, authorize([Role.STUDENT]), async (req: AuthReque
         documents: true,
         jobPost: {
           include: {
-            company: { select: { companyName: true, logoUrl: true } }
+            company: { select: { id: true, companyName: true, logoUrl: true } }
           }
         }
       },
@@ -148,7 +148,7 @@ router.get('/company', authenticate, authorize([Role.COMPANY_HR]), async (req: A
         documents: true,
         student: {
           include: {
-            user: { select: { name: true, email: true } }
+            user: { select: { name: true, email: true, avatarUrl: true } }
           }
         }
       },
@@ -205,12 +205,12 @@ router.get('/university', authenticate, authorize([Role.UNIVERSITY_ADMIN]), asyn
         documents: true,
         jobPost: {
           include: {
-            company: { select: { companyName: true } }
+            company: { select: { companyName: true, logoUrl: true } }
           }
         },
         student: {
           include: {
-            user: { select: { name: true, email: true } }
+            user: { select: { name: true, email: true, avatarUrl: true } }
           }
         }
       },

@@ -20,6 +20,7 @@ interface UserData {
   id: string;
   email: string;
   name: string;
+  avatarUrl?: string | null;
   role: 'STUDENT' | 'COMPANY_HR' | 'UNIVERSITY_ADMIN';
 }
 
@@ -98,13 +99,13 @@ export default function DashboardLayout() {
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans antialiased text-slate-900">
       {/* ── Sidebar ──────────────────────────────────────────────────────── */}
-      <aside className="w-72 bg-white border-r border-slate-200/80 flex flex-col justify-between shadow-xs z-20">
+      <aside className="w-72 bg-white border-r border-slate-200/80 flex flex-col justify-between flex-shrink-0">
         <div>
-          {/* Brand Logo Header */}
-          <div className="h-20 flex items-center justify-between px-6 border-b border-slate-100">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-tr from-primary-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform">
-                <GraduationCap className="text-white w-5 h-5" />
+          {/* App Brand Header */}
+          <div className="p-6 pb-2 border-b border-slate-100">
+            <Link to="/dashboard" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-primary-500/20 group-hover:scale-105 transition-all">
+                <Briefcase className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tight text-slate-900 leading-tight">
@@ -116,19 +117,27 @@ export default function DashboardLayout() {
           </div>
 
           {/* User Role Card */}
-          <div className="p-4 mx-4 mt-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+          <div className="p-3.5 mx-4 mt-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-2xs border border-slate-200 text-primary-600">
-                <RoleIcon className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-2xs border border-slate-200 overflow-hidden text-primary-600 flex-shrink-0">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${user.avatarUrl}`}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <RoleIcon className="w-4 h-4" />
+                )}
               </div>
-              <div>
-                <p className="text-xs font-bold text-slate-800 leading-tight">{user.name}</p>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-800 leading-tight truncate">{user.name}</p>
                 <span className={`inline-flex items-center text-[10px] font-semibold mt-0.5 px-2 py-0.2 rounded-full border ${roleInfo.color}`}>
                   {roleInfo.label}
                 </span>
               </div>
             </div>
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500" title="Online"></span>
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 flex-shrink-0" title="Online"></span>
           </div>
 
           {/* Navigation Links */}

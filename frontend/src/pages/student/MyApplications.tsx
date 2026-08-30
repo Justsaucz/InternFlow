@@ -15,6 +15,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 
+import PublicProfileModal from '../../components/modals/PublicProfileModal';
+
 interface Application {
   id: string;
   status: string;
@@ -24,7 +26,9 @@ interface Application {
   jobPost: {
     title: string;
     location?: string;
+    companyProfileId?: string;
     company: {
+      id?: string;
       companyName: string;
       logoUrl: string | null;
     };
@@ -69,6 +73,7 @@ export default function MyApplications() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'accepted' | 'rejected'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [viewingCompanyId, setViewingCompanyId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchApplications();
@@ -91,7 +96,7 @@ export default function MyApplications() {
     }
   };
 
-  const filteredApps = applications.filter(app => {
+  const filteredApps = applications.filter((app) => {
     if (activeTab === 'active') return app.status === 'PENDING' || app.status === 'REVIEWING';
     if (activeTab === 'accepted') return app.status === 'ACCEPTED' || app.status === 'APPROVED_BY_UNIVERSITY';
     if (activeTab === 'rejected') return app.status === 'REJECTED';
@@ -99,28 +104,28 @@ export default function MyApplications() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-200">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
-              Pipeline
+              Application Tracker
             </span>
             <span className="text-xs font-semibold text-slate-500">
-              {applications.length} Total Applications
+              {applications.length} Submissions Total
             </span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            My Applications
+            My Internship Applications
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Real-time status tracking for every internship you've submitted.
+            Track your real-time status across all submitted corporate placement applications.
           </p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+        {/* Status Filter Tabs */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl self-start sm:self-auto">
           <button
             onClick={() => setActiveTab('all')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
@@ -135,7 +140,7 @@ export default function MyApplications() {
               activeTab === 'active' ? 'bg-white text-primary-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            In Progress
+            In Review
           </button>
           <button
             onClick={() => setActiveTab('accepted')}
@@ -143,7 +148,7 @@ export default function MyApplications() {
               activeTab === 'accepted' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Offers
+            Accepted
           </button>
           <button
             onClick={() => setActiveTab('rejected')}
@@ -173,6 +178,7 @@ export default function MyApplications() {
             const status = statusConfig[app.status] || statusConfig.PENDING;
             const StatusIcon = status.icon;
             const isExpanded = expandedId === app.id;
+            const companyLogo = app.jobPost.company.logoUrl;
 
             return (
               <div 
@@ -182,18 +188,38 @@ export default function MyApplications() {
                 {/* Top Info Bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 text-white font-black text-xl flex items-center justify-center shadow-md shadow-primary-500/20 flex-shrink-0">
-                      {app.jobPost.company.companyName.charAt(0)}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setViewingCompanyId(app.jobPost.company.id || app.jobPost.companyProfileId || null)}
+                      className="w-13 h-13 rounded-2xl bg-white p-1 border border-slate-200 shadow-md flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer hover:border-primary-400 hover:scale-105 transition-all"
+                      title="View Company Profile"
+                    >
+                      {companyLogo ? (
+                        <img 
+                          src={companyLogo.startsWith('http') ? companyLogo : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${companyLogo}`} 
+                          alt={app.jobPost.company.companyName} 
+                          className="w-full h-full object-contain rounded-xl"
+                        />
+                      ) : (
+                        <div className="w-full h-full rounded-xl bg-gradient-to-tr from-primary-500 to-indigo-600 text-white font-black text-xl flex items-center justify-center shadow-inner">
+                          {app.jobPost.company.companyName.charAt(0)}
+                        </div>
+                      )}
+                    </button>
+
                     <div>
                       <h3 className="text-lg font-extrabold text-slate-900">
                         {app.jobPost.title}
                       </h3>
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-500 mt-1">
-                        <span className="flex items-center gap-1 text-primary-600">
+                        <button
+                          type="button"
+                          onClick={() => setViewingCompanyId(app.jobPost.company.id || app.jobPost.companyProfileId || null)}
+                          className="flex items-center gap-1 text-primary-600 hover:text-primary-700 transition-colors cursor-pointer"
+                        >
                           <Building2 className="w-3.5 h-3.5" />
                           {app.jobPost.company.companyName}
-                        </span>
+                        </button>
                         <span>•</span>
                         <span className="flex items-center gap-1 text-slate-400">
                           <Calendar className="w-3.5 h-3.5" />
@@ -310,6 +336,14 @@ export default function MyApplications() {
           </Link>
         </div>
       )}
+
+      {/* ── Public Company Profile Modal ────────────────────────────────────── */}
+      <PublicProfileModal
+        isOpen={!!viewingCompanyId}
+        onClose={() => setViewingCompanyId(null)}
+        profileType="company"
+        profileId={viewingCompanyId}
+      />
     </div>
   );
 }

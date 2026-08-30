@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Book, Award, Sparkles, User, Mail, GraduationCap, Edit3, X, Check } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Book, Award, Sparkles, User, Mail, GraduationCap, Edit3, X, Check, Camera } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
 interface StudentProfile {
@@ -11,23 +11,29 @@ interface StudentProfile {
   gpa: number | null;
   skills: string[];
   bio: string | null;
-  user: { name: string; email: string };
-  university: { name: string };
+  avatarUrl?: string | null;
+  user: { id: string; name: string; email: string; avatarUrl?: string | null };
+  university: { name: string; logoUrl?: string | null };
 }
 
 export default function StudentProfile() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const { success, error: showError } = useToast();
+  
   const [formData, setFormData] = useState({
+    name: '',
     studentId: '',
     major: '',
     faculty: '',
     year: 1,
     gpa: '',
     bio: '',
-    skills: '' // comma separated
+    skills: '', // comma separated
+    avatarUrl: ''
   });
 
   useEffect(() => {
@@ -44,19 +50,59 @@ export default function StudentProfile() {
         const data = await profileRes.json();
         setProfile(data);
         setFormData({
+          name: data.user?.name || '',
           studentId: data.studentId || '',
           major: data.major || '',
           faculty: data.faculty || '',
           year: data.year || 1,
           gpa: data.gpa ? data.gpa.toString() : '',
           bio: data.bio || '',
-          skills: data.skills ? data.skills.join(', ') : ''
+          skills: data.skills ? data.skills.join(', ') : '',
+          avatarUrl: data.avatarUrl || data.user?.avatarUrl || ''
         });
       }
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Image file size must be less than 5MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const token = localStorage.getItem('token');
+      const data = new FormData();
+      data.append('file', file);
+      data.append('type', 'AVATAR');
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: data
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        setFormData(prev => ({ ...prev, avatarUrl: result.fileUrl }));
+        success('Profile photo uploaded! Click "Save Changes" to apply.');
+      } else {
+        const err = await res.json();
+        showError(err.error || 'Failed to upload photo');
+      }
+    } catch (error) {
+      showError('Error uploading photo');
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -82,6 +128,14 @@ export default function StudentProfile() {
 
       if (res.ok) {
         success('Profile updated successfully!');
+        // Update user in localStorage
+        const localUser = localStorage.getItem('user');
+        if (localUser) {
+          const parsed = JSON.parse(localUser);
+          if (formData.name) parsed.name = formData.name;
+          if (formData.avatarUrl) parsed.avatarUrl = formData.avatarUrl;
+          localStorage.setItem('user', JSON.stringify(parsed));
+        }
         setEditing(false);
         fetchProfile();
       } else {
@@ -103,8 +157,19 @@ export default function StudentProfile() {
   
   if (!profile) return <div className="text-center py-12 text-gray-500">Profile not found</div>;
 
+  const currentAvatar = editing ? formData.avatarUrl : (profile.avatarUrl || profile.user.avatarUrl);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Hidden File Input for Avatar */}
+      <input 
+        type="file" 
+        ref={avatarInputRef} 
+        onChange={handleAvatarFileChange} 
+        accept="image/png,image/jpeg,image/jpg,image/webp" 
+        className="hidden" 
+      />
+
       {/* Page Title & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -114,15 +179,18 @@ export default function StudentProfile() {
         {!editing ? (
           <button
             onClick={() => setEditing(true)}
-            className="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+            className="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm cursor-pointer"
           >
             <Edit3 className="w-4 h-4 text-primary-600" />
             Edit Profile
           </button>
         ) : (
           <button
-            onClick={() => setEditing(false)}
-            className="inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all"
+            onClick={() => {
+              setEditing(false);
+              fetchProfile();
+            }}
+            className="inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all cursor-pointer"
           >
             <X className="w-4 h-4" />
             Cancel Editing
@@ -139,10 +207,35 @@ export default function StudentProfile() {
 
           {/* Avatar Badge positioned cleanly over bottom edge */}
           <div className="absolute left-6 sm:left-8 -bottom-12 z-10">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white p-1.5 shadow-xl border-4 border-white">
-              <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-3xl sm:text-4xl font-black shadow-inner">
-                {profile.user.name ? profile.user.name.charAt(0).toUpperCase() : 'S'}
+            <div className="relative group">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white p-1.5 shadow-xl border-4 border-white overflow-hidden">
+                {currentAvatar ? (
+                  <img 
+                    src={currentAvatar.startsWith('http') ? currentAvatar : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${currentAvatar}`} 
+                    alt={profile.user.name} 
+                    className="w-full h-full object-cover rounded-xl"
+                  />
+                ) : (
+                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-3xl sm:text-4xl font-black shadow-inner">
+                    {profile.user.name ? profile.user.name.charAt(0).toUpperCase() : 'S'}
+                  </div>
+                )}
               </div>
+
+              {editing && (
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="absolute inset-0 rounded-2xl bg-slate-900/60 text-white flex flex-col items-center justify-center gap-1 opacity-90 hover:opacity-100 transition-opacity backdrop-blur-[2px] cursor-pointer"
+                  title="Upload profile photo"
+                >
+                  <Camera className="w-6 h-6" />
+                  <span className="text-[10px] font-bold">
+                    {uploadingAvatar ? 'Uploading...' : 'Change Photo'}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -153,7 +246,7 @@ export default function StudentProfile() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight leading-tight">
-                  {profile.user.name}
+                  {editing ? formData.name || profile.user.name : profile.user.name}
                 </h3>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary-50 text-primary-700 border border-primary-200">
                   Student
@@ -180,6 +273,17 @@ export default function StudentProfile() {
           {editing ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm transition-all"
+                    placeholder="Your Full Name"
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
                   <input

@@ -20,6 +20,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
+import PublicProfileModal from '../../components/modals/PublicProfileModal';
 
 export interface AttachmentLink {
   title: string;
@@ -28,6 +29,7 @@ export interface AttachmentLink {
 
 interface Job {
   id: string;
+  companyProfileId?: string;
   title: string;
   description: string;
   requirements: string;
@@ -42,6 +44,7 @@ interface Job {
   applicationLink: string | null;
   createdAt: string;
   company: {
+    id?: string;
     companyName: string;
     logoUrl: string | null;
     address: string | null;
@@ -57,6 +60,7 @@ export default function JobSearch() {
   const [filterType, setFilterType] = useState<'all' | 'remote' | 'onsite'>('all');
 
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [viewingCompanyId, setViewingCompanyId] = useState<string | null>(null);
   const [coverLetter, setCoverLetter] = useState('');
   const [attachments, setAttachments] = useState<AttachmentLink[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -297,9 +301,24 @@ export default function JobSearch() {
                 <div className="p-6 sm:p-7 space-y-4">
                   {/* Top Row: Company Avatar & Tag */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white text-xl font-black shadow-md shadow-primary-500/20 flex-shrink-0">
-                      {job.company.companyName.charAt(0)}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setViewingCompanyId(job.companyProfileId || job.company.id || null)}
+                      className="w-13 h-13 rounded-2xl bg-white p-1 border border-slate-200 shadow-md flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer hover:border-primary-400 hover:scale-105 transition-all"
+                      title="View Company Profile"
+                    >
+                      {job.company.logoUrl ? (
+                        <img 
+                          src={job.company.logoUrl.startsWith('http') ? job.company.logoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${job.company.logoUrl}`} 
+                          alt={job.company.companyName} 
+                          className="w-full h-full object-contain rounded-xl"
+                        />
+                      ) : (
+                        <div className="w-full h-full rounded-xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white text-xl font-black shadow-inner">
+                          {job.company.companyName.charAt(0)}
+                        </div>
+                      )}
+                    </button>
                     <div className="flex flex-col items-end gap-1.5">
                       {job.isRemote ? (
                         <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -318,10 +337,14 @@ export default function JobSearch() {
                     <h3 className="text-lg font-extrabold text-slate-900 line-clamp-1 group-hover:text-primary-600 transition-colors">
                       {job.title}
                     </h3>
-                    <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setViewingCompanyId(job.companyProfileId || job.company.id || null)}
+                      className="text-xs font-bold text-slate-500 hover:text-primary-600 flex items-center gap-1.5 mt-1 transition-colors cursor-pointer text-left"
+                    >
                       <Building2 className="w-3.5 h-3.5 text-primary-500" />
                       {job.company.companyName}
-                    </p>
+                    </button>
                   </div>
 
                   {/* Key Info Chips */}
@@ -580,6 +603,22 @@ export default function JobSearch() {
           </div>
         </div>
       )}
+
+      {/* ── Public Company Profile Modal ────────────────────────────────────── */}
+      <PublicProfileModal
+        isOpen={!!viewingCompanyId}
+        onClose={() => setViewingCompanyId(null)}
+        profileType="company"
+        profileId={viewingCompanyId}
+        onSelectJob={(jobId) => {
+          setViewingCompanyId(null);
+          setSelectedJobId(jobId);
+          setModalError(null);
+          setModalSuccess(false);
+          setCoverLetter('');
+          setAttachments([]);
+        }}
+      />
     </div>
   );
 }

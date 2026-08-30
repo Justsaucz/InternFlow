@@ -18,6 +18,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import universityRoutes from './routes/university.routes';
 import logbookRoutes from './routes/logbook.routes';
 import evaluationRoutes from './routes/evaluation.routes';
+import profileRoutes from './routes/profile.routes';
 import path from 'path';
 
 app.use(cors());
@@ -41,6 +42,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/universities', universityRoutes);
 app.use('/api/logbook', logbookRoutes);
 app.use('/api/evaluations', evaluationRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

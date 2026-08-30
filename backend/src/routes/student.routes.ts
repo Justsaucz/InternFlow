@@ -12,8 +12,8 @@ router.get('/profile', authenticate, authorize([Role.STUDENT]), async (req: Auth
     const profile = await prisma.studentProfile.findUnique({
       where: { userId },
       include: {
-        user: { select: { name: true, email: true } },
-        university: { select: { name: true } }
+        user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        university: { select: { id: true, name: true, logoUrl: true } }
       }
     });
 
@@ -22,7 +22,10 @@ router.get('/profile', authenticate, authorize([Role.STUDENT]), async (req: Auth
       return;
     }
 
-    res.json(profile);
+    res.json({
+      ...profile,
+      avatarUrl: profile.avatarUrl || profile.user.avatarUrl || null
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
@@ -33,7 +36,17 @@ router.get('/profile', authenticate, authorize([Role.STUDENT]), async (req: Auth
 router.put('/profile', authenticate, authorize([Role.STUDENT]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
-    const { studentId, major, faculty, year, gpa, bio, skills } = req.body;
+    const { name, studentId, major, faculty, year, gpa, bio, skills, avatarUrl } = req.body;
+
+    if (name || avatarUrl !== undefined) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: name || undefined,
+          avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined
+        }
+      });
+    }
 
     const profile = await prisma.studentProfile.update({
       where: { userId },
@@ -41,10 +54,15 @@ router.put('/profile', authenticate, authorize([Role.STUDENT]), async (req: Auth
         studentId,
         major,
         faculty,
-        year,
-        gpa,
+        year: year ? parseInt(year) : undefined,
+        gpa: gpa !== undefined && gpa !== '' ? parseFloat(gpa) : undefined,
         bio,
-        skills
+        skills: Array.isArray(skills) ? skills : undefined,
+        avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        university: { select: { id: true, name: true } }
       }
     });
 
