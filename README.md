@@ -104,9 +104,8 @@ A modern, cloud-based platform connecting students, university administrators, a
 | Component Name | Descriptions |
 |---|---|
 | **Amazon Virtual Private Cloud (VPC)** | Logically isolated virtual network boundary containing all backend compute and database resources. |
-| **Elastic Load Balancing (ELB / ALB)** | Network appliance component distributing incoming API requests across backend container targets. |
+| **Elastic Load Balancing (ALB)** | Network appliance component distributing incoming API requests across backend container targets. |
 | **Security Groups** | Stateful virtual firewalls controlling inbound/outbound port-level traffic for VPC resources. |
-| **Amazon Machine Images (AMI)** | Pre-configured operating system template (Ubuntu Linux) used for provisioning compute instances. |
 
 ---
 
