@@ -43,44 +43,44 @@ A modern, cloud-based platform connecting students, university administrators, a
 ![InternFlow System Architecture](docs/architecture.jpg)
 
 ```text
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                  │
-│   Users / Browsers (Students, Company HR, University Admin)                      │
-│       │                                                                          │
-│       ▼                                                                          │
-│  ┌──────────┐                                                                    │
-│  │ Route 53 │ (DNS Resolution)                                                   │
-│  └────┬─────┘                                                                    │
-│       │                                                                          │
-│       ├─────────────────────────────────┐                                        │
-│       │ Path A: Static Assets           │ Path B: API Requests (/api/*)          │
-│       ▼                                 ▼                                        │
-│  ┌─────────────┐               ┌──────────────────────────────────────────────┐  │
-│  │ CloudFront  │ (Global CDN)  │                 Amazon VPC                   │  │
-│  └────┬────────┘               │                                              │  │
-│       │                        │   ┌──────────────────────────┐               │  │
-│       ▼                        │   │  Elastic Load Balancer   │ (Public       │  │
-│  ┌─────────────┐               │   │         (ALB)            │  Subnet)      │  │
-│  │  Amazon S3  │ (Frontend     │   └──────────┬───────────────┘               │  │
-│  │ (React App) │  Build)       │              │                               │  │
-│  └─────────────┘               │   ┌──────────▼───────────────┐               │  │
-│                                │   │     Amazon EC2 / ECS     │ (Private      │  │
-│                                │   │  Node.js + Express API   │  Subnet)      │  │
-│                                │   └──────────┬───────────────┘               │  │
-│                                │              │                               │  │
-│                                │   ┌──────────┴──────────┐                    │  │
-│                                │   │                     │                    │  │
-│                                │   ▼                     ▼                    │  │
-│                                │ ┌─────────────────┐   ┌────────────────────┐ │  │
-│                                │ │ Amazon RDS      │   │ Amazon S3          │ │  │
-│                                │ │ PostgreSQL 16   │   │ (File Storage)     │ │  │
-│                                │ │ (Prisma ORM)    │   │ (CV/Resume Upload) │ │  │
-│                                │ └─────────────────┘   └────────────────────┘ │  │
-│                                └──────────────────────────────────────────────┘  │
-│                                                                                  │
-│   Supporting Services: Amazon ECR ── Amazon CloudWatch ── AWS IAM                │
-└──────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                        │
+│     Users / Browsers (Students, Company HR, University Admin)                          │
+│         │                                                                              │
+│         ▼                                                                              │
+│    ┌──────────┐                                                                        │
+│    │ Route 53 │ (DNS Resolution)                                                       │
+│    └────┬─────┘                                                                        │
+│         │                                                                              │
+│         ├───────────────────────────────────────┐                                      │
+│         │ Path A: Static UI Assets              │ Path B: API Requests (/api/*)        │
+│         ▼                                       ▼                                      │
+│    ┌─────────────┐                     ┌────────────────────────────────────────────┐  │
+│    │ CloudFront  │ (Global CDN)        │                 Amazon VPC                 │  │
+│    └────┬────────┘                     │                                            │  │
+│         │                              │   ┌──────────────────────────┐             │  │
+│         ▼                              │   │  Application Load        │ (Public     │  │
+│    ┌─────────────┐                     │   │   Balancer (ALB)         │  Subnet)    │  │
+│    │  Amazon S3  │ (Frontend           │   └──────────┬───────────────┘             │  │
+│    │ (React App) │  Build)             │              │                             │  │
+│    └─────────────┘                     │   ┌──────────▼───────────────┐             │  │
+│                                        │   │   Amazon ECS Fargate     │ (Private    │  │
+│                                        │   │   Node.js Express API    │  Subnets    │  │
+│                                        │   └──────────┬───────────────┘  AZ-A &     │  │
+│                                        │              │                  AZ-B)      │  │
+│                                        │   ┌──────────┴───────────────┐             │  │
+│                                        │   ▼                          ▼             │  │
+│  ┌────────────────────┐                │ ┌─────────────────┐        ┌─────────────┐ │  │
+│  │ Amazon S3          │ ◀──────────────┼─┤ Amazon RDS      │        │ Amazon S3   │ │  │
+│  │ (Regional Service) │    File        │ │ PostgreSQL 16   │        │ VPC Endpoint│ │  │
+│  │ (CV/Resume Upload) │    Uploads     │ │ (Primary/Standby│        │ (Gateway)   │ │  │
+│  └────────────────────┘                │ └─────────────────┘        └─────────────┘ │  │
+│                                        └────────────────────────────────────────────┘  │
+│                                                                                        │
+│     Supporting Services: Amazon ECR ── Amazon CloudWatch ── AWS KMS ── AWS IAM         │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
 
 ---
 
