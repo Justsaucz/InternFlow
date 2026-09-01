@@ -13,7 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'student' | 'company' | 'university'>('student');
+  const [activeTab, setActiveTab] = useState<'student' | 'company'>('student');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
@@ -22,19 +22,19 @@ export default function Home() {
 
   const faqs = [
     {
-      q: "How does the University Approval workflow work?",
-      a: "When a student accepts an internship offer from an employer, the application automatically flows to their University Administrator's dashboard for official verification and academic credit clearance in just 1 click."
+      q: "How does the application process work?",
+      a: "Students create a profile and apply to internship listings posted by companies. Applications flow through a simple pipeline: Pending → Reviewing → Accepted or Rejected. Companies have full control over the hiring decision."
     },
     {
-      q: "Is InternFlow free for university students?",
-      a: "Yes! InternFlow is 100% free for students to build profiles, discover opportunities, submit applications, and track progress throughout their academic journey."
+      q: "Is InternFlow free for students?",
+      a: "Yes! InternFlow is 100% free for students to build profiles, discover opportunities, submit applications, and track progress throughout their internship journey."
     },
     {
-      q: "How do partner companies verify applicant credentials?",
-      a: "All student profiles are directly tethered to accredited universities in the network. Recruiters see verified GPAs, faculties, majors, and official faculty clearances right inside their applicant pipeline."
+      q: "How do companies verify applicant credentials?",
+      a: "Students upload verified academic transcripts, CVs, and portfolio documents directly to their profiles. Recruiters can view GPAs, faculties, majors, and skill tags right inside their applicant pipeline."
     },
     {
-      q: "What security measures protect student data?",
+      q: "What security measures protect user data?",
       a: "InternFlow employs role-based access control (RBAC), end-to-end encrypted sessions, and compliant cloud storage for CVs and institutional documents."
     }
   ];
@@ -103,17 +103,17 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-primary-100 text-primary-800 text-xs sm:text-sm font-semibold shadow-sm mb-8">
               <span className="flex h-2 w-2 rounded-full bg-primary-500 animate-ping"></span>
               <Sparkles className="w-4 h-4 text-primary-600" />
-              <span>Multi-University Internship & Career Ecosystem</span>
+              <span>Internship & Career Ecosystem</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.15] mb-6">
-              Empowering <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-sky-600 to-indigo-600">Students</span>, Connecting <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-primary-600">Companies</span>, Certified by Universities.
+              Empowering <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-sky-600 to-indigo-600">Students</span>, Connecting <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-primary-600">Companies</span>, Launching Careers.
             </h1>
 
             {/* Subtitle */}
             <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-              The unified cloud platform bridging academic institutions, ambitious students, and top hiring partners with transparent 3-way application workflows.
+              The unified cloud platform bridging ambitious students and top hiring partners with transparent application workflows and real-time tracking.
             </p>
 
             {/* Hero CTAs */}
@@ -136,15 +136,15 @@ export default function Home() {
             {/* Key Trust Numbers */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-6 border-t border-slate-200/80">
               <div className="p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-xs">
-                <p className="text-2xl sm:text-3xl font-black text-primary-600">100%</p>
-                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Verified Universities</p>
+                <p className="text-2xl sm:text-3xl font-black text-primary-600">500+</p>
+                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Active Listings</p>
               </div>
               <div className="p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-xs">
                 <p className="text-2xl sm:text-3xl font-black text-indigo-600">24 Hrs</p>
-                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Avg. Approval Speed</p>
+                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Avg. Response Time</p>
               </div>
               <div className="p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-xs">
-                <p className="text-2xl sm:text-3xl font-black text-sky-600">3-Tier</p>
+                <p className="text-2xl sm:text-3xl font-black text-sky-600">2-Tier</p>
                 <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Integrated RBAC</p>
               </div>
               <div className="p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-xs">
@@ -233,32 +233,33 @@ export default function Home() {
               <div className="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs">
                 <span className="text-slate-400">Status</span>
                 <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Endorsed by Dean
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Company Approved
                 </span>
               </div>
             </div>
 
-            {/* Card 3: University Admin Oversight */}
+            {/* Card 3: Company Evaluation & Tracking */}
             <div className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Admin Control
+                    <ShieldCheck className="w-3.5 h-3.5" /> Evaluation
                   </span>
                   <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 font-medium">
-                    Auto-Sync
+                    Company Review
                   </span>
                 </div>
-                <h4 className="text-base font-bold text-white mb-1">Faculty of Engineering</h4>
-                <p className="text-xs text-slate-400 mb-3">48 Active Cohort Placements</p>
+                <h4 className="text-base font-bold text-white mb-1">Intern Performance</h4>
+                <p className="text-xs text-slate-400 mb-3">Weekly Logbook & Mentor Scoring</p>
                 <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/40 text-xs text-slate-300 space-y-1">
-                  <div className="flex justify-between"><span>Pending Approvals:</span><strong className="text-amber-400">2</strong></div>
-                  <div className="flex justify-between"><span>Active Interns:</span><strong className="text-emerald-400">46</strong></div>
+                  <div className="flex justify-between"><span>Work Quality:</span><strong className="text-emerald-400">5/5</strong></div>
+                  <div className="flex justify-between"><span>Punctuality:</span><strong className="text-emerald-400">4/5</strong></div>
+                  <div className="flex justify-between"><span>Teamwork:</span><strong className="text-sky-400">5/5</strong></div>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
-                <span>Direct MoU Verification</span>
-                <span className="text-emerald-400 font-semibold">100% Compliant</span>
+                <span>Mentor Feedback</span>
+                <span className="text-emerald-400 font-semibold">Approved ✓</span>
               </div>
             </div>
           </div>
@@ -270,13 +271,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
-              One Platform, Three Ecosystems
+              One Platform, Two Ecosystems
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-4 tracking-tight">
               Designed specifically for your workflow
             </h2>
             <p className="text-base sm:text-lg text-slate-600 mt-3">
-              Whether you are seeking your first internship, recruiting the next generation of engineers, or coordinating university cohorts.
+              Whether you are seeking your first internship or recruiting the next generation of talent.
             </p>
 
             {/* Tab Switches */}
@@ -301,16 +302,6 @@ export default function Home() {
               >
                 For Companies
               </button>
-              <button
-                onClick={() => setActiveTab('university')}
-                className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all ${
-                  activeTab === 'university' 
-                    ? 'bg-white text-primary-700 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                For Universities
-              </button>
             </div>
           </div>
 
@@ -331,7 +322,7 @@ export default function Home() {
                   <ul className="space-y-3.5">
                     <li className="flex items-center text-sm font-medium text-slate-700">
                       <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Automatic university alignment & GPA validation
+                      Build a verified profile with GPA, skills, and portfolio
                     </li>
                     <li className="flex items-center text-sm font-medium text-slate-700">
                       <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
@@ -339,7 +330,7 @@ export default function Home() {
                     </li>
                     <li className="flex items-center text-sm font-medium text-slate-700">
                       <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Direct academic credit clearance by faculty advisor
+                      Weekly logbook tracking with mentor feedback and ratings
                     </li>
                   </ul>
                   <div className="pt-2">
@@ -383,7 +374,7 @@ export default function Home() {
                     <Building2 className="w-6 h-6" />
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                    Hire top campus talent directly from leading universities
+                    Hire top talent and manage intern performance end-to-end
                   </h3>
                   <p className="text-slate-600 leading-relaxed">
                     Post verified internship roles, filter students by major, GPA, and skill tags, and streamline hiring decisions without messy email attachments or lost resumes.
@@ -395,7 +386,7 @@ export default function Home() {
                     </li>
                     <li className="flex items-center text-sm font-medium text-slate-700">
                       <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Instant offer dispatch and automatic university clearance trigger
+                      Instant offer dispatch with real-time status tracking
                     </li>
                     <li className="flex items-center text-sm font-medium text-slate-700">
                       <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
@@ -434,61 +425,7 @@ export default function Home() {
               </div>
             )}
 
-            {activeTab === 'university' && (
-              <div className="grid md:grid-cols-2 gap-10 items-center">
-                <div className="space-y-6">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-700">
-                    <Briefcase className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                    Complete oversight and official academic approvals
-                  </h3>
-                  <p className="text-slate-600 leading-relaxed">
-                    Monitor student internship placements across all faculties in real-time. Provide official digital approvals and export compliance records in one click.
-                  </p>
-                  <ul className="space-y-3.5">
-                    <li className="flex items-center text-sm font-medium text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Comprehensive student directory and cohort tracking
-                    </li>
-                    <li className="flex items-center text-sm font-medium text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      1-Click official institutional endorsement for accepted offers
-                    </li>
-                    <li className="flex items-center text-sm font-medium text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Automated statistics on placement rates and partner companies
-                    </li>
-                  </ul>
-                  <div className="pt-2">
-                    <Link to="/register" className="inline-flex items-center text-sm font-bold text-amber-600 hover:text-amber-700">
-                      Join as University Admin <ArrowRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </div>
-                </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <span className="text-sm font-bold text-slate-900">University Admin Center</span>
-                    <span className="text-xs text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded-md">Dean's Office</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-slate-50 rounded-xl text-center border border-slate-100">
-                      <span className="text-lg font-bold text-slate-900">120</span>
-                      <p className="text-[11px] text-slate-500">Students Enrolled</p>
-                    </div>
-                    <div className="p-3 bg-slate-50 rounded-xl text-center border border-slate-100">
-                      <span className="text-lg font-bold text-emerald-600">92%</span>
-                      <p className="text-[11px] text-slate-500">Placed in Q1</p>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-center justify-between text-xs">
-                    <span className="text-amber-800 font-medium">Pending Approvals: 3 Candidates</span>
-                    <span className="font-bold text-amber-700">Review Now</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </section>
@@ -512,7 +449,7 @@ export default function Home() {
             </span>
             <h4 className="text-lg font-bold text-slate-900 mb-2">Create Profile</h4>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Register as a student with your verified university, or as an HR recruiter with your corporate domain.
+              Register as a student to find internships, or as an HR recruiter to find talent.
             </p>
           </div>
 
@@ -543,9 +480,9 @@ export default function Home() {
             <span className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 font-black text-base flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               04
             </span>
-            <h4 className="text-lg font-bold text-slate-900 mb-2">University Endorsement</h4>
+            <h4 className="text-lg font-bold text-slate-900 mb-2">Company Evaluation</h4>
             <p className="text-sm text-slate-600 leading-relaxed">
-              University administrators review accepted offers and grant official academic credit approval instantly.
+              Company mentors review weekly logs, rate intern performance, and provide feedback to complete the internship cycle.
             </p>
           </div>
         </div>
@@ -597,10 +534,10 @@ export default function Home() {
             <Sparkles className="w-3.5 h-3.5 text-primary-400" /> Start Your Journey Today
           </div>
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-6 leading-tight">
-            Ready to streamline your university internship journey?
+            Ready to streamline your internship journey?
           </h2>
           <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Join students, company recruiters, and faculty leaders already collaborating seamlessly on InternFlow.
+            Join students and company recruiters already collaborating seamlessly on InternFlow.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link 

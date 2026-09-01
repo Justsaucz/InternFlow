@@ -9,15 +9,46 @@ const router = Router();
 router.get('/profile', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
-    const user = await prisma.user.findUnique({
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    let user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
         companyProfile: true
       }
     });
 
-    if (!user || !user.companyProfile) {
-      res.status(404).json({ error: 'Company profile not found' });
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Auto-create company profile if missing
+    if (!user.companyProfile) {
+      const newCompanyProfile = await prisma.companyProfile.create({
+        data: {
+          userId,
+          companyName: user.name ? `${user.name}'s Company` : 'My Company',
+          industry: '',
+          website: '',
+          description: '',
+          address: '',
+          contactEmail: user.email,
+        }
+      });
+
+      res.json({
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        },
+        profile: newCompanyProfile
+      });
       return;
     }
 
@@ -31,7 +62,7 @@ router.get('/profile', authenticate, authorize([Role.COMPANY_HR]), async (req: A
       profile: user.companyProfile
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching company profile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -40,6 +71,11 @@ router.get('/profile', authenticate, authorize([Role.COMPANY_HR]), async (req: A
 router.put('/profile', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
     const { 
       name, 
       companyName, 
@@ -57,8 +93,8 @@ router.put('/profile', authenticate, authorize([Role.COMPANY_HR]), async (req: A
       include: { companyProfile: true }
     });
 
-    if (!user || !user.companyProfile) {
-      res.status(404).json({ error: 'Company profile not found' });
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
       return;
     }
 
@@ -73,18 +109,29 @@ router.put('/profile', authenticate, authorize([Role.COMPANY_HR]), async (req: A
       });
     }
 
-    // Update Company Profile
-    const updatedProfile = await prisma.companyProfile.update({
-      where: { id: user.companyProfile.id },
-      data: {
-        companyName: companyName !== undefined ? companyName : user.companyProfile.companyName,
-        industry: industry !== undefined ? industry : user.companyProfile.industry,
-        website: website !== undefined ? website : user.companyProfile.website,
-        description: description !== undefined ? description : user.companyProfile.description,
-        logoUrl: logoUrl !== undefined ? logoUrl : user.companyProfile.logoUrl,
-        address: address !== undefined ? address : user.companyProfile.address,
-        contactEmail: contactEmail !== undefined ? contactEmail : user.companyProfile.contactEmail,
-        contactPhone: contactPhone !== undefined ? contactPhone : user.companyProfile.contactPhone,
+    // Upsert Company Profile
+    const updatedProfile = await prisma.companyProfile.upsert({
+      where: { userId },
+      create: {
+        userId,
+        companyName: companyName || user.name || 'My Company',
+        industry: industry || '',
+        website: website || '',
+        description: description || '',
+        logoUrl: logoUrl || null,
+        address: address || '',
+        contactEmail: contactEmail || user.email,
+        contactPhone: contactPhone || '',
+      },
+      update: {
+        companyName: companyName !== undefined ? companyName : undefined,
+        industry: industry !== undefined ? industry : undefined,
+        website: website !== undefined ? website : undefined,
+        description: description !== undefined ? description : undefined,
+        logoUrl: logoUrl !== undefined ? logoUrl : undefined,
+        address: address !== undefined ? address : undefined,
+        contactEmail: contactEmail !== undefined ? contactEmail : undefined,
+        contactPhone: contactPhone !== undefined ? contactPhone : undefined,
       }
     });
 
@@ -94,7 +141,7 @@ router.put('/profile', authenticate, authorize([Role.COMPANY_HR]), async (req: A
       profile: updatedProfile
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error updating company profile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

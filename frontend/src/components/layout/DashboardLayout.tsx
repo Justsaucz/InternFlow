@@ -9,7 +9,6 @@ import {
   Users, 
   GraduationCap, 
   Building2, 
-  ShieldCheck,
   ChevronRight,
   Sparkles,
   BookOpen,
@@ -21,7 +20,7 @@ interface UserData {
   email: string;
   name: string;
   avatarUrl?: string | null;
-  role: 'STUDENT' | 'COMPANY_HR' | 'UNIVERSITY_ADMIN';
+  role: 'STUDENT' | 'COMPANY_HR';
 }
 
 export default function DashboardLayout() {
@@ -52,8 +51,6 @@ export default function DashboardLayout() {
         return { label: 'Student', icon: GraduationCap, color: 'bg-primary-50 text-primary-700 border-primary-200' };
       case 'COMPANY_HR':
         return { label: 'Company HR', icon: Building2, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
-      case 'UNIVERSITY_ADMIN':
-        return { label: 'University Admin', icon: ShieldCheck, color: 'bg-amber-50 text-amber-700 border-amber-200' };
       default:
         return { label: 'User', icon: User, color: 'bg-gray-50 text-gray-700 border-gray-200' };
     }
@@ -79,14 +76,6 @@ export default function DashboardLayout() {
           { name: 'Applicants', href: '/dashboard/applicants', icon: Users },
           { name: 'Intern Evaluations', href: '/dashboard/evaluations', icon: Award },
           { name: 'Company Profile', href: '/dashboard/company/profile', icon: Building2 },
-        ];
-      case 'UNIVERSITY_ADMIN':
-        return [
-          { name: 'Dashboard', href: '/dashboard', icon: Home },
-          { name: 'Students', href: '/dashboard/students', icon: Users },
-          { name: 'Approval Requests', href: '/dashboard/approvals', icon: FileText },
-          { name: 'Grading & Reports', href: '/dashboard/grading', icon: Award },
-          { name: 'University Profile', href: '/dashboard/university/profile', icon: ShieldCheck },
         ];
       default:
         return [];

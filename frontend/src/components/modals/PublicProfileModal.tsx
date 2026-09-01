@@ -19,13 +19,13 @@ interface StudentData {
   email: string;
   avatarUrl: string | null;
   studentId?: string;
+  university?: string | null;
   faculty: string;
   major: string;
   year: number;
   gpa?: number | null;
   skills: string[];
   bio: string | null;
-  university?: { id: string; name: string; logoUrl?: string | null };
 }
 
 interface JobOpening {
@@ -59,22 +59,10 @@ interface CompanyData {
   activeJobs: JobOpening[];
 }
 
-interface UniversityData {
-  id: string;
-  name: string;
-  domain: string;
-  description: string | null;
-  logoUrl: string | null;
-  address: string | null;
-  contactEmail: string | null;
-  contactPhone: string | null;
-  totalStudents: number;
-}
-
 interface PublicProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  profileType: 'student' | 'company' | 'university';
+  profileType: 'student' | 'company';
   profileId: string | null;
   onSelectJob?: (jobId: string) => void;
 }
@@ -90,7 +78,6 @@ export default function PublicProfileModal({
   const [error, setError] = useState<string | null>(null);
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
-  const [universityData, setUniversityData] = useState<UniversityData | null>(null);
 
   useEffect(() => {
     if (isOpen && profileId) {
@@ -98,7 +85,6 @@ export default function PublicProfileModal({
     } else {
       setStudentData(null);
       setCompanyData(null);
-      setUniversityData(null);
       setError(null);
     }
   }, [isOpen, profileId, profileType]);
@@ -122,7 +108,6 @@ export default function PublicProfileModal({
       const data = await res.json();
       if (profileType === 'student') setStudentData(data);
       else if (profileType === 'company') setCompanyData(data);
-      else if (profileType === 'university') setUniversityData(data);
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to load profile');
@@ -203,7 +188,7 @@ export default function PublicProfileModal({
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 font-medium">
                         <GraduationCap className="w-3.5 h-3.5 text-primary-500" />
-                        {studentData.university?.name || 'Partner University'} • Year {studentData.year}
+                        {studentData.university ? `${studentData.university} • ` : ''}Year {studentData.year} • {studentData.faculty || 'Student'}
                       </p>
                     </div>
 
@@ -220,6 +205,12 @@ export default function PublicProfileModal({
                 <div className="p-7 space-y-6">
                   {/* Academic Details Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {studentData.university && (
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 col-span-2 sm:col-span-3">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">University</span>
+                        <p className="text-xs font-extrabold text-slate-800 mt-0.5">{studentData.university}</p>
+                      </div>
+                    )}
                     <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Faculty</span>
                       <p className="text-xs font-extrabold text-slate-800 mt-0.5">{studentData.faculty || 'Engineering'}</p>
@@ -413,80 +404,7 @@ export default function PublicProfileModal({
               </div>
             )}
 
-            {/* ── UNIVERSITY PROFILE VIEW ──────────────────────────────────── */}
-            {profileType === 'university' && universityData && (
-              <div>
-                {/* Header Banner */}
-                <div className="h-36 bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-800 relative">
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent opacity-60"></div>
-                  
-                  {/* Logo */}
-                  <div className="absolute left-7 -bottom-10 z-10">
-                    <div className="w-20 h-20 rounded-2xl bg-white p-1.5 shadow-xl border-4 border-white overflow-hidden flex items-center justify-center">
-                      {universityData.logoUrl ? (
-                        <img 
-                          src={universityData.logoUrl.startsWith('http') ? universityData.logoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${universityData.logoUrl}`}
-                          alt={universityData.name}
-                          className="w-full h-full object-contain rounded-xl"
-                        />
-                      ) : (
-                        <div className="w-full h-full rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center text-white text-2xl font-black shadow-inner">
-                          {universityData.name ? universityData.name.charAt(0).toUpperCase() : 'U'}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
 
-                {/* Header Info */}
-                <div className="px-7 pt-12 pb-5 border-b border-slate-100">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-extrabold text-slate-900">{universityData.name}</h3>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Academic Institution
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 font-medium">
-                        <GraduationCap className="w-3.5 h-3.5 text-emerald-600" />
-                        {universityData.domain} • {universityData.address || 'Campus Location'}
-                      </p>
-                    </div>
-
-                    <div className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-right">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Registered Interns</span>
-                      <span className="text-sm font-black text-slate-800">{universityData.totalStudents || 0} Students</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Body Content */}
-                <div className="p-7 space-y-6">
-                  {/* Contacts */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Academic Email</span>
-                      <p className="text-xs font-bold text-slate-800 mt-0.5 truncate">{universityData.contactEmail || 'N/A'}</p>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone</span>
-                      <p className="text-xs font-bold text-slate-800 mt-0.5">{universityData.contactPhone || 'N/A'}</p>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  {universityData.description && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Internship Program Overview</h4>
-                      <p className="text-xs text-slate-600 leading-relaxed bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
-                        {universityData.description}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

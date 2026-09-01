@@ -20,7 +20,6 @@ router.get('/student/:id', authenticate, async (req: AuthRequest, res: Response)
       },
       include: {
         user: { select: { id: true, name: true, email: true, avatarUrl: true } },
-        university: { select: { id: true, name: true, logoUrl: true } },
       }
     });
 
@@ -29,8 +28,8 @@ router.get('/student/:id', authenticate, async (req: AuthRequest, res: Response)
       return;
     }
 
-    // Role-based privacy: GPA is only visible to HR and University Admins
-    const isAuthorizedForSensitiveData = callerRole === Role.COMPANY_HR || callerRole === Role.UNIVERSITY_ADMIN;
+    // Role-based privacy: GPA is only visible to HR
+    const isAuthorizedForSensitiveData = callerRole === Role.COMPANY_HR;
 
     res.json({
       id: student.id,
@@ -39,13 +38,13 @@ router.get('/student/:id', authenticate, async (req: AuthRequest, res: Response)
       email: student.user.email,
       avatarUrl: student.avatarUrl || student.user.avatarUrl || null,
       studentId: isAuthorizedForSensitiveData ? student.studentId : undefined,
+      university: student.university || null,
       faculty: student.faculty,
       major: student.major,
       year: student.year,
       gpa: isAuthorizedForSensitiveData ? student.gpa : undefined,
       skills: student.skills,
       bio: student.bio,
-      university: student.university
     });
   } catch (error) {
     console.error('Error fetching student profile:', error);
@@ -115,40 +114,6 @@ router.get('/company/:id', authenticate, async (req: AuthRequest, res: Response)
   }
 });
 
-// GET /api/profile/university/:id - Public university profile
-router.get('/university/:id', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const id = req.params.id as string;
 
-    const university = await prisma.university.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: { students: true }
-        }
-      }
-    });
-
-    if (!university) {
-      res.status(404).json({ error: 'University profile not found.' });
-      return;
-    }
-
-    res.json({
-      id: university.id,
-      name: university.name,
-      domain: university.domain,
-      description: university.description,
-      logoUrl: university.logoUrl,
-      address: university.address,
-      contactEmail: university.contactEmail,
-      contactPhone: university.contactPhone,
-      totalStudents: university._count.students
-    });
-  } catch (error) {
-    console.error('Error fetching university profile:', error);
-    res.status(500).json({ error: 'Failed to fetch university profile.' });
-  }
-});
 
 export default router;

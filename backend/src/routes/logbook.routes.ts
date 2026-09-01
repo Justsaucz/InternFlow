@@ -9,13 +9,12 @@ const router = Router();
 router.get('/my', authenticate, authorize([Role.STUDENT]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
-    const student = await prisma.studentProfile.findUnique({
+    let student = await prisma.studentProfile.findUnique({
       where: { userId },
       include: {
-        university: true,
         applications: {
           where: {
-            status: { in: ['APPROVED_BY_UNIVERSITY', 'ACCEPTED'] }
+            status: 'ACCEPTED'
           },
           include: {
             jobPost: {
@@ -30,8 +29,28 @@ router.get('/my', authenticate, authorize([Role.STUDENT]), async (req: AuthReque
     });
 
     if (!student) {
-      res.status(404).json({ error: 'Student profile not found.' });
-      return;
+      student = await prisma.studentProfile.create({
+        data: {
+          userId: userId!,
+          major: 'General',
+          faculty: 'General'
+        },
+        include: {
+          applications: {
+            where: {
+              status: 'ACCEPTED'
+            },
+            include: {
+              jobPost: {
+                include: {
+                  company: true
+                }
+              },
+              evaluation: true
+            }
+          }
+        }
+      });
     }
 
     const logs = await prisma.weeklyLog.findMany({
@@ -39,8 +58,8 @@ router.get('/my', authenticate, authorize([Role.STUDENT]), async (req: AuthReque
       orderBy: { weekNumber: 'asc' }
     });
 
-    const totalHours = logs.reduce((acc, log) => acc + log.hoursWorked, 0);
-    const approvedHours = logs.filter(l => l.mentorApproved).reduce((acc, log) => acc + log.hoursWorked, 0);
+    const totalHours = logs.reduce((acc, log) => acc + (log.hoursWorked || 0), 0);
+    const approvedHours = logs.filter(l => l.mentorApproved).reduce((acc, log) => acc + (log.hoursWorked || 0), 0);
 
     const activePlacement = student.applications[0] || null;
 
@@ -49,7 +68,6 @@ router.get('/my', authenticate, authorize([Role.STUDENT]), async (req: AuthReque
       logs,
       totalHours,
       approvedHours,
-      targetHours: 400,
       activePlacement
     });
   } catch (error) {
@@ -77,39 +95,61 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
       attachmentUrl 
     } = req.body;
 
-    const student = await prisma.studentProfile.findUnique({
+    let student = await prisma.studentProfile.findUnique({
       where: { userId },
       include: {
         applications: {
           where: {
-            status: { in: ['APPROVED_BY_UNIVERSITY', 'ACCEPTED'] }
+            status: 'ACCEPTED'
           }
         }
       }
     });
 
     if (!student) {
-      res.status(404).json({ error: 'Student profile not found.' });
-      return;
+      student = await prisma.studentProfile.create({
+        data: {
+          userId: userId!,
+          major: 'General',
+          faculty: 'General'
+        },
+        include: {
+          applications: {
+            where: {
+              status: 'ACCEPTED'
+            }
+          }
+        }
+      });
     }
 
     const activeApp = student.applications[0] || null;
+
+    const parsedStartDate = startDate && !isNaN(new Date(startDate).getTime())
+      ? new Date(startDate)
+      : new Date();
+    const parsedEndDate = endDate && !isNaN(new Date(endDate).getTime())
+      ? new Date(endDate)
+      : new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+
+    const safeHours = Number(hoursWorked) > 0 ? Number(hoursWorked) : 40.0;
+    const safeWeek = Number(weekNumber) > 0 ? Number(weekNumber) : 1;
 
     if (id) {
       // Update existing log
       const updated = await prisma.weeklyLog.update({
         where: { id },
         data: {
-          weekNumber: Number(weekNumber),
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
+          weekNumber: safeWeek,
+          startDate: parsedStartDate,
+          endDate: parsedEndDate,
           workModality: workModality || 'ON_SITE',
           supervisorName: supervisorName || null,
           plannedTasks: plannedTasks || null,
-          tasksDone,
+          tasksDone: tasksDone || '[]',
           problemsAndSolutions: problemsAndSolutions || null,
-          learnings,
-          hoursWorked: Number(hoursWorked) || 40.0,
+          learnings: learnings || '',
+          hoursWorked: safeHours,
           attachmentUrl: attachmentUrl || null
         }
       });
@@ -122,16 +162,16 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
       data: {
         studentId: student.id,
         applicationId: activeApp ? activeApp.id : null,
-        weekNumber: Number(weekNumber),
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
+        weekNumber: safeWeek,
+        startDate: parsedStartDate,
+        endDate: parsedEndDate,
         workModality: workModality || 'ON_SITE',
         supervisorName: supervisorName || null,
         plannedTasks: plannedTasks || null,
-        tasksDone,
+        tasksDone: tasksDone || '[]',
         problemsAndSolutions: problemsAndSolutions || null,
-        learnings,
-        hoursWorked: Number(hoursWorked) || 40.0,
+        learnings: learnings || '',
+        hoursWorked: safeHours,
         attachmentUrl: attachmentUrl || null
       }
     });
@@ -172,8 +212,8 @@ router.delete('/:id', authenticate, authorize([Role.STUDENT]), async (req: AuthR
   }
 });
 
-// GET /api/logbook/student/:studentId - Company HR or Admin views a student's logs
-router.get('/student/:studentId', authenticate, authorize([Role.COMPANY_HR, Role.UNIVERSITY_ADMIN]), async (req: AuthRequest, res: Response): Promise<void> => {
+// GET /api/logbook/student/:studentId - Company HR views a student's logs
+router.get('/student/:studentId', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const studentId = req.params.studentId as string;
 
@@ -181,7 +221,6 @@ router.get('/student/:studentId', authenticate, authorize([Role.COMPANY_HR, Role
       where: { id: studentId },
       include: {
         user: { select: { name: true, email: true } },
-        university: true
       }
     });
 
@@ -197,14 +236,12 @@ router.get('/student/:studentId', authenticate, authorize([Role.COMPANY_HR, Role
 
     const totalHours = logs.reduce((acc, log) => acc + log.hoursWorked, 0);
     const approvedHours = logs.filter(l => l.mentorApproved).reduce((acc, log) => acc + log.hoursWorked, 0);
-    const facultyVerifiedCount = logs.filter(l => l.facultyVerified).length;
 
     res.json({
       student,
       logs,
       totalHours,
       approvedHours,
-      facultyVerifiedCount,
       targetHours: 400
     });
   } catch (error) {
@@ -235,26 +272,6 @@ router.put('/:id/approve', authenticate, authorize([Role.COMPANY_HR]), async (re
   }
 });
 
-// PUT /api/logbook/:id/faculty-verify - University Admin verifies a weekly log with remarks
-router.put('/:id/faculty-verify', authenticate, authorize([Role.UNIVERSITY_ADMIN]), async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const id = req.params.id as string;
-    const { facultyRemarks } = req.body;
 
-    const updated = await prisma.weeklyLog.update({
-      where: { id },
-      data: {
-        facultyVerified: true,
-        facultyRemarks: facultyRemarks || null,
-        facultyVerifiedAt: new Date()
-      }
-    });
-
-    res.json(updated);
-  } catch (error) {
-    console.error('Error verifying weekly log by faculty:', error);
-    res.status(500).json({ error: 'Failed to verify weekly log.' });
-  }
-});
 
 export default router;

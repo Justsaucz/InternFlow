@@ -22,14 +22,13 @@ const getCompanyInternsHandler = async (req: AuthRequest, res: Response): Promis
     const applications = await prisma.application.findMany({
       where: {
         jobPost: { companyProfileId: company.id },
-        status: { in: ['ACCEPTED', 'APPROVED_BY_UNIVERSITY'] }
+        status: 'ACCEPTED'
       },
       include: {
         jobPost: true,
         student: {
           include: {
             user: { select: { id: true, name: true, email: true, avatarUrl: true } },
-            university: { select: { name: true } },
             weeklyLogs: {
               orderBy: { weekNumber: 'asc' }
             },
@@ -138,92 +137,7 @@ router.post('/submit', authenticate, authorize([Role.COMPANY_HR]), async (req: A
   }
 });
 
-// GET /api/evaluations/admin - University Admin gets all students with evaluation & grading status
-router.get('/admin', authenticate, authorize([Role.UNIVERSITY_ADMIN]), async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const userId = req.user?.userId;
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { university: true }
-    });
 
-    if (!user || !user.universityId) {
-      res.status(404).json({ error: 'University affiliation not found.' });
-      return;
-    }
-
-    const students = await prisma.studentProfile.findMany({
-      where: { universityId: user.universityId },
-      include: {
-        user: { select: { name: true, email: true } },
-        university: true,
-        weeklyLogs: true,
-        evaluations: {
-          include: {
-            company: true
-          }
-        },
-        applications: {
-          where: { status: { in: ['ACCEPTED', 'APPROVED_BY_UNIVERSITY'] } },
-          include: {
-            jobPost: {
-              include: {
-                company: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    const placements = students.map((student: any) => {
-      const logs = student.weeklyLogs || [];
-      const totalHours = logs.reduce((sum: number, l: any) => sum + l.hoursWorked, 0);
-      const approvedHours = logs.filter((l: any) => l.mentorApproved).reduce((sum: number, l: any) => sum + l.hoursWorked, 0);
-      const activeApp = student.applications ? student.applications[0] : null;
-      const evaluation = student.evaluations ? student.evaluations[0] : null;
-
-      return {
-        student,
-        activeApp,
-        totalHours,
-        approvedHours,
-        targetHours: 400,
-        evaluation
-      };
-    });
-
-    res.json({
-      university: user.university,
-      placements
-    });
-  } catch (error) {
-    console.error('Error fetching admin grading overview:', error);
-    res.status(500).json({ error: 'Failed to fetch grading data.' });
-  }
-});
-
-// PUT /api/evaluations/:id/grade - University Admin assigns final grade & remarks
-router.put('/:id/grade', authenticate, authorize([Role.UNIVERSITY_ADMIN]), async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const id = req.params.id as string;
-    const { finalGrade, universityRemarks } = req.body;
-
-    const updated = await prisma.internshipEvaluation.update({
-      where: { id },
-      data: {
-        finalGrade,
-        universityRemarks: universityRemarks || null,
-        status: EvaluationStatus.GRADED
-      }
-    });
-
-    res.json(updated);
-  } catch (error) {
-    console.error('Error assigning final grade:', error);
-    res.status(500).json({ error: 'Failed to assign final grade.' });
-  }
-});
 
 // GET /api/evaluations/report/:studentId - Full official completion report summary
 router.get('/report/:studentId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
@@ -234,7 +148,6 @@ router.get('/report/:studentId', authenticate, async (req: AuthRequest, res: Res
       where: { id: studentId },
       include: {
         user: { select: { name: true, email: true } },
-        university: true,
         weeklyLogs: {
           orderBy: { weekNumber: 'asc' }
         },
@@ -244,7 +157,7 @@ router.get('/report/:studentId', authenticate, async (req: AuthRequest, res: Res
           }
         },
         applications: {
-          where: { status: { in: ['ACCEPTED', 'APPROVED_BY_UNIVERSITY'] } },
+          where: { status: 'ACCEPTED' },
           include: {
             jobPost: {
               include: {

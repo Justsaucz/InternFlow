@@ -7,7 +7,6 @@ import {
   Laptop,
   Building,
   RefreshCw,
-  UserCheck,
   ExternalLink,
   Link as LinkIcon,
   FileText
@@ -21,10 +20,10 @@ interface StudentInfo {
   studentId: string;
   faculty: string;
   major: string;
+  university?: string | null;
   year: number;
   avatarUrl?: string | null;
   user: { id?: string; name: string; email: string; avatarUrl?: string | null };
-  university: { name: string };
   weeklyLogs: any[];
 }
 
@@ -242,7 +241,7 @@ export default function CompanyEvaluations() {
             <table className="min-w-full divide-y divide-slate-100 text-left">
               <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 <tr>
-                  <th className="px-6 py-4">Student & University</th>
+                  <th className="px-6 py-4">Student Candidate</th>
                   <th className="px-6 py-4">Position Title</th>
                   <th className="px-6 py-4">Hours Logged & Signed</th>
                   <th className="px-6 py-4">Company Rubric Status</th>
@@ -288,10 +287,10 @@ export default function CompanyEvaluations() {
                                 {intern.student.user.name}
                               </button>
                               <div className="text-slate-500 text-xs font-semibold">
-                                {intern.student.studentId} • {intern.student.university.name}
+                                ID: {intern.student.studentId} • Year {intern.student.year}
                               </div>
                               <div className="text-[11px] text-slate-400">
-                                {intern.student.faculty} ({intern.student.major})
+                                {intern.student.university ? `${intern.student.university} • ` : ''}{intern.student.faculty} ({intern.student.major})
                               </div>
                             </div>
                           </div>
@@ -538,21 +537,12 @@ export default function CompanyEvaluations() {
                           )}
                         </div>
 
-                        {/* Mentor Feedback & Faculty Review status */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                        {/* Mentor Feedback status */}
+                        <div className="text-xs pt-1">
                           <div className="bg-white p-3 rounded-xl border border-slate-200/70">
-                            <p className="font-bold text-slate-600 text-[10px] uppercase">Company Feedback:</p>
+                            <p className="font-bold text-slate-600 text-[10px] uppercase">Company Mentor Feedback:</p>
                             <p className="italic text-slate-700 text-[11px] mt-0.5">
-                              {log.mentorFeedback ? `"${log.mentorFeedback}"` : 'No feedback yet.'}
-                            </p>
-                          </div>
-                          <div className="bg-white p-3 rounded-xl border border-slate-200/70">
-                            <p className="font-bold text-purple-700 text-[10px] uppercase flex items-center gap-1">
-                              <UserCheck className="w-3 h-3" />
-                              Faculty Advisor Review:
-                            </p>
-                            <p className="italic text-slate-700 text-[11px] mt-0.5">
-                              {log.facultyVerified ? `"${log.facultyRemarks || 'Verified'}"` : 'Pending faculty review.'}
+                              {log.mentorFeedback ? `"${log.mentorFeedback}"` : 'No feedback submitted yet.'}
                             </p>
                           </div>
                         </div>

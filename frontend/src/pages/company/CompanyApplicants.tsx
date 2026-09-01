@@ -15,6 +15,7 @@ interface Application {
     studentId: string;
     major: string;
     faculty: string;
+    university?: string | null;
     avatarUrl?: string | null;
     user: { id?: string; name: string; email: string; avatarUrl?: string | null };
   };
@@ -25,7 +26,6 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   REVIEWING: { label: 'Reviewing', color: 'bg-blue-100 text-blue-800' },
   ACCEPTED: { label: 'Accepted', color: 'bg-green-100 text-green-800' },
   REJECTED: { label: 'Rejected', color: 'bg-red-100 text-red-800' },
-  APPROVED_BY_UNIVERSITY: { label: 'Uni Approved', color: 'bg-purple-100 text-purple-800' },
 };
 
 export default function CompanyApplicants() {
@@ -126,7 +126,7 @@ export default function CompanyApplicants() {
                           {app.student.user.name}
                         </button>
                         <span className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium">
-                          {app.student.faculty || 'Engineering'}
+                          {app.student.university ? `${app.student.university} • ` : ''}{app.student.faculty || 'Student'}
                         </span>
                       </div>
 

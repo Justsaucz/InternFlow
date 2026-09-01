@@ -36,7 +36,7 @@ router.get('/stats', authenticate, async (req: AuthRequest, res: Response): Prom
           where: { studentId: student.id, status: { in: ['PENDING', 'REVIEWING'] } }
         }),
         prisma.application.count({
-          where: { studentId: student.id, status: { in: ['ACCEPTED', 'APPROVED_BY_UNIVERSITY'] } }
+          where: { studentId: student.id, status: 'ACCEPTED' }
         }),
         prisma.application.findMany({
           where: { studentId: student.id },
@@ -83,7 +83,7 @@ router.get('/stats', authenticate, async (req: AuthRequest, res: Response): Prom
         prisma.application.count({
           where: {
             jobPost: { companyProfileId: company.id },
-            status: { in: ['ACCEPTED', 'APPROVED_BY_UNIVERSITY'] }
+            status: 'ACCEPTED'
           }
         }),
         prisma.application.findMany({
@@ -112,63 +112,7 @@ router.get('/stats', authenticate, async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    if (role === Role.UNIVERSITY_ADMIN) {
-      const admin = await prisma.user.findUnique({ where: { id: userId } });
-      if (!admin || !admin.universityId) {
-        res.json({
-          stats: [
-            { label: 'Total Students', value: 0 },
-            { label: 'Placed Students', value: 0 },
-            { label: 'Pending Approvals', value: 0 }
-          ],
-          recent: []
-        });
-        return;
-      }
 
-      const [totalStudents, placedStudents, pendingApprovals, recent] = await Promise.all([
-        prisma.studentProfile.count({ where: { universityId: admin.universityId } }),
-        prisma.application.count({
-          where: {
-            student: { universityId: admin.universityId },
-            status: 'APPROVED_BY_UNIVERSITY'
-          }
-        }),
-        prisma.application.count({
-          where: {
-            student: { universityId: admin.universityId },
-            status: 'ACCEPTED'
-          }
-        }),
-        prisma.application.findMany({
-          where: { student: { universityId: admin.universityId } },
-          include: {
-            jobPost: {
-              include: {
-                company: { select: { companyName: true } }
-              }
-            },
-            student: {
-              include: {
-                user: { select: { name: true } }
-              }
-            }
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 5
-        })
-      ]);
-
-      res.json({
-        stats: [
-          { label: 'Total Students', value: totalStudents },
-          { label: 'Placed Students', value: placedStudents },
-          { label: 'Pending Approvals', value: pendingApprovals }
-        ],
-        recent
-      });
-      return;
-    }
 
     res.status(400).json({ error: 'Unknown role' });
   } catch (error) {

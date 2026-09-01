@@ -1,35 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GraduationCap, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
-interface University {
-  id: string;
-  name: string;
-  domain: string;
-}
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState('STUDENT');
-  const [universityId, setUniversityId] = useState('');
-  const [universities, setUniversities] = useState<University[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/universities`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setUniversities(data);
-      })
-      .catch(err => console.error('Failed to load universities:', err));
-  }, []);
-
-  const showUniversityField = role === 'STUDENT' || role === 'UNIVERSITY_ADMIN';
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +25,6 @@ export default function Register() {
         password,
         name,
         role,
-        ...(showUniversityField && universityId ? { universityId } : {})
       };
 
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/auth/register`, {
@@ -76,7 +58,7 @@ export default function Register() {
             <GraduationCap className="w-7 h-7" />
           </div>
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Create an Account</h2>
-          <p className="mt-2 text-sm text-gray-500">Join the multi-university internship network</p>
+          <p className="mt-2 text-sm text-gray-500">Join the internship network</p>
         </div>
 
         {error && (
@@ -136,37 +118,12 @@ export default function Register() {
             <select
               className="block w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all bg-white"
               value={role}
-              onChange={(e) => { setRole(e.target.value); setUniversityId(''); }}
+              onChange={(e) => setRole(e.target.value)}
             >
               <option value="STUDENT">Student (Internship seeker)</option>
               <option value="COMPANY_HR">Company HR (Recruiter)</option>
-              <option value="UNIVERSITY_ADMIN">University Administrator</option>
             </select>
           </div>
-
-          {showUniversityField && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                University {role === 'STUDENT' ? '(Optional)' : ''}
-              </label>
-              <select
-                className="block w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all bg-white"
-                value={universityId}
-                onChange={(e) => setUniversityId(e.target.value)}
-                required={role === 'UNIVERSITY_ADMIN'}
-              >
-                <option value="">-- Select University --</option>
-                {universities.map((uni) => (
-                  <option key={uni.id} value={uni.id}>
-                    {uni.name}
-                  </option>
-                ))}
-              </select>
-              {universities.length === 0 && (
-                <p className="text-xs text-gray-400 mt-1">No universities available yet.</p>
-              )}
-            </div>
-          )}
 
           <div className="pt-2">
             <button

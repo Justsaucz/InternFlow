@@ -7,13 +7,13 @@ interface StudentProfile {
   studentId: string;
   major: string;
   faculty: string;
+  university?: string | null;
   year: number;
   gpa: number | null;
   skills: string[];
   bio: string | null;
   avatarUrl?: string | null;
   user: { id: string; name: string; email: string; avatarUrl?: string | null };
-  university: { name: string; logoUrl?: string | null };
 }
 
 export default function StudentProfile() {
@@ -30,6 +30,7 @@ export default function StudentProfile() {
     studentId: '',
     major: '',
     faculty: '',
+    university: '',
     year: 1,
     gpa: '',
     bio: '',
@@ -55,6 +56,7 @@ export default function StudentProfile() {
           studentId: data.studentId || '',
           major: data.major || '',
           faculty: data.faculty || '',
+          university: data.university || '',
           year: data.year || 1,
           gpa: data.gpa ? data.gpa.toString() : '',
           bio: data.bio || '',
@@ -288,7 +290,7 @@ export default function StudentProfile() {
                 <span className="text-gray-300 hidden sm:inline">•</span>
                 <span className="inline-flex items-center gap-1.5 font-semibold text-primary-700 bg-primary-50/60 px-2.5 py-0.5 rounded-lg border border-primary-100">
                   <GraduationCap className="w-4 h-4 text-primary-600" />
-                  {profile.university.name}
+                  {profile.university ? `${profile.university} • ` : ''}Year {profile.year || 1} • {profile.major || 'Student'}
                 </span>
               </div>
             </div>
@@ -322,13 +324,15 @@ export default function StudentProfile() {
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">University</label>
+
+                <div className="col-span-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">University / Academic Institution</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl text-gray-500 text-sm cursor-not-allowed"
-                    value={profile.university.name}
-                    disabled
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm transition-all"
+                    placeholder="e.g. Thammasat University (SIIT), Chulalongkorn University"
+                    value={formData.university}
+                    onChange={e => setFormData({ ...formData, university: e.target.value })}
                   />
                 </div>
                 <div>
@@ -419,7 +423,7 @@ export default function StudentProfile() {
             </form>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column: Academic & University Info */}
+              {/* Left Column: Academic Info */}
               <div className="lg:col-span-2 space-y-6">
                 <div>
                   <h4 className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
@@ -427,6 +431,11 @@ export default function StudentProfile() {
                   </h4>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-gray-50/80 border border-gray-100 sm:col-span-2">
+                      <span className="text-xs text-gray-500 font-medium">University / Academic Institution</span>
+                      <p className="text-sm font-semibold text-gray-900 mt-1">{profile.university || 'Not specified'}</p>
+                    </div>
+
                     <div className="p-4 rounded-xl bg-gray-50/80 border border-gray-100">
                       <span className="text-xs text-gray-500 font-medium">Faculty</span>
                       <p className="text-sm font-semibold text-gray-900 mt-1">{profile.faculty || 'Not specified'}</p>

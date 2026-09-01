@@ -17,7 +17,7 @@ interface UserData {
   id: string;
   email: string;
   name: string;
-  role: 'STUDENT' | 'COMPANY_HR' | 'UNIVERSITY_ADMIN';
+  role: 'STUDENT' | 'COMPANY_HR';
 }
 
 interface StatItem {
@@ -197,35 +197,7 @@ export default function Dashboard() {
                 </>
               )}
 
-              {user.role === 'UNIVERSITY_ADMIN' && (
-                <>
-                  <Link 
-                    to="/dashboard/approvals" 
-                    className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-amber-50 hover:text-amber-700 transition-all font-semibold text-sm text-slate-700 border border-slate-100 group"
-                  >
-                    <span className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                      Pending Approvals
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
-                  </Link>
 
-                  <Link 
-                    to="/dashboard/students" 
-                    className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-amber-50 hover:text-amber-700 transition-all font-semibold text-sm text-slate-700 border border-slate-100 group"
-                  >
-                    <span className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
-                        <Users className="w-4 h-4" />
-                      </div>
-                      Student Directory
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </>
-              )}
             </div>
           </div>
         </div>

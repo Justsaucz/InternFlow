@@ -9,17 +9,33 @@ const router = Router();
 router.get('/profile', authenticate, authorize([Role.STUDENT]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
-    const profile = await prisma.studentProfile.findUnique({
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    let profile = await prisma.studentProfile.findUnique({
       where: { userId },
       include: {
         user: { select: { id: true, name: true, email: true, avatarUrl: true } },
-        university: { select: { id: true, name: true, logoUrl: true } }
       }
     });
 
+    // Auto-create default profile if missing
     if (!profile) {
-      res.status(404).json({ error: 'Profile not found' });
-      return;
+      profile = await prisma.studentProfile.create({
+        data: {
+          userId,
+          studentId: '',
+          major: '',
+          faculty: '',
+          university: '',
+          year: 1,
+        },
+        include: {
+          user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        }
+      });
     }
 
     res.json({
@@ -27,7 +43,7 @@ router.get('/profile', authenticate, authorize([Role.STUDENT]), async (req: Auth
       avatarUrl: profile.avatarUrl || profile.user.avatarUrl || null
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching student profile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -36,7 +52,12 @@ router.get('/profile', authenticate, authorize([Role.STUDENT]), async (req: Auth
 router.put('/profile', authenticate, authorize([Role.STUDENT]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
-    const { name, studentId, major, faculty, year, gpa, bio, skills, avatarUrl } = req.body;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { name, studentId, major, faculty, university, year, gpa, bio, skills, avatarUrl } = req.body;
 
     if (name || avatarUrl !== undefined) {
       await prisma.user.update({
@@ -48,27 +69,39 @@ router.put('/profile', authenticate, authorize([Role.STUDENT]), async (req: Auth
       });
     }
 
-    const profile = await prisma.studentProfile.update({
+    const profile = await prisma.studentProfile.upsert({
       where: { userId },
-      data: {
-        studentId,
-        major,
-        faculty,
+      create: {
+        userId,
+        studentId: studentId || '',
+        major: major || '',
+        faculty: faculty || '',
+        university: university || '',
+        year: year ? parseInt(year) : 1,
+        gpa: gpa !== undefined && gpa !== '' ? parseFloat(gpa) : null,
+        bio: bio || null,
+        skills: Array.isArray(skills) ? skills : [],
+        avatarUrl: avatarUrl || null
+      },
+      update: {
+        studentId: studentId !== undefined ? studentId : undefined,
+        major: major !== undefined ? major : undefined,
+        faculty: faculty !== undefined ? faculty : undefined,
+        university: university !== undefined ? university : undefined,
         year: year ? parseInt(year) : undefined,
-        gpa: gpa !== undefined && gpa !== '' ? parseFloat(gpa) : undefined,
-        bio,
+        gpa: gpa !== undefined && gpa !== '' ? parseFloat(gpa) : (gpa === '' ? null : undefined),
+        bio: bio !== undefined ? bio : undefined,
         skills: Array.isArray(skills) ? skills : undefined,
         avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined
       },
       include: {
         user: { select: { id: true, name: true, email: true, avatarUrl: true } },
-        university: { select: { id: true, name: true } }
       }
     });
 
     res.json(profile);
   } catch (error) {
-    console.error(error);
+    console.error('Error updating student profile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

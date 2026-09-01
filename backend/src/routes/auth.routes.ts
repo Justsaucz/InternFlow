@@ -8,7 +8,7 @@ const router = Router();
 
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, name, role, universityId } = req.body;
+    const { email, password, name, role } = req.body;
 
     if (!email || !password || !name || !role) {
       res.status(400).json({ error: 'Missing required fields' });
@@ -32,16 +32,14 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
         password: hashedPassword,
         name,
         role: role as Role,
-        universityId: universityId || null,
       },
     });
 
     // Create profile based on role
-    if (role === Role.STUDENT && universityId) {
+    if (role === Role.STUDENT) {
       await prisma.studentProfile.create({
         data: {
           userId: user.id,
-          universityId,
           studentId: '', // To be updated by student later
           major: '',
           faculty: '',

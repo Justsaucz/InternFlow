@@ -7,7 +7,6 @@ import {
   XCircle, 
   Building2, 
   Briefcase, 
-  ShieldCheck, 
   Calendar, 
   ArrowRight,
   ChevronDown,
@@ -60,12 +59,6 @@ const statusConfig: Record<string, { label: string; color: string; icon: any; st
     icon: XCircle,
     step: 0 
   },
-  APPROVED_BY_UNIVERSITY: { 
-    label: 'University Approved', 
-    color: 'bg-purple-50 text-purple-700 border-purple-200', 
-    icon: ShieldCheck,
-    step: 4 
-  },
 };
 
 export default function MyApplications() {
@@ -98,7 +91,7 @@ export default function MyApplications() {
 
   const filteredApps = applications.filter((app) => {
     if (activeTab === 'active') return app.status === 'PENDING' || app.status === 'REVIEWING';
-    if (activeTab === 'accepted') return app.status === 'ACCEPTED' || app.status === 'APPROVED_BY_UNIVERSITY';
+    if (activeTab === 'accepted') return app.status === 'ACCEPTED';
     if (activeTab === 'rejected') return app.status === 'REJECTED';
     return true;
   });
@@ -238,15 +231,14 @@ export default function MyApplications() {
                   </div>
                 </div>
 
-                {/* 4-Stage Progress Stepper */}
+                {/* 3-Stage Progress Stepper */}
                 {app.status !== 'REJECTED' && (
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="grid grid-cols-4 gap-2 text-center relative">
+                    <div className="grid grid-cols-3 gap-2 text-center relative">
                       {[
                         { stepNum: 1, label: 'Submitted' },
-                        { stepNum: 2, label: 'HR Review' },
-                        { stepNum: 3, label: 'HR Offer' },
-                        { stepNum: 4, label: 'Uni Approved' },
+                        { stepNum: 2, label: 'Under Review' },
+                        { stepNum: 3, label: 'Accepted by Company' },
                       ].map((s) => {
                         const isDone = status.step >= s.stepNum;
                         const isCurrent = status.step === s.stepNum;

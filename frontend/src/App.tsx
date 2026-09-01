@@ -10,13 +10,8 @@ import StudentProfile from './pages/student/StudentProfile';
 import MyApplications from './pages/student/MyApplications';
 import CompanyApplicants from './pages/company/CompanyApplicants';
 import CompanyProfile from './pages/company/CompanyProfile';
-import AdminStudents from './pages/admin/AdminStudents';
-import AdminApprovals from './pages/admin/AdminApprovals';
-import AdminProfile from './pages/admin/AdminProfile';
-
 import StudentLogbook from './pages/student/StudentLogbook';
 import CompanyEvaluations from './pages/company/CompanyEvaluations';
-import AdminGrading from './pages/admin/AdminGrading';
 
 import Home from './pages/Home';
 
@@ -44,12 +39,6 @@ function App() {
             <Route path="applicants" element={<CompanyApplicants />} />
             <Route path="evaluations" element={<CompanyEvaluations />} />
             <Route path="company/profile" element={<CompanyProfile />} />
-
-            {/* Admin Routes */}
-            <Route path="students" element={<AdminStudents />} />
-            <Route path="approvals" element={<AdminApprovals />} />
-            <Route path="grading" element={<AdminGrading />} />
-            <Route path="university/profile" element={<AdminProfile />} />
           </Route>
         </Routes>
       </Router>

@@ -7,7 +7,6 @@ datasource db {
 }
 
 enum Role {
-  UNIVERSITY_ADMIN
   STUDENT
   COMPANY_HR
 }
@@ -17,7 +16,6 @@ enum ApplicationStatus {
   REVIEWING
   ACCEPTED
   REJECTED
-  APPROVED_BY_UNIVERSITY
 }
 
 model User {
@@ -30,40 +28,22 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  universityId   String?
-  university     University?     @relation(fields: [universityId], references: [id])
   studentProfile StudentProfile?
   companyProfile CompanyProfile?
   documents      Document[]
 }
 
-model University {
-  id           String   @id @default(uuid())
-  name         String
-  domain       String   @unique
-  description  String?
-  logoUrl      String?
-  address      String?
-  contactEmail String?
-  contactPhone String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  admins   User[]
-  students StudentProfile[]
-}
 
 model StudentProfile {
   id           String     @id @default(uuid())
   userId       String     @unique
   user         User       @relation(fields: [userId], references: [id])
-  universityId String
-  university   University @relation(fields: [universityId], references: [id])
   
-  studentId    String
-  major        String
-  faculty      String
-  year         Int
+  studentId    String   @default("")
+  major        String   @default("")
+  faculty      String   @default("")
+  university   String?  @default("")
+  year         Int      @default(1)
   gpa          Float?
   skills       String[]
   bio          String?
@@ -177,10 +157,7 @@ model WeeklyLog {
   mentorRating         Int?           // 1-5 stars
   mentorFeedback       String?
   
-  // Faculty Verification
-  facultyVerified      Boolean        @default(false)
-  facultyRemarks       String?
-  facultyVerifiedAt    DateTime?
+
   
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
@@ -189,7 +166,6 @@ model WeeklyLog {
 enum EvaluationStatus {
   PENDING_REVIEW
   COMPANY_EVALUATED
-  GRADED
 }
 
 model InternshipEvaluation {
@@ -207,8 +183,6 @@ model InternshipEvaluation {
   feedback           String
   
   status             EvaluationStatus @default(COMPANY_EVALUATED)
-  finalGrade         String?          // e.g., "S", "U", "A", "B+", "A-"
-  universityRemarks  String?
   
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt

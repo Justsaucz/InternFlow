@@ -11,7 +11,6 @@ import {
   Printer,
   Pencil,
   Trash2,
-  UserCheck,
   Laptop,
   Building,
   RefreshCw,
@@ -82,9 +81,6 @@ interface WeeklyLog {
   mentorApproved: boolean;
   mentorRating: number | null;
   mentorFeedback: string | null;
-  facultyVerified: boolean;
-  facultyRemarks: string | null;
-  facultyVerifiedAt: string | null;
   createdAt: string;
 }
 
@@ -93,7 +89,6 @@ interface LogbookData {
   logs: WeeklyLog[];
   totalHours: number;
   approvedHours: number;
-  facultyVerifiedCount: number;
   targetHours: number;
   activePlacement: any;
 }
@@ -153,8 +148,17 @@ export default function StudentLogbook() {
     setEditingId(null);
     const nextWeek = data?.logs && data.logs.length > 0 ? data.logs.length + 1 : 1;
     setWeekNumber(nextWeek);
-    setStartDate('');
-    setEndDate('');
+
+    // Auto-calculate Monday and Friday of current week as default dates
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const mon = new Date(now.setDate(diff));
+    const fri = new Date(mon);
+    fri.setDate(mon.getDate() + 4);
+
+    setStartDate(mon.toISOString().split('T')[0]);
+    setEndDate(fri.toISOString().split('T')[0]);
     setWorkModality('ON_SITE');
     setSupervisorName('');
     setPlannedObjectives(['']);
@@ -369,8 +373,6 @@ export default function StudentLogbook() {
 
   const logs = data?.logs || [];
   const totalHours = data?.totalHours || 0;
-  const targetHours = data?.targetHours || 400;
-  const percentComplete = Math.min(100, Math.round((totalHours / targetHours) * 100));
   const activePlacement = data?.activePlacement;
   const evaluation = activePlacement?.evaluation;
 
@@ -435,40 +437,35 @@ export default function StudentLogbook() {
 
       {/* ── Progress & Placement Overview Cards ────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Hours & Dual Verification Progress */}
+        {/* Hours & Verification Overview */}
         <div className="md:col-span-2 bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Logged Hours</p>
               <h3 className="text-3xl sm:text-4xl font-black text-slate-900 mt-1">
-                {totalHours} <span className="text-base text-slate-400 font-bold">/ {targetHours} Hours</span>
+                {totalHours} <span className="text-base text-slate-400 font-bold">Hours</span>
               </h3>
             </div>
-            <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-black text-xs">
-              {percentComplete}% Completed
-            </span>
+            <div className="text-right">
+              <span className="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-black text-xs inline-flex items-center gap-1.5 shadow-2xs">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {data?.approvedHours || 0} Hours Approved
+              </span>
+            </div>
           </div>
 
-          <div>
-            <div className="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5">
-              <div 
-                className="bg-gradient-to-r from-primary-600 via-sky-500 to-emerald-500 h-full rounded-full transition-all duration-500" 
-                style={{ width: `${percentComplete}%` }}
-              ></div>
+          <div className="grid grid-cols-3 gap-3.5 text-xs font-bold text-slate-600 pt-3 border-t border-slate-100">
+            <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+              <span className="text-slate-400 block text-[10px] uppercase font-semibold">Total Logged</span>
+              <span className="text-base font-extrabold text-slate-900">{totalHours} hrs</span>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-xs font-bold text-slate-600 mt-3 pt-3 border-t border-slate-100">
-              <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Total Entries</span>
-                <span>{logs.length} Weeks</span>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Mentor Sign-offs</span>
-                <span className="text-emerald-700">{data?.approvedHours || 0} hrs approved</span>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Faculty Verified</span>
-                <span className="text-purple-700">{logs.filter(l => l.facultyVerified).length} / {logs.length} Weeks</span>
-              </div>
+            <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-100">
+              <span className="text-emerald-700/80 block text-[10px] uppercase font-semibold">Mentor Approved</span>
+              <span className="text-base font-extrabold text-emerald-800">{data?.approvedHours || 0} hrs</span>
+            </div>
+            <div className="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100">
+              <span className="text-indigo-700/80 block text-[10px] uppercase font-semibold">Total Entries</span>
+              <span className="text-base font-extrabold text-indigo-800">{logs.length} Weeks</span>
             </div>
           </div>
         </div>
@@ -486,16 +483,6 @@ export default function StudentLogbook() {
                   <Building2 className="w-3.5 h-3.5" />
                   {activePlacement.jobPost?.company?.companyName}
                 </p>
-                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Academic Grade:</span>
-                  <span className={`font-black px-2.5 py-0.5 rounded-full ${
-                    evaluation?.finalGrade 
-                       ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                      : 'bg-amber-50 text-amber-700'
-                  }`}>
-                    {evaluation?.finalGrade ? `Grade: ${evaluation.finalGrade}` : 'In Progress'}
-                  </span>
-                </div>
               </div>
             ) : (
               <div className="text-xs text-slate-500 py-4">
@@ -666,9 +653,8 @@ export default function StudentLogbook() {
                     )}
                   </div>
 
-                  {/* Dual Verification Feedback Bar */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                    {/* Company Sign-off */}
+                  {/* Company Mentor Sign-off Feedback Bar */}
+                  <div className="pt-1">
                     <div className={`p-3.5 rounded-xl border text-xs ${
                       log.mentorApproved 
                         ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900' 
@@ -690,31 +676,6 @@ export default function StudentLogbook() {
                       </div>
                       <p className="text-[11px] italic mt-0.5">
                         {log.mentorFeedback ? `"${log.mentorFeedback}"` : 'No mentor feedback submitted yet.'}
-                      </p>
-                    </div>
-
-                    {/* Faculty Verification */}
-                    <div className={`p-3.5 rounded-xl border text-xs ${
-                      log.facultyVerified 
-                        ? 'bg-purple-50/70 border-purple-200 text-purple-900' 
-                        : 'bg-slate-100/70 border-slate-200 text-slate-700'
-                    }`}>
-                      <div className="flex items-center justify-between font-bold mb-1">
-                        <span className="flex items-center gap-1.5">
-                          <UserCheck className="w-3.5 h-3.5" />
-                          Faculty Advisor Review:
-                        </span>
-                        {log.facultyVerified ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-black bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Verified ✓
-                          </span>
-                        ) : (
-                          <span className="text-[11px] font-medium text-slate-500">Pending Faculty Review ⏳</span>
-                        )}
-                      </div>
-                      <p className="text-[11px] italic mt-0.5">
-                        {log.facultyRemarks ? `"${log.facultyRemarks}"` : 'No faculty advice recorded yet.'}
                       </p>
                     </div>
                   </div>
@@ -1082,10 +1043,10 @@ export default function StudentLogbook() {
             <div className="p-10 space-y-8 bg-white text-slate-900 font-sans">
               <div className="border-b-2 border-slate-900 pb-6 text-center space-y-1">
                 <h1 className="text-2xl font-black uppercase tracking-wider text-slate-900">
-                  {data?.student?.university?.name || 'University'}
+                  InternFlow Performance Report
                 </h1>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                  Faculty of {data?.student?.faculty || 'Engineering'} • Department of {data?.student?.major || 'Computer Engineering'}
+                  {data?.student?.university ? `${data?.student?.university} • ` : ''}Faculty of {data?.student?.faculty || 'General Studies'} • Department of {data?.student?.major || 'General'}
                 </p>
                 <h2 className="text-lg font-extrabold text-primary-700 pt-2">
                   Official Internship Completion Certificate & Assessment Report
@@ -1096,30 +1057,23 @@ export default function StudentLogbook() {
               <div className="grid grid-cols-2 gap-6 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
                 <div className="space-y-1.5">
                   <p><span className="font-bold text-slate-500">Student Name:</span> <span className="font-extrabold">{data?.student?.user?.name}</span></p>
-                  <p><span className="font-bold text-slate-500">Student ID:</span> {data?.student?.studentId}</p>
+                  <p><span className="font-bold text-slate-500">University:</span> {data?.student?.university || 'Not specified'}</p>
+                  <p><span className="font-bold text-slate-500">Student ID:</span> {data?.student?.studentId || 'N/A'}</p>
                   <p><span className="font-bold text-slate-500">Academic Year:</span> Year {data?.student?.year}</p>
                 </div>
                 <div className="space-y-1.5">
                   <p><span className="font-bold text-slate-500">Host Organization:</span> <span className="font-extrabold">{activePlacement?.jobPost?.company?.companyName}</span></p>
                   <p><span className="font-bold text-slate-500">Position Title:</span> {activePlacement?.jobPost?.title}</p>
-                  <p><span className="font-bold text-slate-500">Total Hours Completed:</span> <span className="font-extrabold text-emerald-700">{totalHours} / 400 Hours</span></p>
+                  <p><span className="font-bold text-slate-500">Total Hours Completed:</span> <span className="font-extrabold text-emerald-700">{totalHours} Hours</span></p>
                 </div>
               </div>
 
-              {/* Dual Inspection Verification Summary */}
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="p-4 bg-emerald-50/70 rounded-xl border border-emerald-200">
-                  <p className="font-bold text-emerald-900 uppercase text-[10px]">Company Sign-offs</p>
-                  <p className="text-base font-black text-emerald-800 mt-0.5">
-                    {data?.approvedHours || 0} Hours Approved ({logs.filter(l => l.mentorApproved).length} Weeks)
-                  </p>
-                </div>
-                <div className="p-4 bg-purple-50/70 rounded-xl border border-purple-200">
-                  <p className="font-bold text-purple-900 uppercase text-[10px]">Faculty Verifications</p>
-                  <p className="text-base font-black text-purple-800 mt-0.5">
-                    {logs.filter(l => l.facultyVerified).length} / {logs.length} Weeks Verified
-                  </p>
-                </div>
+              {/* Inspection Verification Summary */}
+              <div className="p-4 bg-emerald-50/70 rounded-xl border border-emerald-200 text-xs">
+                <p className="font-bold text-emerald-900 uppercase text-[10px]">Company Mentor Sign-offs</p>
+                <p className="text-base font-black text-emerald-800 mt-0.5">
+                  {data?.approvedHours || 0} Hours Approved ({logs.filter(l => l.mentorApproved).length} Weeks)
+                </p>
               </div>
 
               {/* Evaluation Rubric Results */}
@@ -1151,17 +1105,6 @@ export default function StudentLogbook() {
                 </div>
               )}
 
-              {/* Academic Final Grade */}
-              <div className="p-5 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl border border-purple-200 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-purple-900 uppercase tracking-wider">Final Academic Grade</p>
-                  <p className="text-xs text-purple-700 mt-0.5">Assigned by University Internship Committee</p>
-                </div>
-                <div className="text-3xl font-black text-purple-900 bg-white px-5 py-2 rounded-xl shadow-xs border border-purple-200">
-                  {evaluation?.finalGrade || 'PENDING'}
-                </div>
-              </div>
-
               {/* Signatures */}
               <div className="grid grid-cols-2 gap-12 pt-8 text-center text-xs">
                 <div className="border-t border-slate-300 pt-3">
@@ -1169,8 +1112,8 @@ export default function StudentLogbook() {
                   <p className="text-[10px] text-slate-400 mt-1">Authorized Representative</p>
                 </div>
                 <div className="border-t border-slate-300 pt-3">
-                  <p className="font-bold text-slate-800">University Faculty Advisor Signature</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Internship Program Chair</p>
+                  <p className="font-bold text-slate-800">Student Intern Signature</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Acknowledged & Accepted</p>
                 </div>
               </div>
             </div>

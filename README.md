@@ -1,24 +1,24 @@
-# 🎓💼 InternFlow — Multi-University Internship Management & Tracking Platform
+# 🎓💼 InternFlow — Internship Management & Tracking Platform
 
-A modern, cloud-based platform connecting students, university administrators, and company HR professionals into a single seamless workflow for finding, applying, managing, and evaluating internship placements — designed for deployment on **Amazon Web Services (AWS)**.
+A modern, cloud-based platform connecting students and company HR professionals into a single seamless workflow for finding, applying, managing, and evaluating internship placements — designed for deployment on **Amazon Web Services (AWS)**.
 
 ---
 
 ## ✨ Key Features
 
 ### 1. 🔍 Job Board, Application Pipeline & Cross-Profiles
-- **Centralized Job Board** — Students can browse, filter, and search active internship opportunities from partnered corporate employers in an interactive card view with working hours, stipend, and contact channels.
+- **Centralized Job Board** — Students can browse, filter, and search active internship opportunities from corporate employers in an interactive card view with working hours, stipend, and contact channels.
+- **Student Profile & Academic Metadata** — Students can maintain comprehensive academic profiles including **University / Academic Institution**, Faculty, Major, Year, GPA, Skills, and Bio.
 - **Cross-Profile Viewing Modal (`PublicProfileModal`)** — Seamless in-app slide-over modal allowing all platform participants to inspect public profiles:
   - *Students* can inspect detailed Company profiles with full overview, website, contact info, and live job openings.
-  - *Company HR* can click candidate names/avatars to view student education, bio, tech skills, and GPA.
-  - *University Admins* can inspect both student and company profiles.
+  - *Company HR* can click candidate names/avatars to view student university, education, bio, tech skills, and GPA.
 - **Custom Profile Picture & Logo Uploads** — Direct image upload (JPG/PNG/WebP max 5MB) on Profile Edit pages with instant live previews and persistent cloud avatar display across the sidebar, candidate list, and profile modals.
 - **Job Editing & Safe Cascade Deletion** — Company HR can create, update, and manage job postings with working hours/schedule, allowance, contact info (Email, Phone, LINE ID), and career links, with safe in-app confirmation modal and transactional cascade cleanup.
 - **Multi-File & Multi-Link Pinpoint Applications** — Students can attach multiple documents (CV, Resumes, Portfolios, Transcripts, Project PDFs) and external links (GitHub, Figma, Google Drive) as itemized pinpoints with direct AWS S3 upload.
 - **One Active Application Per Company Rule** — Enforces single active application constraint per company to prevent candidate spamming and maintain organized employer review workflows.
-- **Real-Time Application Status Pipeline** — Multi-stage status lifecycle (`PENDING` ➔ `REVIEWING` ➔ `ACCEPTED` ➔ `APPROVED_BY_UNIVERSITY` or `REJECTED`).
-- **Role-Based Privacy & GPA Masking** — Academic GPA is protected and masked from unauthorized public viewers, visible only to verified corporate employers and university administrators.
-- **Dynamic Role-Based Dashboards** — Tailored analytics, live statistics, and recent activity feeds for Students, Company HR, and University Admins (`/api/dashboard/stats`).
+- **3-Stage Real-Time Application Pipeline** — Clear status lifecycle (`PENDING` ➔ `REVIEWING` ➔ `ACCEPTED` or `REJECTED`).
+- **Role-Based Privacy & GPA Masking** — Academic GPA is protected and masked from unauthorized public viewers, visible only to verified corporate employers.
+- **Dynamic Role-Based Dashboards** — Tailored analytics, live statistics, and recent activity feeds for Students and Company HR (`/api/dashboard/stats`).
 
 ### 2. 📝 Operational Weekly Logbook & Journal
 - **Dynamic Pin-Point Deliverables** — Students record itemized Planned Objectives and Actual Completed Deliverables with dynamic bullet lists.
@@ -26,15 +26,13 @@ A modern, cloud-based platform connecting students, university administrators, a
 - **Supervisor Tracking & Problem-Solving** — Log direct supervisor name, troubleshooting challenges/solutions, and technical growth.
 - **Direct File Uploads & Labeled Artifacts** — Upload files (PDF reports, timesheets, images) directly or link external artifacts (GitHub Pull Requests, Figma designs, Google Docs) with custom labels.
 
-### 3. 🔍 Dual Verification & Review Workflow
-- **Full 7-Category Inspector Drawer** — Transparent review showing Planned Objectives, Tasks Done, Problems & Solutions, Key Learnings, Attached Artifacts & Files, Company Rating, and Faculty Remarks.
+### 3. 🔍 Company Mentor Verification & Review Workflow
+- **Full 7-Category Inspector Drawer** — Transparent review showing Planned Objectives, Tasks Done, Problems & Solutions, Key Learnings, Attached Artifacts & Files, Company Rating, and Mentor Remarks.
 - **Company Mentor Sign-off & Weekly Rating** — Employers review weekly logs, award a 1–5 star weekly rating (★), provide mentor feedback, and sign off (`Approved by Company Mentor ✓`).
-- **Faculty Advisor Academic Verification** — University staff inspect weekly records, provide academic advice, and verify curricular alignment (`Faculty Verified ✓`).
 
-### 4. 🏆 Employer Rubric & University Academic Grading
+### 4. 🏆 Employer Performance Rubric & Evaluation
 - **3-Stage Employer Performance Rubric** — Companies evaluate interns on **Work Quality**, **Punctuality & Responsibility**, and **Communication & Teamwork** (1–5 Stars) with qualitative remarks.
-- **Academic Letter Grading (A–F)** — University administrators assign official course letter grades (`A`, `B+`, `B`, `C+`, `C`, `D+`, `D`, `F`).
-- **Official Completion Certificate & Report** — Printable official completion document (`window.print()`) consolidating verified hours, dual verification history, employer rubric scores, and university grading.
+- **Official Completion Certificate & Report** — Printable official completion document (`window.print()`) consolidating verified hours, verification history, and employer rubric scores.
 
 ---
 
@@ -45,7 +43,7 @@ A modern, cloud-based platform connecting students, university administrators, a
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                        │
-│     Users / Browsers (Students, Company HR, University Admin)                          │
+│     Users / Browsers (Students, Company HR)                                            │
 │         │                                                                              │
 │         ▼                                                                              │
 │    ┌──────────┐                                                                        │
@@ -157,15 +155,12 @@ docker compose up -d --build
 ## 🔗 REST API Endpoints
 
 ### Authentication & Profiles
-- `POST /api/auth/register` — Register a new user (Student / Company HR / University Admin)
+- `POST /api/auth/register` — Register a new user (Student / Company HR)
 - `POST /api/auth/login` — Authenticate and receive JWT
 - `GET /api/student/profile` — Fetch student academic profile
 - `PUT /api/student/profile` — Update student profile & skills
 - `GET /api/company/profile` — Fetch company profile & HR contact info
 - `PUT /api/company/profile` — Update company profile & contact info
-- `GET /api/admin/profile` — Fetch university profile & chair info
-- `PUT /api/admin/profile` — Update university profile & chair info
-- `GET /api/admin/students` — University student directory
 
 ### Job Postings & Applications
 - `GET /api/jobs` — List all active job postings
@@ -177,24 +172,19 @@ docker compose up -d --build
 - `POST /api/applications` — Apply to a job with multi-attachment pinpoint files & links
 - `GET /api/applications/my` — Student view of submitted applications & attached artifacts
 - `GET /api/applications/company` — Company HR view of incoming applicants & multi-documents
-- `GET /api/applications/university` — University Admin view of all student applications
 - `PATCH /api/applications/:id/status` — Accept or Reject an applicant (HR)
-- `PATCH /api/applications/:id/approve` — Final approval of placement (University Admin)
 
-### Weekly Logbook & Dual Verification
+### Weekly Logbook & Company Sign-off Workflow
 - `POST /api/logbook` — Student creates or updates a weekly log with pin points & modality
 - `GET /api/logbook/my` — Student fetches own weekly logbook entries & hour gauge
-- `GET /api/logbook/student/:studentId` — Company HR or University Admin inspects student weekly logs
+- `GET /api/logbook/student/:studentId` — Company HR inspects student weekly logs
 - `PUT /api/logbook/:id/approve` — Company HR signs off on weekly log with 1–5★ rating & feedback
-- `PUT /api/logbook/:id/faculty-verify` — University Admin verifies weekly log with academic remarks
 - `DELETE /api/logbook/:id` — Student deletes a weekly log entry
 - `POST /api/upload` — Direct file upload endpoint (CVs, weekly logbook files, reports)
 
-### Performance Evaluation & Grading
+### Performance Evaluation
 - `GET /api/evaluations/company` — Active interns roster & evaluation statuses for HR (alias: `/company/interns`)
 - `POST /api/evaluations/submit` — HR submits 3-category rubric evaluation (1–5★)
-- `GET /api/evaluations/admin` — University-wide student placement tracking & evaluation overview
-- `PUT /api/evaluations/:id/grade` — University Admin awards final letter grade (A–F)
 - `GET /api/evaluations/report/:studentId` — Generate official printable internship completion report
 
 ---
@@ -203,12 +193,12 @@ docker compose up -d --build
 
 | Person | Area |
 |---|---|
-| 1 | Frontend Dashboards (Student, HR, University UI) |
+| 1 | Frontend Dashboards (Student, HR UI) |
 | 2 | Backend Auth, RBAC Logic & Security |
 | 3 | Database Design (Prisma Schema) & Placement Workflows |
 | 4 | File Upload Integration (Multer + AWS S3) |
 | 5 | DevOps & AWS Cloud Infrastructure (EC2, RDS, S3, Docker) |
-| 6 | Testing/QA, Logbook & Dual Verification System, Documentation |
+| 6 | Testing/QA, Logbook & Company Evaluation System, Documentation |
 
 ---
 
