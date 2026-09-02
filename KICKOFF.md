@@ -23,7 +23,7 @@ The current internship application and evaluation processes are fragmented and r
 
 * **No centralized job board:** Students must search for opportunities across disparate corporate career pages, job boards, social media groups, and campus flyers. There is no single source of truth for verified internship openings.
 * **Untraceable application status:** Once an application is submitted via email or Google Forms, students receive no automated visibility into whether it is pending review, undergoing screening, or decided upon, leading to excessive manual inquiries.
-* **Unmonitored weekly progress and attendance:** During the 400-hour internship period, students often compile paper logs only at the end of the term, preventing mentors from verifying attendance, weekly deliverables, and technical problem-solving in real time.
+* **Unmonitored weekly progress and attendance:** During the internship period, students often compile paper logs only at the end of the term, preventing mentors from verifying attendance, weekly deliverables, and technical problem-solving in real time.
 * **Detached performance feedback:** Company feedback is often informal or delayed, making it difficult to generate standardized assessment rubrics and verified completion records.
 * **Duplicate and conflicting submissions:** Without a unified database, candidates may submit duplicate applications to the same employer across multiple channels, cluttering HR pipelines and wasting screening time.
 * **Inconvenient document handling:** Exchanging CVs, portfolios, and certificates via email attachments introduces file version confusion, security risks, and storage management difficulties.
@@ -39,9 +39,9 @@ The proposed platform will support two primary user groups, each with distinct r
     * Create and maintain an academic profile (University name, Faculty, Major, Year, GPA, Skills, Bio, Avatar).
     * Search and filter corporate internship postings by keyword, department, allowance, and work modality.
     * Submit applications with cover letters, direct S3 file uploads (CVs, portfolios), and external links (GitHub, Figma).
-    * Track 3-stage application progress in real time (`Submitted` ➔ `Under Review` ➔ `Accepted by Company` / `Declined`).
+    * Track application progress in real time (`Submitted` ➔ `Under Review` ➔ `Offer Received` ➔ `Confirmed Working` / `Declined`).
     * Record weekly logbook entries with work modality (`On-site`, `Remote`, `Hybrid`), hours, deliverables, and troubleshooting notes.
-    * Monitor progress towards 400 required internship hours with a live visual progress indicator.
+    * Monitor total logged hours and mentor-approved hours with real-time dashboard counters.
     * Inspect weekly company mentor sign-offs and star ratings.
     * Generate and print official accredited Internship Completion Reports.
 
