@@ -87,18 +87,23 @@ The proposed platform will support two primary user groups, each with distinct r
 * Students must be able to browse all active job listings sorted by most recent.
 * Students must be able to search and filter jobs by keyword, department, remote work, or on-site modality.
 
-### 3. Application Pipeline & Artifact Management
+### 3. Application Pipeline, Commitment & Cancellation Workflow
 
 * Students must be able to submit applications with cover letters, direct file uploads (CVs/Portfolios), and external URLs (GitHub, Figma, Drive).
-* The system must strictly enforce the **One Active Application Per Company Rule** to prevent duplicate candidate spam.
-* The system must track applications through a standardized 3-stage pipeline:
+* The system must strictly enforce the **One Active Application Per Company Rule** to prevent candidate spamming and maintain organized employer review workflows.
+* **Single Placement & Exclusivity Rule**: While students can receive internship offers (`ACCEPTED`) from multiple corporate employers, they are strictly limited to committing to **EXACTLY ONE** official placement (`COMMITTED`).
+* **Automatic Auto-Decline of Competing Offers**: Confirming and committing to an internship offer automatically declines/closes all other active applications and offers for that candidate.
+* **Company-Approved Cancellation Workflow**: Once committed, a student cannot abandon a placement unilaterally. The student must submit a formal cancellation request stating the reason (`CANCEL_REQUESTED`), and the placement is only released once the corporate employer explicitly confirms and approves (`CANCELLED`).
+* **Standardized Status Lifecycle**:
     * `PENDING` → Submitted and awaiting HR screening
     * `REVIEWING` → Under active review by HR
-    * `ACCEPTED` → Offer accepted by company
-    * `REJECTED` → Application declined
-* Only Company HR may transition application statuses to `REVIEWING`, `ACCEPTED`, or `REJECTED`.
-* Students must be able to view all submitted applications with current status badges, company details, and cover letters.
-* Company HR must be able to view an applicant roster with candidate university details, CV download links, and status control actions.
+    * `ACCEPTED` → Internship offer extended by corporate employer
+    * `COMMITTED` → Student confirmed and working in active placement (unlocks Weekly Logbook)
+    * `CANCEL_REQUESTED` → Student requested cancellation; awaiting company HR review
+    * `CANCELLED` → Company HR approved release; placement officially terminated
+    * `REJECTED` → Application declined or automatically closed upon committing elsewhere
+* Students must be able to view all submitted applications with current status badges, company details, cover letters, and commitment/cancellation action buttons.
+* Company HR must be able to view an applicant roster with candidate university details, CV download links, offer extension controls, and cancellation review action buttons.
 
 ### 4. File Upload & Storage Management
 
@@ -109,6 +114,7 @@ The proposed platform will support two primary user groups, each with distinct r
 
 ### 5. Weekly Logbook & Journal Management
 
+* Weekly logbook entries are strictly locked until a student holds an active, confirmed placement (`COMMITTED` or `CANCEL_REQUESTED`).
 * Students must be able to log weekly journals specifying week number, hours worked (default 40 hours), work modality (`ON_SITE`, `REMOTE`, `HYBRID`), and supervisor name.
 * Students must be able to record itemized pin-point lists for **Planned Objectives** and **Actual Deliverables Completed**.
 * Students must be able to record technical troubleshooting notes (Problems Encountered & Solutions) and Key Learnings.
@@ -233,7 +239,42 @@ The proposed platform will support two primary user groups, each with distinct r
 
 # 8. System Diagram
 
+### 1. Application & Placement Lifecycle State Diagram
+
 ```text
+               ┌───────────────┐
+               │    PENDING    │ (Student Submitted Application)
+               └───────┬───────┘
+                       │
+                       ▼
+               ┌───────────────┐
+               │   REVIEWING   │ (HR Screening & Candidate Evaluation)
+               └───────┬───────┘
+                       │
+         ┌─────────────┴─────────────┐
+         ▼                           ▼
+  ┌──────────────┐            ┌──────────────┐
+  │   REJECTED   │            │   ACCEPTED   │ (Company Offer Extended)
+  └──────────────┘            └──────┬───────┘
+                                     │
+                                     ▼ (Student Commits to Offer)
+                              ┌──────────────┐
+                              │  COMMITTED   │ ──▶ [Weekly Logbook Unlocked]
+                              └──────┬───────┘     [All Other Offers Auto-Declined]
+                                     │
+                                     ▼ (Student Requests Cancellation)
+                              ┌──────────────────┐
+                              │ CANCEL_REQUESTED │ (Pending Company Review)
+                              └──────┬───────────┘
+                                     │
+                      ┌──────────────┴──────────────┐
+                      ▼ (HR Rejects Release)        ▼ (HR Approves Release)
+               ┌──────────────┐              ┌──────────────┐
+               │  COMMITTED   │              │  CANCELLED   │ (Released & Free to Re-apply)
+               └──────────────┘              └──────────────┘
+```
+
+### 2. Production AWS Infrastructure Architecture Diagram
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                        │
 │     Users / Browsers (Students, Company HR)                                            │

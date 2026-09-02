@@ -16,11 +16,14 @@ A modern, cloud-based platform connecting students and company HR professionals 
 - **Job Editing & Safe Cascade Deletion** — Company HR can create, update, and manage job postings with working hours/schedule, allowance, contact info (Email, Phone, LINE ID), and career links, with safe in-app confirmation modal and transactional cascade cleanup.
 - **Multi-File & Multi-Link Pinpoint Applications** — Students can attach multiple documents (CV, Resumes, Portfolios, Transcripts, Project PDFs) and external links (GitHub, Figma, Google Drive) as itemized pinpoints with direct AWS S3 upload.
 - **One Active Application Per Company Rule** — Enforces single active application constraint per company to prevent candidate spamming and maintain organized employer review workflows.
-- **3-Stage Real-Time Application Pipeline** — Clear status lifecycle (`PENDING` ➔ `REVIEWING` ➔ `ACCEPTED` or `REJECTED`).
+- **Single Placement Commitment Rule** — Students can receive offers (`ACCEPTED`) from multiple employers, but are permitted to commit to **only ONE** official internship placement (`COMMITTED`). Committing to an offer automatically closes and declines competing offers.
+- **Company-Approved Cancellation Workflow** — Active interns cannot abandon a placement unilaterally. To terminate or switch placements, students submit a formal cancellation request with reasons (`CANCEL_REQUESTED`), requiring explicit review and confirmation from Company HR (`CANCELLED`).
+- **Complete Application Status Lifecycle** — `PENDING` ➔ `REVIEWING` ➔ `ACCEPTED` (Offer) ➔ `COMMITTED` (Working) ➔ `CANCEL_REQUESTED` ➔ `CANCELLED`.
 - **Role-Based Privacy & GPA Masking** — Academic GPA is protected and masked from unauthorized public viewers, visible only to verified corporate employers.
 - **Dynamic Role-Based Dashboards** — Tailored analytics, live statistics, and recent activity feeds for Students and Company HR (`/api/dashboard/stats`).
 
 ### 2. 📝 Operational Weekly Logbook & Journal
+- **Placement-Guarded Access** — Weekly Logbook creation is locked until a student holds an officially confirmed placement (`COMMITTED`), ensuring all recorded hours map to verified corporate employers.
 - **Dynamic Pin-Point Deliverables** — Students record itemized Planned Objectives and Actual Completed Deliverables with dynamic bullet lists.
 - **Attendance & Work Modality** — Track work modality per week (`🏢 On-site`, `💻 Remote / WFH`, `🔄 Hybrid`).
 - **Supervisor Tracking & Problem-Solving** — Log direct supervisor name, troubleshooting challenges/solutions, and technical growth.
@@ -36,9 +39,46 @@ A modern, cloud-based platform connecting students and company HR professionals 
 
 ---
 
-## 🏗️ Architecture
+## 🔄 Application & Placement Lifecycle State Diagram
 
-![InternFlow System Architecture](docs/architecture.jpg)
+```text
+               ┌───────────────┐
+               │    PENDING    │ (Student Submitted Application)
+               └───────┬───────┘
+                       │
+                       ▼
+               ┌───────────────┐
+               │   REVIEWING   │ (HR Screening & Candidate Evaluation)
+               └───────┬───────┘
+                       │
+         ┌─────────────┴─────────────┐
+         ▼                           ▼
+  ┌──────────────┐            ┌──────────────┐
+  │   REJECTED   │            │   ACCEPTED   │ (Company Offer Extended)
+  └──────────────┘            └──────┬───────┘
+                                     │
+                                     ▼ (Student Commits to Offer)
+                              ┌──────────────┐
+                              │  COMMITTED   │ ──▶ [Weekly Logbook Unlocked]
+                              └──────┬───────┘     [All Other Offers Auto-Declined]
+                                     │
+                                     ▼ (Student Requests Cancellation)
+                              ┌──────────────────┐
+                              │ CANCEL_REQUESTED │ (Pending Company Review)
+                              └──────┬───────────┘
+                                     │
+                      ┌──────────────┴──────────────┐
+                      ▼ (HR Rejects Release)        ▼ (HR Approves Release)
+               ┌──────────────┐              ┌──────────────┐
+               │  COMMITTED   │              │  CANCELLED   │ (Released & Free to Re-apply)
+               └──────────────┘              └──────────────┘
+```
+
+---
+
+## 🏗️ AWS Cloud Infrastructure Architecture
+
+![InternFlow System Architecture](docs/system_diagram.png)
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
