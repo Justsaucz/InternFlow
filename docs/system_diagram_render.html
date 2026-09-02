@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>InternFlow - Production AWS System Architecture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #ffffff;
+    color: #232f3e;
+    width: 1920px;
+    height: 1080px;
+    padding: 24px 36px;
+    overflow: hidden;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+  }
+  .title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .app-name {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+  }
+  .badge-aws {
+    background: #ff9900;
+    color: #ffffff;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .badge-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #475569;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 3px;
+  }
+  .meta-tags {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #475569;
+  }
+  .meta-tag {
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .canvas {
+    position: relative;
+    width: 1848px;
+    height: 960px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+  }
+
+  /* SVG Overlay for Connections */
+  svg.wires {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Standard Card Styling */
+  .card {
+    position: absolute;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+    border: 1px solid #cbd5e1;
+    z-index: 20;
+    transition: all 0.2s ease;
+  }
+
+  /* Clients */
+  .clients-card {
+    top: 280px;
+    left: 36px;
+    width: 160px;
+    height: 380px;
+    padding: 16px 12px;
+    border: 2px solid #64748b;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .client-item {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .client-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #eff6ff;
+    border: 2px solid #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+  }
+  .client-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .client-desc {
+    font-size: 10.5px;
+    color: #64748b;
+    line-height: 1.25;
+  }
+
+  /* DNS & Edge */
+  .r53-card {
+    top: 180px;
+    left: 250px;
+    width: 175px;
+    height: 125px;
+    border: 2px solid #8b5cf6;
+    padding: 12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .cf-card {
+    top: 400px;
+    left: 250px;
+    width: 175px;
+    height: 170px;
+    border: 2px solid #8b5cf6;
+    padding: 12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* S3 Frontend */
+  .s3-front-card {
+    top: 30px;
+    left: 500px;
+    width: 220px;
+    height: 130px;
+    border: 2px solid #16a34a;
+    padding: 12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Supporting Services Banner */
+  .supporting-card {
+    top: 30px;
+    left: 770px;
+    width: 740px;
+    height: 130px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .supp-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.5px;
+  }
+  .supp-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .supp-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .supp-name { font-size: 12px; font-weight: 700; color: #0f172a; }
+  .supp-sub { font-size: 9.5px; color: #64748b; }
+
+  /* VPC Outer Container */
+  .vpc-box {
+    top: 190px;
+    left: 480px;
+    width: 1040px;
+    height: 740px;
+    border: 2.5px dashed #0284c7;
+    background: #f0f9ff40;
+    border-radius: 12px;
+    position: absolute;
+    z-index: 5;
+  }
+  .vpc-tag {
+    position: absolute;
+    top: -14px;
+    left: 20px;
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  /* AZ Boxes */
+  .az-container {
+    position: absolute;
+    left: 240px;
+    width: 770px;
+    height: 310px;
+    border: 1.5px dashed #38bdf8;
+    background: #ffffffd0;
+    border-radius: 8px;
+  }
+  .az-a { top: 60px; }
+  .az-b { top: 395px; }
+  .az-header {
+    position: absolute;
+    top: -11px;
+    left: 14px;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 4px;
+    border: 1px solid #bae6fd;
+  }
+
+  /* Subnets */
+  .subnet-box {
+    position: absolute;
+    border-radius: 6px;
+    padding: 8px;
+  }
+  .subnet-alb {
+    top: 150px;
+    left: 30px;
+    width: 180px;
+    height: 380px;
+    border: 1.5px solid #84cc16;
+    background: #f7fee7;
+  }
+  .subnet-app {
+    top: 24px;
+    left: 20px;
+    width: 330px;
+    height: 260px;
+    border: 1.5px solid #38bdf8;
+    background: #f0f9ff;
+  }
+  .subnet-db {
+    top: 24px;
+    left: 390px;
+    width: 360px;
+    height: 260px;
+    border: 1.5px solid #c084fc;
+    background: #faf5ff;
+  }
+
+  .subnet-header-text {
+    font-size: 10.5px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Node Inside Subnet */
+  .node-card {
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .node-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .node-sub {
+    font-size: 10px;
+    color: #64748b;
+    line-height: 1.3;
+  }
+
+  /* S3 Uploads (Right) */
+  .s3-upload-card {
+    top: 400px;
+    left: 1565px;
+    width: 245px;
+    height: 210px;
+    border: 2px solid #16a34a;
+    padding: 14px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* S3 Gateway VPC Endpoint Card */
+  .s3-endpoint-card {
+    top: 30px;
+    left: 770px;
+    width: 230px;
+    height: 75px;
+    border: 1.5px solid #16a34a;
+    background: #f0fdf4;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Legend Footer */
+  .legend-box {
+    position: absolute;
+    bottom: 18px;
+    left: 36px;
+    width: 410px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: #334155;
+    z-index: 30;
+  }
+  .legend-title {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 3px;
+  }
+  .legend-pill {
+    width: 16px;
+    height: 4px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="title-group">
+      <span class="app-name">InternFlow</span>
+      <span class="badge-aws">AWS Production Architecture</span>
+      <span class="badge-title">System Infrastructure Diagram</span>
+    </div>
+    <div class="subtitle">Cloud-Native, High-Availability Multi-AZ Architecture with Isolated VPC, Containerized Fargate API, and Synchronous RDS Standby</div>
+  </div>
+  <div class="meta-tags">
+    <div class="meta-tag"><strong>Target Region:</strong> ap-southeast-1 (Bangkok / Singapore)</div>
+    <div class="meta-tag"><strong>High Availability:</strong> Multi-AZ Active/Passive DB + Dual ECS Tasks</div>
+    <div class="meta-tag"><strong>Security:</strong> Private Subnets + S3 VPC Endpoint</div>
+  </div>
+</div>
+
+<div class="canvas">
+
+  <!-- SVG Arrows / Connections -->
+  <svg class="wires" viewBox="0 0 1848 960">
+    <defs>
+      <marker id="m-blue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+        <path d="M 0 0 L 8 4 L 0 8 z" fill="#2563eb" />
+      </marker>
+      <marker id="m-purple" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+        <path d="M 0 0 L 8 4 L 0 8 z" fill="#8b5cf6" />
+      </marker>
+      <marker id="m-green" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+        <path d="M 0 0 L 8 4 L 0 8 z" fill="#16a34a" />
+      </marker>
+      <marker id="m-orange" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+        <path d="M 0 0 L 8 4 L 0 8 z" fill="#ea580c" />
+      </marker>
+      <marker id="m-db" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+        <path d="M 0 0 L 8 4 L 0 8 z" fill="#7c3aed" />
+      </marker>
+      <marker id="m-red" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+        <path d="M 0 0 L 8 4 L 0 8 z" fill="#dc2626" />
+      </marker>
+    </defs>
+
+    <!-- 1. Clients -> Route 53 (DNS Query) -->
+    <path d="M 196 350 L 220 350 L 220 240 L 250 240" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#m-purple)" />
+    <text x="206" y="295" font-size="10.5" fill="#7c3aed" font-weight="700" transform="rotate(-90 206,295)">1. DNS Query</text>
+
+    <!-- 2. Route 53 -> CloudFront (Resolves ALIAS) -->
+    <path d="M 337 305 L 337 400" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#m-purple)" />
+    <text x="345" y="355" font-size="10" fill="#7c3aed" font-weight="700">Resolves CDN</text>
+
+    <!-- 3. Clients -> CloudFront (HTTPS 443 Traffic) -->
+    <path d="M 196 480 L 250 480" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#m-blue)" />
+    <text x="195" y="472" font-size="11" fill="#2563eb" font-weight="800">2. HTTPS (443)</text>
+
+    <!-- 4. CloudFront -> S3 Frontend (Path /*) -->
+    <path d="M 337 400 L 337 95 L 500 95" fill="none" stroke="#16a34a" stroke-width="2.5" marker-end="url(#m-green)" />
+    <text x="350" y="85" font-size="11" fill="#16a34a" font-weight="800">Path: /* (Static UI & Assets via OAC)</text>
+
+    <!-- 5. CloudFront -> ALB (Path /api/*) -->
+    <path d="M 425 480 L 510 480" fill="none" stroke="#ea580c" stroke-width="2.5" marker-end="url(#m-orange)" />
+    <text x="430" y="470" font-size="11" fill="#ea580c" font-weight="800">Path: /api/*</text>
+
+    <!-- 6. ALB -> ECS Fargate AZ-A & AZ-B -->
+    <!-- to AZ-A -->
+    <path d="M 690 460 L 730 460 L 730 365 L 755 365" fill="none" stroke="#0284c7" stroke-width="2.2" marker-end="url(#m-blue)" />
+    <!-- to AZ-B -->
+    <path d="M 690 500 L 730 500 L 730 700 L 755 700" fill="none" stroke="#0284c7" stroke-width="2.2" marker-end="url(#m-blue)" />
+    <text x="682" y="415" font-size="10.5" fill="#0284c7" font-weight="700">Health Checks & Round-Robin</text>
+
+    <!-- 7. ECS AZ-A -> RDS PostgreSQL Primary (Read/Write) -->
+    <path d="M 1065 365 L 1130 365" fill="none" stroke="#7c3aed" stroke-width="2.2" marker-end="url(#m-db)" />
+    <text x="1068" y="355" font-size="11" fill="#7c3aed" font-weight="800">Read / Write (5432)</text>
+
+    <!-- 8. CRITICAL CORRECTION: ECS AZ-B -> RDS Primary (Connects to PRIMARY, NOT Standby!) -->
+    <path d="M 1065 700 L 1095 700 L 1095 390 L 1130 390" fill="none" stroke="#7c3aed" stroke-width="2.2" marker-end="url(#m-db)" />
+    <text x="1102" y="550" font-size="10.5" fill="#7c3aed" font-weight="800" transform="rotate(-90 1102,550)">Read / Write (To Primary)</text>
+
+    <!-- 9. RDS Primary -> RDS Standby (Synchronous Replication) -->
+    <path d="M 1295 440 L 1295 620" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#m-purple)" />
+    <text x="1305" y="525" font-size="11" fill="#7c3aed" font-weight="800">Multi-AZ Synchronous Replication</text>
+    <text x="1305" y="542" font-size="9.5" fill="#64748b">(Passive Standby - Automatic 60s Failover)</text>
+
+    <!-- 10. ECS Tasks -> S3 VPC Gateway Endpoint -->
+    <path d="M 910 245 L 910 210 L 1250 210 L 1250 225" fill="none" stroke="#16a34a" stroke-width="1.8" marker-end="url(#m-green)" />
+    <path d="M 910 580 L 910 210" fill="none" stroke="#16a34a" stroke-width="1.8" />
+    <text x="918" y="202" font-size="10.5" fill="#16a34a" font-weight="700">Internal S3 API Calls (Presigned URLs / Uploads)</text>
+
+    <!-- 11. S3 VPC Gateway Endpoint -> S3 User Uploads Bucket -->
+    <path d="M 1480 250 L 1680 250 L 1680 400" fill="none" stroke="#16a34a" stroke-width="2.5" marker-end="url(#m-green)" />
+    <text x="1510" y="240" font-size="11" fill="#16a34a" font-weight="800">Direct S3 Traffic (Private AWS Backbone)</text>
+
+  </svg>
+
+  <!-- 1. End Users / Clients Box -->
+  <div class="card clients-card">
+    <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:#475569; letter-spacing:0.5px;">Clients</div>
+    
+    <div class="client-item">
+      <div class="client-avatar">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="client-title">Students</div>
+      <div class="client-desc">Internship Candidates & Active Interns</div>
+    </div>
+
+    <div style="width:75%; height:1px; background:#cbd5e1;"></div>
+
+    <div class="client-item">
+      <div class="client-avatar" style="border-color:#ea580c; color:#ea580c; background:#fff7ed;">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      </div>
+      <div class="client-title">Company HR</div>
+      <div class="client-desc">Recruiters & Workplace Mentors</div>
+    </div>
+  </div>
+
+  <!-- 2. Amazon Route 53 -->
+  <div class="card r53-card">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+    <div style="font-size:13.5px; font-weight:800; color:#7c3aed;">Amazon Route 53</div>
+    <div style="font-size:10.5px; font-weight:700; color:#0f172a;">Global DNS Service</div>
+    <div style="font-size:9.5px; color:#64748b;">Domain Name Resolution<br><strong>internflow.com</strong></div>
+  </div>
+
+  <!-- 3. Amazon CloudFront -->
+  <div class="card cf-card">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+    <div style="font-size:14px; font-weight:800; color:#7c3aed;">Amazon CloudFront</div>
+    <div style="font-size:11px; font-weight:700; color:#0f172a;">Global CDN & WAF</div>
+    <div style="font-size:9.5px; color:#64748b; line-height:1.3; margin-top:2px; text-align:left;">
+      ✓ SSL/TLS Termination (HTTPS)<br>
+      ✓ AWS Shield DDoS Protection<br>
+      ✓ Path-Based Origin Routing:<br>
+      &nbsp;&nbsp;• <code>/*</code> ➔ S3 Frontend<br>
+      &nbsp;&nbsp;• <code>/api/*</code> ➔ ALB
+    </div>
+  </div>
+
+  <!-- 4. Amazon S3 (React Frontend) -->
+  <div class="card s3-front-card">
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+    <div style="font-size:13px; font-weight:800; color:#16a34a;">Amazon S3 Bucket</div>
+    <div style="font-size:11.5px; font-weight:700; color:#0f172a;">React 19 + Vite Static SPA</div>
+    <div style="font-size:9.5px; color:#64748b; line-height:1.25;">
+      Origin Access Control (OAC)<br>
+      Protected Bucket (No Public Read)
+    </div>
+  </div>
+
+  <!-- 5. Supporting AWS Services Banner -->
+  <div class="card supporting-card">
+    <div class="supp-title">Supporting AWS Management, Security & Observability Services</div>
+    <div class="supp-grid">
+      <div class="supp-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        <div>
+          <div class="supp-name">Amazon ECR</div>
+          <div class="supp-sub">Docker Image Registry</div>
+        </div>
+      </div>
+      <div class="supp-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <div>
+          <div class="supp-name">Amazon ECS</div>
+          <div class="supp-sub">Fargate Cluster Engine</div>
+        </div>
+      </div>
+      <div class="supp-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <div class="supp-name">AWS IAM & KMS</div>
+          <div class="supp-sub">RBAC & DB/S3 Encryption</div>
+        </div>
+      </div>
+      <div class="supp-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        <div>
+          <div class="supp-name">Amazon CloudWatch</div>
+          <div class="supp-sub">Centralized Logs & Alarms</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Amazon VPC Container -->
+  <div class="vpc-box">
+    <div class="vpc-tag">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+      Amazon VPC — 10.0.0.0/16 (Isolated Virtual Private Cloud Network)
+    </div>
+
+    <!-- S3 Gateway VPC Endpoint Inside VPC -->
+    <div class="card s3-endpoint-card">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      <div>
+        <div style="font-size:12px; font-weight:800; color:#16a34a;">Amazon S3 VPC Endpoint</div>
+        <div style="font-size:9.5px; color:#64748b;">Gateway Endpoint (Direct Private Route)</div>
+      </div>
+    </div>
+
+    <!-- Public Subnet: ALB -->
+    <div class="subnet-box subnet-alb">
+      <div class="subnet-header-text" style="color:#65a30d;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Public Subnets A & B
+      </div>
+      <div class="node-card" style="height:325px; justify-content:center; border:1.5px solid #84cc16;">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg>
+        <div class="node-title" style="color:#0284c7; margin-top:6px;">Application Load Balancer (ALB)</div>
+        <div class="node-sub" style="margin-top:6px;">
+          • Multi-AZ High Availability<br>
+          • SSL Port 443 Listener<br>
+          • Target Group Health Check<br>
+          • Auto-routing to Fargate
+        </div>
+      </div>
+    </div>
+
+    <!-- AZ-A Container -->
+    <div class="az-container az-a">
+      <div class="az-header">Availability Zone A (ap-southeast-1a)</div>
+
+      <!-- Private App Subnet AZ-A -->
+      <div class="subnet-box subnet-app">
+        <div class="subnet-header-text" style="color:#0284c7;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+          Private Subnet (App) — 10.0.10.0/24
+        </div>
+        <div class="node-card" style="border-left:4px solid #ea580c; height:205px;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          <div class="node-title">ECS Fargate Task (AZ-A)</div>
+          <div class="node-sub">
+            Express 5 REST API (Node.js 20)<br>
+            Prisma 7 ORM Connection Pool<br>
+            <span style="color:#ea580c; font-weight:700;">Autoscaling Container Target</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Isolated DB Subnet AZ-A -->
+      <div class="subnet-box subnet-db">
+        <div class="subnet-header-text" style="color:#7c3aed;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+          Isolated DB Subnet — 10.0.30.0/24
+        </div>
+        <div class="node-card" style="border-left:4px solid #7c3aed; height:205px;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+          <div class="node-title" style="color:#7c3aed;">Amazon RDS PostgreSQL 16</div>
+          <div style="font-size:11px; font-weight:800; color:#16a34a; background:#dcfce7; padding:2px 8px; border-radius:4px;">PRIMARY (Active R/W)</div>
+          <div class="node-sub" style="margin-top:4px;">
+            Encrypted with AWS KMS<br>
+            Automated Snapshots & PITR
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AZ-B Container -->
+    <div class="az-container az-b">
+      <div class="az-header">Availability Zone B (ap-southeast-1b)</div>
+
+      <!-- Private App Subnet AZ-B -->
+      <div class="subnet-box subnet-app">
+        <div class="subnet-header-text" style="color:#0284c7;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+          Private Subnet (App) — 10.0.20.0/24
+        </div>
+        <div class="node-card" style="border-left:4px solid #ea580c; height:205px;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          <div class="node-title">ECS Fargate Task (AZ-B)</div>
+          <div class="node-sub">
+            Express 5 REST API (Redundant Task)<br>
+            Multi-AZ Fault Tolerance<br>
+            <span style="color:#7c3aed; font-weight:700;">Connects to RDS Primary</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Isolated DB Subnet AZ-B -->
+      <div class="subnet-box subnet-db">
+        <div class="subnet-header-text" style="color:#7c3aed;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+          Isolated DB Subnet — 10.0.40.0/24
+        </div>
+        <div class="node-card" style="border-left:4px solid #c084fc; height:205px; background:#faf5ff;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+          <div class="node-title" style="color:#9333ea;">Amazon RDS PostgreSQL 16</div>
+          <div style="font-size:11px; font-weight:800; color:#6b7280; background:#f3f4f6; padding:2px 8px; border-radius:4px;">STANDBY (Passive Replica)</div>
+          <div class="node-sub" style="margin-top:4px;">
+            Synchronous Physical Replica<br>
+            <strong>No Direct Traffic</strong> | Auto-Failover
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 7. Amazon S3 User Uploads (Right) -->
+  <div class="card s3-upload-card">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+    <div style="font-size:14px; font-weight:800; color:#16a34a;">Amazon S3 Bucket</div>
+    <div style="font-size:12px; font-weight:700; color:#0f172a;">User Uploads & Documents</div>
+    <div style="font-size:10px; color:#64748b; line-height:1.4; margin-top:4px; text-align:left;">
+      • Resumes & CVs (PDF)<br>
+      • Profile Avatars (Images)<br>
+      • Weekly Log Artifacts<br>
+      • Completion Certificate Reports<br>
+      <span style="color:#16a34a; font-weight:700;">✓ Encrypted via AWS KMS</span><br>
+      <span style="color:#0284c7; font-weight:700;">✓ Presigned S3 URLs</span>
+    </div>
+  </div>
+
+  <!-- 8. Legend -->
+  <div class="legend-box">
+    <div class="legend-title">Architectural Standards & Corrections Verified:</div>
+    <div class="legend-row">
+      <div class="legend-pill" style="background:#7c3aed;"></div>
+      <span><strong>RDS Primary Fix:</strong> Fargate tasks in both AZ-A & AZ-B connect <em>only</em> to Primary DB.</span>
+    </div>
+    <div class="legend-row">
+      <div class="legend-pill" style="background:#a855f7;"></div>
+      <span><strong>Standby Replica:</strong> Purely passive, synchronous replication for 60s failover.</span>
+    </div>
+    <div class="legend-row">
+      <div class="legend-pill" style="background:#16a34a;"></div>
+      <span><strong>S3 VPC Gateway Endpoint:</strong> Keeps document upload traffic inside private AWS backbone.</span>
+    </div>
+    <div class="legend-row">
+      <div class="legend-pill" style="background:#2563eb;"></div>
+      <span><strong>CloudFront Single Domain:</strong> <code>/*</code> to S3 and <code>/api/*</code> to ALB solves CORS completely.</span>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
