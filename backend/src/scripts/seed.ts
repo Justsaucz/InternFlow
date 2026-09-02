@@ -148,13 +148,13 @@ async function main() {
     include: { studentProfile: true }
   });
 
-  // 7. Create 2 Sample Applications with ACCEPTED Offers for the Student
-  console.log('📝 Creating 2 sample applications with offers for student...');
+  // 7. Create Active Committed Placement at TechCorp and Auto-Closed Application at Innovate
+  console.log('📝 Creating active committed placement for Alex Rivers at TechCorp...');
   const appTechCorp = await prisma.application.create({
     data: {
       studentId: studentUser.studentProfile!.id,
       jobPostId: job1.id,
-      status: 'ACCEPTED',
+      status: 'COMMITTED',
       coverLetter: 'I am excited to apply for the Full-Stack Developer Intern position at TechCorp Solutions. With my strong background in React, TypeScript, and modern relational database architectures, I am eager to contribute to your engineering team while learning industry best practices.'
     }
   });
@@ -163,8 +163,36 @@ async function main() {
     data: {
       studentId: studentUser.studentProfile!.id,
       jobPostId: job3.id,
-      status: 'ACCEPTED',
+      status: 'REJECTED',
       coverLetter: 'I am passionate about building responsive, high-performance web applications and design systems. I would love the opportunity to contribute to Innovate Labs.'
+    }
+  });
+
+  // 8. Create Sample Week 1 Weekly Log for Alex Rivers
+  console.log('📖 Creating sample Week 1 logbook entry...');
+  await prisma.weeklyLog.create({
+    data: {
+      studentId: studentUser.studentProfile!.id,
+      applicationId: appTechCorp.id,
+      weekNumber: 1,
+      startDate: new Date('2026-08-01T00:00:00Z'),
+      endDate: new Date('2026-08-05T00:00:00Z'),
+      workModality: 'ON_SITE',
+      supervisorName: 'Sarah Jenkins (HR Lead / Engineering Mentor)',
+      plannedTasks: JSON.stringify([
+        'Onboarding and development workstation setup',
+        'Review architecture documentation and database schemas',
+        'Attend sprint kickoff meeting with full-stack team'
+      ]),
+      tasksDone: JSON.stringify([
+        'Completed local Docker environment configuration for PostgreSQL',
+        'Implemented authentication middleware and route guards',
+        'Submitted initial pull request for UI components library'
+      ]),
+      problemsAndSolutions: 'Experienced CORS preflight issues during local API integration. Resolved by updating Express CORS origin headers.',
+      learnings: 'Gained hands-on experience with TypeScript strict typing, Prisma client migrations, and RESTful API design.',
+      hoursWorked: 40.0,
+      mentorApproved: false
     }
   });
 

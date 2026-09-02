@@ -36,7 +36,7 @@ router.get('/stats', authenticate, async (req: AuthRequest, res: Response): Prom
           where: { studentId: student.id, status: { in: ['PENDING', 'REVIEWING'] } }
         }),
         prisma.application.count({
-          where: { studentId: student.id, status: 'ACCEPTED' }
+          where: { studentId: student.id, status: { in: ['ACCEPTED', 'COMMITTED', 'CANCEL_REQUESTED'] } }
         }),
         prisma.application.findMany({
           where: { studentId: student.id },
@@ -83,7 +83,7 @@ router.get('/stats', authenticate, async (req: AuthRequest, res: Response): Prom
         prisma.application.count({
           where: {
             jobPost: { companyProfileId: company.id },
-            status: 'ACCEPTED'
+            status: { in: ['COMMITTED', 'CANCEL_REQUESTED', 'ACCEPTED'] }
           }
         }),
         prisma.application.findMany({

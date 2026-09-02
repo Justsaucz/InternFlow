@@ -251,7 +251,6 @@ export default function CompanyEvaluations() {
               <tbody className="divide-y divide-slate-100 text-xs">
                 {interns.length > 0 ? (
                   interns.map((intern) => {
-                    const percent = Math.min(100, Math.round((intern.totalHours / intern.targetHours) * 100));
                     const isEvaluated = !!intern.evaluation;
 
                     return (
@@ -297,31 +296,43 @@ export default function CompanyEvaluations() {
                         </td>
 
                         {/* Position */}
+                        {/* Position */}
                         <td className="px-6 py-4.5 whitespace-nowrap">
                           <span className="font-bold text-slate-800 text-xs block">
                             {intern.jobTitle}
                           </span>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            Target: {intern.targetHours} Hours
-                          </span>
+                          {intern.status === 'COMMITTED' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mt-1 border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                              Active Placement
+                            </span>
+                          )}
+                          {intern.status === 'CANCEL_REQUESTED' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md mt-1 border border-amber-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                              Cancel Requested
+                            </span>
+                          )}
+                          {intern.status === 'ACCEPTED' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md mt-1 border border-indigo-200">
+                              Offer Extended
+                            </span>
+                          )}
                         </td>
 
                         {/* Hours */}
                         <td className="px-6 py-4.5 whitespace-nowrap">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-black text-slate-900 text-xs">
+                            <span className="font-black text-slate-900 text-sm">
                               {intern.totalHours} hrs
                             </span>
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                               {intern.approvedHours} hrs approved
                             </span>
                           </div>
-                          <div className="w-32 bg-slate-100 rounded-full h-2 overflow-hidden">
-                            <div 
-                              className="bg-primary-600 h-full rounded-full" 
-                              style={{ width: `${percent}%` }}
-                            ></div>
-                          </div>
+                          <span className="text-[11px] text-slate-400 font-medium">
+                            {intern.student.weeklyLogs?.length || 0} weekly {intern.student.weeklyLogs?.length === 1 ? 'entry' : 'entries'} submitted
+                          </span>
                         </td>
 
                         {/* Rubric Status */}

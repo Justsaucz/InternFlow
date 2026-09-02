@@ -18,11 +18,11 @@ const getCompanyInternsHandler = async (req: AuthRequest, res: Response): Promis
       return;
     }
 
-    // Find all accepted or approved applications for this company
+    // Find all committed, cancel_requested or accepted applications for this company
     const applications = await prisma.application.findMany({
       where: {
         jobPost: { companyProfileId: company.id },
-        status: 'ACCEPTED'
+        status: { in: ['COMMITTED', 'CANCEL_REQUESTED', 'ACCEPTED'] }
       },
       include: {
         jobPost: true,
@@ -157,7 +157,7 @@ router.get('/report/:studentId', authenticate, async (req: AuthRequest, res: Res
           }
         },
         applications: {
-          where: { status: 'ACCEPTED' },
+          where: { status: { in: ['COMMITTED', 'CANCEL_REQUESTED', 'ACCEPTED'] } },
           include: {
             jobPost: {
               include: {
