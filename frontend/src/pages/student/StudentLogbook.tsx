@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   BookOpen, 
   Plus, 
@@ -16,7 +17,9 @@ import {
   RefreshCw,
   Link as LinkIcon,
   Upload,
-  FileText
+  FileText,
+  Lock,
+  Briefcase
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
@@ -94,6 +97,7 @@ interface LogbookData {
 }
 
 export default function StudentLogbook() {
+  const navigate = useNavigate();
   const [data, setData] = useState<LogbookData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -145,6 +149,11 @@ export default function StudentLogbook() {
   };
 
   const handleOpenCreate = () => {
+    if (!data?.activePlacement) {
+      showError('You must be accepted into an internship position by a company before adding weekly logs.');
+      return;
+    }
+
     setEditingId(null);
     const nextWeek = data?.logs && data.logs.length > 0 ? data.logs.length + 1 : 1;
     setWeekNumber(nextWeek);
@@ -427,9 +436,15 @@ export default function StudentLogbook() {
 
           <button
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs shadow-md shadow-primary-500/20 hover:from-primary-700 hover:to-indigo-700 transition-all cursor-pointer"
+            disabled={!activePlacement}
+            title={!activePlacement ? 'You must be accepted by a company before adding weekly logs' : 'Add weekly journal entry'}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all ${
+              activePlacement
+                ? 'bg-gradient-to-r from-primary-600 to-indigo-600 text-white shadow-md shadow-primary-500/20 hover:from-primary-700 hover:to-indigo-700 cursor-pointer'
+                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none'
+            }`}
           >
-            <Plus className="w-4 h-4" />
+            {!activePlacement ? <Lock className="w-4 h-4 text-slate-400" /> : <Plus className="w-4 h-4" />}
             Add Weekly Log
           </button>
         </div>
@@ -485,8 +500,9 @@ export default function StudentLogbook() {
                 </p>
               </div>
             ) : (
-              <div className="text-xs text-slate-500 py-4">
-                No active approved placement linked yet.
+              <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200/80 rounded-xl p-3 my-2 flex items-center gap-2">
+                <Lock className="w-4 h-4 flex-shrink-0 text-amber-600" />
+                <span>No active approved placement linked yet.</span>
               </div>
             )}
           </div>
@@ -497,6 +513,32 @@ export default function StudentLogbook() {
           </div>
         </div>
       </div>
+
+      {/* ── Active Placement Required Banner ─────────────────────────────────── */}
+      {!activePlacement && (
+        <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-200 rounded-3xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center flex-shrink-0 text-amber-700 shadow-2xs">
+              <Lock className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-base font-extrabold text-amber-950">
+                Active Internship Placement Required
+              </h4>
+              <p className="text-xs sm:text-sm text-amber-800/90 mt-1 leading-relaxed">
+                You cannot submit weekly log entries until a company accepts your application. Once your offer is accepted, your logbook will unlock automatically.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/jobs')}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex-shrink-0 cursor-pointer"
+          >
+            <Briefcase className="w-4 h-4" />
+            Browse Openings
+          </button>
+        </div>
+      )}
 
       {/* ── Weekly Logs Timeline Cards ─────────────────────────────────────── */}
       <div className="space-y-4">

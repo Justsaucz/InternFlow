@@ -125,6 +125,13 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
 
     const activeApp = student.applications[0] || null;
 
+    if (!activeApp) {
+      res.status(403).json({
+        error: 'You cannot submit weekly logbook entries without an accepted internship placement from a company.'
+      });
+      return;
+    }
+
     const parsedStartDate = startDate && !isNaN(new Date(startDate).getTime())
       ? new Date(startDate)
       : new Date();

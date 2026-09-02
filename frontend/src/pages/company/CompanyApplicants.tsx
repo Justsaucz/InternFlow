@@ -177,7 +177,9 @@ export default function CompanyApplicants() {
                       </>
                     )}
                     {app.status === 'ACCEPTED' && (
-                      <span className="text-gray-400 text-xs italic">Waiting for Uni approval</span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-green-700 bg-green-50 border border-green-200">
+                        <CheckCircle className="w-3.5 h-3.5" /> Accepted
+                      </span>
                     )}
                   </div>
                 </div>
