@@ -531,7 +531,7 @@ export default function StudentLogbook() {
             </div>
           </div>
           <button
-            onClick={() => navigate('/jobs')}
+            onClick={() => navigate('/dashboard/jobs')}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex-shrink-0 cursor-pointer"
           >
             <Briefcase className="w-4 h-4" />

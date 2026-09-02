@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from './components/ui/Toast';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -24,6 +24,12 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
+          {/* Direct Redirections for Top-Level Links */}
+          <Route path="/jobs" element={<Navigate to="/dashboard/jobs" replace />} />
+          <Route path="/applications" element={<Navigate to="/dashboard/applications" replace />} />
+          <Route path="/logbook" element={<Navigate to="/dashboard/logbook" replace />} />
+          <Route path="/profile" element={<Navigate to="/dashboard/profile" replace />} />
+          
           {/* Dashboard Routes with Sidebar */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
@@ -40,6 +46,9 @@ function App() {
             <Route path="evaluations" element={<CompanyEvaluations />} />
             <Route path="company/profile" element={<CompanyProfile />} />
           </Route>
+
+          {/* Catch-all Wildcard */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
     </ToastProvider>
