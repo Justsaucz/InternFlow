@@ -8,7 +8,7 @@ To address these challenges, this project proposes a **cloud-based, centralized 
 
 The platform will include the following key features:
 * **Centralized Corporate Job Board** with search, filters, allowance details, working hours, and modality.
-* **3-Stage Real-Time Application Pipeline** tracking submissions from application to offer acceptance.
+* **Application, Commitment & Placement Pipeline** tracking submissions from application to offer extension, single placement commitment, and company-approved release.
 * **Multi-Artifact S3 File Attachments** for resumes, transcripts, portfolios, and external project links.
 * **Comprehensive Student Profiles** capturing academic metadata (University name, Faculty, Major, Year, GPA, Skills).
 * **Operational Weekly Logbook & Journal** with attendance modality, objective/deliverable pin points, and hour tracking.
@@ -49,7 +49,7 @@ The proposed platform will support two primary user groups, each with distinct r
     * Register and manage corporate profile (company name, industry, website, logo, address, contact email/phone).
     * Create, edit, publish, and delete internship job postings with full compensation, schedule, and requirement details.
     * Review incoming applicants, view student profiles and university details, and inspect uploaded S3 CVs and portfolio links.
-    * Update candidate statuses across the 3-stage recruitment pipeline (`Reviewing`, `Accepted`, `Rejected`).
+    * Manage candidate statuses across recruitment and placement stages (`Reviewing`, `Extend Offer`, `Reject`, and cancellation release approval).
     * Inspect student weekly logbooks in an inspector drawer showing all objectives, completed tasks, and attached artifacts.
     * Sign off on weekly logbook hours with a 1–5 star weekly rating (★) and qualitative mentor feedback.
     * Submit 3-category performance evaluation rubrics (**Work Quality**, **Punctuality**, **Teamwork**) upon internship completion.
@@ -275,6 +275,8 @@ The proposed platform will support two primary user groups, each with distinct r
 ```
 
 ### 2. Production AWS Infrastructure Architecture Diagram
+
+```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                        │
 │     Users / Browsers (Students, Company HR)                                            │
