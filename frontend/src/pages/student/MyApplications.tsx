@@ -8,18 +8,24 @@ import {
   Building2, 
   Briefcase, 
   Calendar, 
-  ArrowRight,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink
+  ArrowRight, 
+  ChevronDown, 
+  ChevronUp, 
+  ExternalLink,
+  Award,
+  AlertTriangle,
+  Sparkles,
+  LogOut,
+  Check
 } from 'lucide-react';
-
+import { useToast } from '../../components/ui/Toast';
 import PublicProfileModal from '../../components/modals/PublicProfileModal';
 
 interface Application {
   id: string;
   status: string;
   coverLetter: string | null;
+  cancellationReason?: string | null;
   createdAt: string;
   documents?: { id: string; title: string; fileUrl: string; type?: string }[];
   jobPost: {
@@ -48,13 +54,31 @@ const statusConfig: Record<string, { label: string; color: string; icon: any; st
     step: 2 
   },
   ACCEPTED: { 
-    label: 'Offer Accepted by HR', 
+    label: 'Offer Received from HR', 
     color: 'bg-emerald-50 text-emerald-700 border-emerald-200', 
     icon: CheckCircle2,
     step: 3 
   },
+  COMMITTED: { 
+    label: 'Active Placement (Confirmed)', 
+    color: 'bg-primary-50 text-primary-700 border-primary-300 ring-2 ring-primary-100', 
+    icon: Award,
+    step: 4 
+  },
+  CANCEL_REQUESTED: { 
+    label: 'Cancellation Pending HR Review', 
+    color: 'bg-amber-50 text-amber-800 border-amber-300', 
+    icon: AlertTriangle,
+    step: 3 
+  },
+  CANCELLED: { 
+    label: 'Placement Cancelled', 
+    color: 'bg-slate-100 text-slate-600 border-slate-300', 
+    icon: XCircle,
+    step: 0 
+  },
   REJECTED: { 
-    label: 'Declined', 
+    label: 'Declined / Closed', 
     color: 'bg-rose-50 text-rose-700 border-rose-200', 
     icon: XCircle,
     step: 0 
@@ -67,6 +91,14 @@ export default function MyApplications() {
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'accepted' | 'rejected'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [viewingCompanyId, setViewingCompanyId] = useState<string | null>(null);
+
+  // Commitment & Cancellation Modal States
+  const [commitTargetApp, setCommitTargetApp] = useState<Application | null>(null);
+  const [cancelTargetApp, setCancelTargetApp] = useState<Application | null>(null);
+  const [cancellationReason, setCancellationReason] = useState('');
+  const [submittingAction, setSubmittingAction] = useState(false);
+
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     fetchApplications();
@@ -89,10 +121,75 @@ export default function MyApplications() {
     }
   };
 
+  const committedPlacement = applications.find(
+    (app) => app.status === 'COMMITTED' || app.status === 'CANCEL_REQUESTED'
+  );
+
+  const handleConfirmCommit = async () => {
+    if (!commitTargetApp) return;
+    setSubmittingAction(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications/${commitTargetApp.id}/commit`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        success(`Placement confirmed at ${commitTargetApp.jobPost.company.companyName}! You can now start logging weekly entries.`);
+        setCommitTargetApp(null);
+        fetchApplications();
+      } else {
+        showError(data.error || 'Failed to confirm placement.');
+      }
+    } catch (err) {
+      showError('Network error. Please try again.');
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const handleSubmitCancellationRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cancelTargetApp) return;
+    if (!cancellationReason.trim()) {
+      showError('Please provide a reason for cancellation.');
+      return;
+    }
+    setSubmittingAction(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications/${cancelTargetApp.id}/request-cancel`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reason: cancellationReason.trim() })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        success('Cancellation request submitted. Waiting for company HR to review.');
+        setCancelTargetApp(null);
+        setCancellationReason('');
+        fetchApplications();
+      } else {
+        showError(data.error || 'Failed to submit cancellation request.');
+      }
+    } catch (err) {
+      showError('Network error. Please try again.');
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
   const filteredApps = applications.filter((app) => {
     if (activeTab === 'active') return app.status === 'PENDING' || app.status === 'REVIEWING';
-    if (activeTab === 'accepted') return app.status === 'ACCEPTED';
-    if (activeTab === 'rejected') return app.status === 'REJECTED';
+    if (activeTab === 'accepted') return app.status === 'ACCEPTED' || app.status === 'COMMITTED';
+    if (activeTab === 'rejected') return app.status === 'REJECTED' || app.status === 'CANCELLED';
     return true;
   });
 
@@ -113,55 +210,74 @@ export default function MyApplications() {
             My Internship Applications
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Track your real-time status across all submitted corporate placement applications.
+            Track your real-time status across corporate applications, review job offers, and commit to your official internship.
           </p>
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl self-start sm:self-auto">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            All ({applications.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('active')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'active' ? 'bg-white text-primary-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            In Review
-          </button>
-          <button
-            onClick={() => setActiveTab('accepted')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'accepted' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Accepted
-          </button>
-          <button
-            onClick={() => setActiveTab('rejected')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'rejected' ? 'bg-white text-rose-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Declined
-          </button>
+        <div className="flex items-center p-1 bg-white border border-slate-200/80 rounded-2xl shadow-2xs self-start sm:self-auto">
+          {[
+            { id: 'all', label: `All (${applications.length})` },
+            { id: 'active', label: 'In Review' },
+            { id: 'accepted', label: 'Offers / Active' },
+            { id: 'rejected', label: 'Closed' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === tab.id
+                  ? 'bg-primary-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* ── Applications List ──────────────────────────────────────────────── */}
+      {/* ── Active Placement Notification Banner ───────────────────────────── */}
+      {committedPlacement && (
+        <div className="p-5 rounded-3xl bg-gradient-to-r from-primary-900 via-indigo-900 to-slate-900 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0 text-primary-300">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/30">
+                  {committedPlacement.status === 'CANCEL_REQUESTED' ? 'Cancellation Under Review' : 'Official Active Placement'}
+                </span>
+              </div>
+              <h3 className="text-base font-extrabold text-white mt-1">
+                {committedPlacement.jobPost.title} • {committedPlacement.jobPost.company.companyName}
+              </h3>
+              <p className="text-xs text-slate-300 mt-0.5">
+                {committedPlacement.status === 'CANCEL_REQUESTED'
+                  ? 'Your cancellation request has been submitted to company HR. Waiting for company confirmation.'
+                  : 'You are officially placed! Your weekly logbook is unlocked. Only one placement can be active at a time.'}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/dashboard/logbook"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs rounded-xl shadow-md transition-all flex-shrink-0"
+          >
+            Go to Weekly Logbook
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
+      {/* ── Applications Cards List ────────────────────────────────────────── */}
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-3xl p-6 border border-slate-200 animate-pulse space-y-4">
-              <div className="h-6 w-1/3 bg-slate-200 rounded"></div>
-              <div className="h-4 w-1/4 bg-slate-100 rounded"></div>
-              <div className="h-10 w-full bg-slate-50 rounded"></div>
+          {[1, 2].map((n) => (
+            <div key={n} className="h-44 rounded-3xl bg-white border border-slate-100 p-6 animate-pulse space-y-4">
+              <div className="h-6 w-1/3 bg-slate-100 rounded-lg" />
+              <div className="h-4 w-1/2 bg-slate-100 rounded-lg" />
+              <div className="h-10 w-full bg-slate-100 rounded-xl" />
             </div>
           ))}
         </div>
@@ -172,11 +288,21 @@ export default function MyApplications() {
             const StatusIcon = status.icon;
             const isExpanded = expandedId === app.id;
             const companyLogo = app.jobPost.company.logoUrl;
+            const isCommitted = app.status === 'COMMITTED';
+            const isCancelRequested = app.status === 'CANCEL_REQUESTED';
+            const isOfferWaiting = app.status === 'ACCEPTED';
+            const hasOtherCommitment = !!committedPlacement && committedPlacement.id !== app.id;
 
             return (
               <div 
                 key={app.id} 
-                className="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-7 hover:shadow-md transition-all space-y-6"
+                className={`bg-white rounded-3xl border transition-all duration-200 p-6 sm:p-7 space-y-6 shadow-xs hover:shadow-md ${
+                  isCommitted 
+                    ? 'border-primary-300 ring-2 ring-primary-100/70' 
+                    : isCancelRequested
+                    ? 'border-amber-200 bg-amber-50/20'
+                    : 'border-slate-200/80 hover:border-slate-300'
+                }`}
               >
                 {/* Top Info Bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -222,23 +348,73 @@ export default function MyApplications() {
                     </div>
                   </div>
 
-                  {/* Status Badge */}
-                  <div>
+                  {/* Status Badge & Primary Action */}
+                  <div className="flex items-center gap-2.5 flex-wrap">
                     <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-extrabold border ${status.color}`}>
                       <StatusIcon className="w-4 h-4" />
                       {status.label}
                     </span>
+
+                    {/* Offer Decision Action: Accept Offer */}
+                    {isOfferWaiting && !hasOtherCommitment && (
+                      <button
+                        onClick={() => setCommitTargetApp(app)}
+                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+                        title="Accept this offer and confirm your placement"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        Accept Offer & Start
+                      </button>
+                    )}
+
+                    {/* Offer on hold when student already committed elsewhere */}
+                    {isOfferWaiting && hasOtherCommitment && (
+                      <span className="text-[11px] font-semibold text-slate-400 italic">
+                        (On hold • Already committed to {committedPlacement?.jobPost.company.companyName})
+                      </span>
+                    )}
+
+                    {/* Committed Placement Actions */}
+                    {isCommitted && (
+                      <button
+                        onClick={() => {
+                          setCancelTargetApp(app);
+                          setCancellationReason('');
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        Request Cancellation
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {/* 3-Stage Progress Stepper */}
-                {app.status !== 'REJECTED' && (
+                {/* Cancellation Request Notice Box */}
+                {isCancelRequested && (
+                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+                    <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                      <Clock className="w-4 h-4 text-amber-600" />
+                      Cancellation Request Pending Company HR Approval
+                    </div>
+                    <p className="text-amber-800">
+                      Reason provided: <span className="font-semibold italic">"{app.cancellationReason || 'Not specified'}"</span>
+                    </p>
+                    <p className="text-[11px] text-amber-700 pt-1">
+                      Note: You remain registered in this placement until company HR confirms your release.
+                    </p>
+                  </div>
+                )}
+
+                {/* 4-Stage Progress Stepper */}
+                {app.status !== 'REJECTED' && app.status !== 'CANCELLED' && (
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="grid grid-cols-3 gap-2 text-center relative">
+                    <div className="grid grid-cols-4 gap-2 text-center relative">
                       {[
                         { stepNum: 1, label: 'Submitted' },
                         { stepNum: 2, label: 'Under Review' },
-                        { stepNum: 3, label: 'Accepted by Company' },
+                        { stepNum: 3, label: 'Offer Received' },
+                        { stepNum: 4, label: 'Confirmed Working' },
                       ].map((s) => {
                         const isDone = status.step >= s.stepNum;
                         const isCurrent = status.step === s.stepNum;
@@ -329,6 +505,114 @@ export default function MyApplications() {
         </div>
       )}
 
+      {/* ── Commitment Confirmation Modal ───────────────────────────────────── */}
+      {commitTargetApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                <Award className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">
+                  Confirm Internship Placement
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  You are committing to join {commitTargetApp.jobPost.company.companyName} as a {commitTargetApp.jobPost.title}.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2">
+              <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                Important Program Rules:
+              </div>
+              <ul className="list-disc pl-4 space-y-1 text-amber-800/90 text-[11px] leading-relaxed">
+                <li>You can only commit to <strong>ONE</strong> internship company at a time.</li>
+                <li>Confirming this placement will <strong>automatically close</strong> your other applications and pending offers.</li>
+                <li>Once working, you cannot leave or take another job until you submit a cancellation request and it is <strong>approved by the company</strong>.</li>
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setCommitTargetApp(null)}
+                disabled={submittingAction}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCommit}
+                disabled={submittingAction}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all cursor-pointer"
+              >
+                {submittingAction ? 'Confirming...' : 'Yes, Confirm Placement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Cancellation Request Modal ──────────────────────────────────────── */}
+      {cancelTargetApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <form onSubmit={handleSubmitCancellationRequest} className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">
+                <LogOut className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">
+                  Request Internship Cancellation
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  {cancelTargetApp.jobPost.company.companyName} • {cancelTargetApp.jobPost.title}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-700">
+                Reason for Cancellation <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                value={cancellationReason}
+                onChange={(e) => setCancellationReason(e.target.value)}
+                placeholder="Explain the reason for leaving or cancelling your placement (e.g. academic schedule conflict, health reasons, relocation)..."
+                required
+                rows={4}
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none resize-none leading-relaxed"
+              />
+              <p className="text-[11px] text-slate-400">
+                This request will be sent directly to the company HR. Your placement will only be released once the company confirms and approves.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setCancelTargetApp(null)}
+                disabled={submittingAction}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Keep Placement
+              </button>
+              <button
+                type="submit"
+                disabled={submittingAction}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-md transition-all cursor-pointer"
+              >
+                {submittingAction ? 'Submitting...' : 'Submit Request to Company'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* ── Public Company Profile Modal ────────────────────────────────────── */}
       <PublicProfileModal
         isOpen={!!viewingCompanyId}
@@ -339,4 +623,3 @@ export default function MyApplications() {
     </div>
   );
 }
-

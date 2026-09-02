@@ -15,6 +15,9 @@ enum ApplicationStatus {
   PENDING
   REVIEWING
   ACCEPTED
+  COMMITTED
+  CANCEL_REQUESTED
+  CANCELLED
   REJECTED
 }
 
@@ -106,8 +109,9 @@ model Application {
   studentId      String
   student        StudentProfile    @relation(fields: [studentId], references: [id])
   
-  status         ApplicationStatus @default(PENDING)
-  coverLetter    String?
+  status             ApplicationStatus @default(PENDING)
+  coverLetter        String?
+  cancellationReason String?
   
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt

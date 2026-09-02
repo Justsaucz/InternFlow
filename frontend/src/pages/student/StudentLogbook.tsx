@@ -526,17 +526,26 @@ export default function StudentLogbook() {
                 Active Internship Placement Required
               </h4>
               <p className="text-xs sm:text-sm text-amber-800/90 mt-1 leading-relaxed">
-                You cannot submit weekly log entries until a company accepts your application. Once your offer is accepted, your logbook will unlock automatically.
+                You cannot submit weekly log entries until you officially confirm an internship offer. If a company has extended an offer, visit <strong>My Applications</strong> to confirm your placement.
               </p>
             </div>
           </div>
-          <button
-            onClick={() => navigate('/dashboard/jobs')}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex-shrink-0 cursor-pointer"
-          >
-            <Briefcase className="w-4 h-4" />
-            Browse Openings
-          </button>
+          <div className="flex items-center gap-2.5 flex-shrink-0 flex-wrap">
+            <button
+              onClick={() => navigate('/dashboard/applications')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+            >
+              <FileText className="w-4 h-4" />
+              My Applications
+            </button>
+            <button
+              onClick={() => navigate('/dashboard/jobs')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+            >
+              <Briefcase className="w-4 h-4" />
+              Browse Openings
+            </button>
+          </div>
         </div>
       )}
 

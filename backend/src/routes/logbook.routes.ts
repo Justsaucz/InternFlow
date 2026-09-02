@@ -14,7 +14,7 @@ router.get('/my', authenticate, authorize([Role.STUDENT]), async (req: AuthReque
       include: {
         applications: {
           where: {
-            status: 'ACCEPTED'
+            status: { in: ['COMMITTED', 'CANCEL_REQUESTED'] }
           },
           include: {
             jobPost: {
@@ -38,7 +38,7 @@ router.get('/my', authenticate, authorize([Role.STUDENT]), async (req: AuthReque
         include: {
           applications: {
             where: {
-              status: 'ACCEPTED'
+              status: { in: ['COMMITTED', 'CANCEL_REQUESTED'] }
             },
             include: {
               jobPost: {
@@ -100,7 +100,7 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
       include: {
         applications: {
           where: {
-            status: 'ACCEPTED'
+            status: { in: ['COMMITTED', 'CANCEL_REQUESTED'] }
           }
         }
       }
@@ -116,7 +116,7 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
         include: {
           applications: {
             where: {
-              status: 'ACCEPTED'
+              status: { in: ['COMMITTED', 'CANCEL_REQUESTED'] }
             }
           }
         }
@@ -127,7 +127,7 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
 
     if (!activeApp) {
       res.status(403).json({
-        error: 'You cannot submit weekly logbook entries without an accepted internship placement from a company.'
+        error: 'You cannot submit weekly logbook entries without an active committed internship placement. Please accept a company offer in My Applications first.'
       });
       return;
     }
