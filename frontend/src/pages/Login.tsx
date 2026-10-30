@@ -1,13 +1,25 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GraduationCap, AlertCircle, Loader2 } from 'lucide-react';
+import { 
+  AlertCircle, 
+  Loader2, 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  ArrowRight,
+  Sparkles
+} from 'lucide-react';
+import { useLanguage, LanguageSwitcher } from '../context/LanguageContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,77 +39,188 @@ export default function Login() {
         localStorage.setItem('user', JSON.stringify(data.user));
         navigate('/dashboard');
       } else {
-        setError(data.error || 'Login failed. Please check your email and password.');
+        setError(data.error || t.auth.invalidCredentials);
       }
     } catch (err) {
       console.error(err);
-      setError('Unable to connect to server. Please try again later.');
+      setError(t.auth.networkError);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-        <div className="text-center">
-          <div className="inline-flex w-12 h-12 bg-primary-600 rounded-2xl items-center justify-center text-white shadow-lg shadow-primary-500/20 mb-4">
-            <GraduationCap className="w-7 h-7" />
-          </div>
-          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Sign in to InternFlow</h2>
-          <p className="mt-2 text-sm text-gray-500">Access your student or company portal</p>
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* ── Left Showcase Pane (Desktop Only) ────────────────── */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#062314] via-[#0a3820] to-[#03150c] text-white p-12 xl:p-16 flex-col justify-between overflow-hidden">
+        {/* Glow Spheres */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-teal-400/15 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Brand Header */}
+        <div className="relative z-10">
+          <Link to="/" className="inline-flex items-center gap-3 group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-emerald-500/30 group-hover:scale-105 transition-transform">
+              IF
+            </div>
+            <div>
+              <span className="text-2xl font-black tracking-tight text-white font-heading">
+                Intern<span className="text-emerald-400">Flow</span>
+              </span>
+              <span className="block text-xs uppercase tracking-widest text-emerald-300/80 font-bold">
+                Talent Operating System
+              </span>
+            </div>
+          </Link>
         </div>
 
-        {error && (
-          <div className="flex items-center p-4 text-sm text-red-800 rounded-xl bg-red-50 border border-red-200">
-            <AlertCircle className="w-5 h-5 mr-2.5 flex-shrink-0 text-red-600" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form className="mt-6 space-y-5" onSubmit={handleLogin}>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-            <input
-              name="email"
-              type="email"
-              required
-              className="appearance-none block w-full px-4 py-2.5 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+        {/* Central Content */}
+        <div className="relative z-10 my-auto py-12">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-400/20 text-emerald-300 text-xs font-semibold mb-6">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{t.auth.welcomeBackTag}</span>
           </div>
 
+          <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight leading-tight text-white mb-6 font-heading">
+            {t.auth.leftHeroTitle}
+          </h1>
+
+          <p className="text-slate-300 text-lg leading-relaxed mb-10 max-w-lg">
+            {t.auth.leftHeroDesc}
+          </p>
+        </div>
+
+        {/* Footer Metrics */}
+        <div className="relative z-10 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+          <div>Over <strong>500+</strong> Verified Listings</div>
+          <div>•</div>
+          <div><strong>100%</strong> Onboarding Commitment</div>
+          <div>•</div>
+          <div>CWIE Mandate Ready</div>
+        </div>
+      </div>
+
+      {/* ── Right Form Pane ─────────────────────────────────── */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16">
+        <div className="max-w-md w-full space-y-8">
+          {/* Header & Language Switcher */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              name="password"
-              type="password"
-              required
-              className="appearance-none block w-full px-4 py-2.5 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className="flex items-center justify-between mb-4">
+              <div className="lg:hidden flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-black text-sm">
+                  IF
+                </div>
+                <span className="text-xl font-black text-slate-900 font-heading">
+                  Intern<span className="text-emerald-600">Flow</span>
+                </span>
+              </div>
+              <div className="ml-auto">
+                <LanguageSwitcher />
+              </div>
+            </div>
+
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight font-heading">
+              {t.auth.signInTitle}
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              {t.auth.signInSubtitle}
+            </p>
           </div>
 
-          <div>
+          {/* Error Alert */}
+          {error && (
+            <div className="flex items-center p-4 text-sm text-red-800 rounded-2xl bg-red-50 border border-red-200">
+              <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0 text-red-600" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form className="space-y-5" onSubmit={handleLogin}>
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                {t.auth.emailLabel}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <input
+                  id="login-email-input"
+                  name="email"
+                  type="email"
+                  required
+                  className="block w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                  placeholder={t.auth.emailPlaceholder}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                  {t.auth.passwordLabel}
+                </label>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <input
+                  id="login-password-input"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  className="block w-full pl-10 pr-11 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                  placeholder={t.auth.passwordPlaceholder}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
             <button
+              id="login-submit-btn"
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+              className="w-full flex justify-center items-center py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-600/25 hover:shadow-xl hover:shadow-emerald-600/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 cursor-pointer"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <span className="flex items-center gap-2">
+                  {t.auth.signInBtn}
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              )}
             </button>
-          </div>
-        </form>
+          </form>
 
-        <div className="text-center text-sm text-gray-600 pt-2 border-t border-gray-100">
-          Don't have an account?{' '}
-          <Link to="/register" className="font-semibold text-primary-600 hover:text-primary-500">
-            Register here
-          </Link>
+          {/* Quick Demo Credentials Helper */}
+          <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 text-xs text-slate-600">
+            <span className="font-bold text-emerald-800 block mb-1">{t.auth.quickDemoHint}</span>
+            {t.auth.demoHintText}
+          </div>
+
+          {/* Footer Navigation */}
+          <div className="pt-4 border-t border-slate-200/80 text-center text-sm text-slate-600">
+            {t.auth.dontHaveAccount}{' '}
+            <Link to="/register" className="font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
+              {t.auth.registerLink}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Book, Award, Sparkles, User, Mail, GraduationCap, Edit3, X, Check, Camera } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface StudentProfile {
   id: string;
@@ -24,6 +25,7 @@ export default function StudentProfile() {
   const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const { success, error: showError } = useToast();
+  const { t } = useLanguage();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -182,16 +184,16 @@ export default function StudentProfile() {
       {/* Page Title & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Student Profile</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Manage your academic details and resume highlights</p>
+          <h2 className="text-2xl font-bold text-gray-900 tracking-tight font-heading">{t.profile.title}</h2>
+          <p className="text-sm text-gray-500 mt-0.5">{t.profile.subtitle}</p>
         </div>
         {!editing ? (
           <button
             onClick={() => setEditing(true)}
-            className="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all shadow-xs cursor-pointer"
           >
-            <Edit3 className="w-4 h-4 text-primary-600" />
-            Edit Profile
+            <Edit3 className="w-4 h-4 text-emerald-600" />
+            {t.common.edit}
           </button>
         ) : (
           <button
@@ -203,7 +205,7 @@ export default function StudentProfile() {
             className="inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all cursor-pointer"
           >
             <X className="w-4 h-4" />
-            Cancel Editing
+            {t.common.cancel}
           </button>
         )}
       </div>
@@ -408,16 +410,16 @@ export default function StudentProfile() {
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="px-5 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-all"
+                  className="px-5 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-all cursor-pointer"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-all shadow-md hover:shadow-lg shadow-primary-500/20"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
-                  Save Changes
+                  {t.common.save}
                 </button>
               </div>
             </form>

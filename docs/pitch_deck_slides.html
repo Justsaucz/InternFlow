@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>InternFlow - Pitch Deck Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    @page {
+      size: 1920px 1080px;
+      margin: 0;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #06190F;
+      color: #F1F5F9;
+      width: 1920px;
+      margin: 0 auto;
+      overflow-x: hidden;
+    }
+    .slide {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      background: radial-gradient(circle at 80% 20%, #114227 0%, #082315 50%, #05150C 100%);
+      padding: 60px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      break-after: page;
+      overflow: hidden;
+      border-bottom: 2px solid #134E2E;
+    }
+    @media print {
+      body {
+        background: transparent;
+      }
+      .slide {
+        border-bottom: none;
+      }
+    }
+    
+    /* Header & Navigation Elements */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .brand-tag {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #86EFAC;
+      text-transform: uppercase;
+    }
+    .brand-logo-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #22C55E 0%, #15803D 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #06190F;
+      font-weight: 900;
+      font-size: 20px;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+    }
+    .dots-tag {
+      display: flex;
+      gap: 8px;
+    }
+    .dots-tag span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #1B5E38;
+    }
+    .dots-tag span.active {
+      background: #4ADE80;
+      box-shadow: 0 0 10px #4ADE80;
+    }
+    .slide-number {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #4ADE80;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      padding: 6px 16px;
+      border-radius: 999px;
+      letter-spacing: 1px;
+    }
+
+    /* Common Card Styles */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 6px 16px;
+      border-radius: 999px;
+      background: #A3E635;
+      color: #062414;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 14px rgba(163, 230, 53, 0.25);
+    }
+    .card {
+      background: rgba(13, 44, 27, 0.75);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      border-radius: 28px;
+      padding: 36px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    h1.slide-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 54px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.15;
+      margin-bottom: 8px;
+      letter-spacing: -1px;
+    }
+    h2.slide-subtitle {
+      font-size: 20px;
+      font-weight: 400;
+      color: #94A3B8;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    /* SLIDE 1: Startup Overview */
+    .hero-container {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 40px;
+      align-items: stretch;
+      flex: 1;
+    }
+    .hero-main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .hero-badge-title {
+      font-size: 62px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.12;
+      margin-bottom: 24px;
+    }
+    .hero-badge-title span {
+      background: linear-gradient(120deg, #4ADE80 0%, #A3E635 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      font-size: 22px;
+      line-height: 1.6;
+      color: #CBD5E1;
+      margin-bottom: 36px;
+      max-width: 900px;
+    }
+    .hero-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .stat-box {
+      background: rgba(18, 59, 36, 0.6);
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      border-radius: 20px;
+      padding: 24px 20px;
+      text-align: left;
+    }
+    .stat-number {
+      font-family: 'Outfit', sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      color: #4ADE80;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 15px;
+      color: #94A3B8;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+    .hero-visual {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+    }
+    .lifecycle-stage-card {
+      background: rgba(14, 49, 30, 0.85);
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .stage-icon-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(74, 222, 128, 0.15);
+      border: 1px solid rgba(74, 222, 128, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+    .stage-content h4 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 4px;
+    }
+    .stage-content p {
+      font-size: 14px;
+      color: #94A3B8;
+      line-height: 1.4;
+    }
+
+    /* SLIDE 2: Target Customer */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+      flex: 1;
+    }
+    .customer-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+    .customer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+    .customer-role-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+    .customer-role-sub {
+      font-size: 16px;
+      color: #4ADE80;
+      font-weight: 600;
+    }
+    .avatar-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: rgba(74, 222, 128, 0.15);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .bullet-list li {
+      position: relative;
+      padding-left: 32px;
+      font-size: 17px;
+      line-height: 1.5;
+      color: #CBD5E1;
+    }
+    .bullet-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #22C55E;
+      color: #06190F;
+      font-size: 13px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-footer-box {
+      margin-top: 24px;
+      padding: 18px 22px;
+      border-radius: 16px;
+      background: rgba(74, 222, 128, 0.08);
+      border: 1px dashed rgba(74, 222, 128, 0.3);
+      font-size: 15px;
+      color: #86EFAC;
+      line-height: 1.4;
+    }
+
+    /* SLIDE 3: Problem Breakdown 3 Columns */
+    .three-col-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      flex: 1;
+    }
+    .problem-pillar {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .pillar-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #4ADE80;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .pillar-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+    .pillar-body {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #CBD5E1;
+    }
+    .pillar-highlight {
+      margin-top: 20px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 4px solid #EF4444;
+      font-size: 14px;
+      color: #FCA5A5;
+      line-height: 1.4;
+    }
+
+    /* SLIDE 4: What the Evidence Shows */
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 36px;
+      flex: 1;
+    }
+    .evidence-item {
+      margin-bottom: 26px;
+    }
+    .evidence-item:last-child {
+      margin-bottom: 0;
+    }
+    .evidence-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #4ADE80;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .evidence-text {
+      font-size: 16px;
+      color: #CBD5E1;
+      line-height: 1.6;
+    }
+    .quote-card {
+      background: rgba(18, 60, 37, 0.8);
+      border-left: 4px solid #A3E635;
+      padding: 18px 24px;
+      border-radius: 0 16px 16px 0;
+      margin-top: 10px;
+      font-style: italic;
+      color: #E2E8F0;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .big-callout-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 48px;
+      background: linear-gradient(145deg, rgba(20, 71, 43, 0.9) 0%, rgba(10, 38, 22, 0.9) 100%);
+      border: 2px solid rgba(74, 222, 128, 0.35);
+    }
+    .callout-icon {
+      font-size: 54px;
+      margin-bottom: 24px;
+    }
+    .callout-headline {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.35;
+      letter-spacing: -0.5px;
+    }
+    .callout-subtext {
+      font-size: 16px;
+      color: #86EFAC;
+      margin-top: 20px;
+      line-height: 1.5;
+      max-width: 440px;
+    }
+
+    /* SLIDE 5: What We Learned */
+    .learnings-grid {
+      display: grid;
+      grid-template-columns: 0.85fr 1.15fr;
+      gap: 36px;
+      flex: 1;
+    }
+    .learnings-summary-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .macro-context-box {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .macro-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #4ADE80;
+      margin-bottom: 8px;
+    }
+    .macro-desc {
+      font-size: 15px;
+      color: #CBD5E1;
+      line-height: 1.5;
+    }
+    .complaint-item {
+      background: rgba(13, 44, 27, 0.6);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      border-radius: 20px;
+      padding: 22px 26px;
+      margin-bottom: 18px;
+    }
+    .complaint-item:last-child {
+      margin-bottom: 0;
+    }
+    .complaint-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .complaint-tag {
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(239, 68, 68, 0.2);
+      color: #F87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      padding: 2px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .complaint-text {
+      font-size: 15px;
+      color: #94A3B8;
+      line-height: 1.5;
+    }
+
+    /* SLIDE 6: Problem Statement */
+    .statement-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+      gap: 32px;
+    }
+    .formula-card {
+      background: linear-gradient(135deg, rgba(20, 68, 41, 0.95) 0%, rgba(9, 32, 19, 0.95) 100%);
+      border: 2px solid rgba(74, 222, 128, 0.35);
+      border-radius: 32px;
+      padding: 48px 56px;
+      position: relative;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    }
+    .formula-quote {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: #FFFFFF;
+      line-height: 1.5;
+    }
+    .formula-quote strong {
+      color: #4ADE80;
+      font-weight: 800;
+    }
+    .formula-breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .breakdown-box {
+      background: rgba(14, 49, 30, 0.7);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      border-radius: 20px;
+      padding: 24px;
+    }
+    .breakdown-stat {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: #F87171;
+      margin-bottom: 6px;
+    }
+    .breakdown-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+    .breakdown-desc {
+      font-size: 14px;
+      color: #94A3B8;
+      line-height: 1.4;
+    }
+
+    /* SLIDE 7: Startup Solution */
+    .solution-timeline-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .timeline-pill-step {
+      background: rgba(14, 52, 32, 0.9);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      border-radius: 20px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .timeline-pill-step.active-step {
+      border-color: #4ADE80;
+      background: rgba(22, 80, 48, 0.9);
+      box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
+    }
+    .step-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: #22C55E;
+      color: #06190F;
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-text h5 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .step-text span {
+      font-size: 13px;
+      color: #86EFAC;
+    }
+    .solution-stages-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      flex: 1;
+    }
+    .solution-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      background: rgba(13, 44, 27, 0.8);
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      border-radius: 28px;
+      padding: 36px;
+    }
+    .solution-icon-box {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      background: rgba(74, 222, 128, 0.15);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    .solution-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .solution-body {
+      font-size: 15px;
+      color: #CBD5E1;
+      line-height: 1.6;
+    }
+    .feature-tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .feature-tag {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(74, 222, 128, 0.12);
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      color: #86EFAC;
+    }
+
+    /* SLIDE 8: Appendix / Verified References */
+    .appendix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      flex: 1;
+    }
+    .reference-box {
+      background: rgba(14, 49, 30, 0.75);
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      border-radius: 24px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .ref-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+    }
+    .ref-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .ref-desc {
+      font-size: 15px;
+      color: #94A3B8;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .ref-link-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #4ADE80;
+      background: rgba(74, 222, 128, 0.12);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      padding: 8px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== SLIDE 1 ==================== -->
+  <section class="slide" id="slide-1">
+    <div class="slide-header">
+      <div class="brand-tag">
+        <div class="brand-logo-badge">IF</div>
+        <span>InternFlow</span>
+      </div>
+      <div class="dots-tag">
+        <span class="active"></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="slide-number">01 / 07</div>
+    </div>
+
+    <div class="hero-container">
+      <div class="hero-main">
+        <div class="pill">End-to-End Talent Lifecycle Platform</div>
+        <h1 class="hero-badge-title">The Complete Operating System for <span>University Internships</span></h1>
+        <p class="hero-desc">
+          InternFlow is the unified B2B platform transforming chaotic university internships into an accountable talent pipeline—from verified candidate screening and binding offer commitments to effortless weekly logbook supervision.
+        </p>
+
+        <div class="hero-stats-row">
+          <div class="stat-box">
+            <div class="stat-number">80%</div>
+            <div class="stat-label">Reduction in HR Pre-Screening Hours</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">0%</div>
+            <div class="stat-label">Start-Day Candidate Offer Ghosting</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">60s</div>
+            <div class="stat-label">Weekly Mentor Logbook Inspection</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="lifecycle-stage-card">
+          <div class="stage-icon-circle">🎯</div>
+          <div class="stage-content">
+            <h4>Stage 1: Pre-Hire Smart Match</h4>
+            <p>Direct OCR transcript parsing, GPA validation & automated match thresholds (≥80%).</p>
+          </div>
+        </div>
+
+        <div class="lifecycle-stage-card">
+          <div class="stage-icon-circle">🤝</div>
+          <div class="stage-content">
+            <h4>Stage 2: Single-Commitment Protocol</h4>
+            <p>Auto-declines competing offers upon student confirmation; guarantees 100% reporting.</p>
+          </div>
+        </div>
+
+        <div class="lifecycle-stage-card">
+          <div class="stage-icon-circle">📋</div>
+          <div class="stage-content">
+            <h4>Stage 3: 1-Minute Drawer & Rubrics</h4>
+            <p>60-second weekly sign-offs with auto-generated university-accredited rubrics.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 2 ==================== -->
+  <section class="slide" id="slide-2">
+    <div class="slide-header">
+      <div class="brand-tag">
+        <div class="brand-logo-badge">IF</div>
+        <span>Target Customer</span>
+      </div>
+      <div class="dots-tag">
+        <span></span><span class="active"></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="slide-number">02 / 07</div>
+    </div>
+
+    <div>
+      <div class="pill">B2B Enterprise Talent Infrastructure</div>
+      <h1 class="slide-title">Who Experiences the Severe Friction?</h1>
+      <h2 class="slide-subtitle">A two-sided enterprise platform connecting corporate recruiters with accredited universities.</h2>
+    </div>
+
+    <div class="two-col-grid">
+      <div class="card customer-card">
+        <div>
+          <div class="customer-header">
+            <div>
+              <div class="customer-role-title">Corporate Employers</div>
+              <div class="customer-role-sub">Primary ICP & Budget Holder (B2B SaaS)</div>
+            </div>
+            <div class="avatar-icon">🏢</div>
+          </div>
+          <ul class="bullet-list">
+            <li><strong>Mid-to-Large Enterprises & Tech Scale-Ups:</strong> Hiring 10–50+ student interns every academic semester.</li>
+            <li><strong>Heads of People & Technical Recruiters:</strong> Drowning in unverified resumes, suffering from 30+ wasted screening hours per hiring sprint.</li>
+            <li><strong>Engineering & Department Mentors:</strong> Frustrated by candidate no-shows on start day and fatigued by retroactive paper logbooks.</li>
+          </ul>
+        </div>
+        <div class="card-footer-box">
+          💼 <strong>Value Driver:</strong> Predictable, fraud-proof talent pipeline without operational drag or reneged offers.
+        </div>
+      </div>
+
+      <div class="card customer-card">
+        <div>
+          <div class="customer-header">
+            <div>
+              <div class="customer-role-title">Universities & Students</div>
+              <div class="customer-role-sub">Ecosystem Partners & Supply Engine</div>
+            </div>
+            <div class="avatar-icon">🎓</div>
+          </div>
+          <ul class="bullet-list">
+            <li><strong>Thai University Faculties & CWIE Offices:</strong> Enforcing mandatory 16-week (480+ hour) internships for degree accreditation.</li>
+            <li><strong>Curriculum Deans & Co-op Coordinators:</strong> Desperately need digital evaluation rubrics to replace manual paper binders.</li>
+            <li><strong>Undergraduate Students:</strong> Want authentic enterprise internships with guaranteed mentor guidance and fast offer confirmations.</li>
+          </ul>
+        </div>
+        <div class="card-footer-box">
+          📊 <strong>Market Scale:</strong> Over 110,000+ Thai undergraduates enter mandatory CWIE internships annually across 150+ institutions.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 3 ==================== -->
+  <section class="slide" id="slide-3">
+    <div class="slide-header">
+      <div class="brand-tag">
+        <div class="brand-logo-badge">IF</div>
+        <span>Problem Breakdown</span>
+      </div>
+      <div class="dots-tag">
+        <span></span><span></span><span class="active"></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="slide-number">03 / 07</div>
+    </div>
+
+    <div>
+      <div class="pill">The Disconnected Internship Journey</div>
+      <h1 class="slide-title">Initial Problem or Opportunity</h1>
+      <h2 class="slide-subtitle">Why traditional early-career recruitment collapses under institutional scale.</h2>
+    </div>
+
+    <div class="three-col-grid">
+      <div class="card problem-pillar">
+        <div>
+          <span class="pillar-num">01 / INITIAL ASSUMPTION</span>
+          <div class="pillar-title">"Employers Just Need More Candidate Volume"</div>
+          <div class="pillar-body">
+            Generic job boards push hundreds of unvetted applications into recruiter inboxes. However, high applicant volume actively paralyzes hiring teams when over 80% of student resumes contain self-reported, unverified credentials.
+          </div>
+        </div>
+        <div class="pillar-highlight">
+          ⚠️ <strong>Breakdown:</strong> More resumes equals more screening waste, not higher quality.
+        </div>
+      </div>
+
+      <div class="card problem-pillar">
+        <div>
+          <span class="pillar-num">02 / OPERATIONAL REALITY</span>
+          <div class="pillar-title">The Complete Lifecycle Breakdown</div>
+          <div class="pillar-body">
+            The internship journey is fragmented across disconnected email threads, physical paper binders, and LINE chat groups. With zero accountability mechanisms, candidates hoard multiple concurrent offers and ghost companies on day one.
+          </div>
+        </div>
+        <div class="pillar-highlight">
+          ⚠️ <strong>Breakdown:</strong> Teams prepare laptops and roadmaps only to face empty desks.
+        </div>
+      </div>
+
+      <div class="card problem-pillar">
+        <div>
+          <span class="pillar-num">03 / MARKET OPPORTUNITY</span>
+          <div class="pillar-title">The Need for an Operating System</div>
+          <div class="pillar-body">
+            As Thai higher education mandates 480+ hours of workplace training, companies urgently require a unified, accountable operating system—not another marketing job board—to oversee the end-to-end talent lifecycle.
+          </div>
+        </div>
+        <div class="pillar-highlight" style="border-left-color: #22C55E; background: rgba(34, 197, 94, 0.1); color: #86EFAC;">
+          💡 <strong>Opportunity:</strong> A single system of record from first match to certified completion.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 4 ==================== -->
+  <section class="slide" id="slide-4">
+    <div class="slide-header">
+      <div class="brand-tag">
+        <div class="brand-logo-badge">IF</div>
+        <span>Market Evidence</span>
+      </div>
+      <div class="dots-tag">
+        <span></span><span></span><span></span><span class="active"></span><span></span><span></span><span></span>
+      </div>
+      <div class="slide-number">04 / 07</div>
+    </div>
+
+    <div>
+      <div class="pill">Policy Standards & Primary Discovery</div>
+      <h1 class="slide-title">What the Evidence Shows</h1>
+      <h2 class="slide-subtitle">Ground truth from national higher education mandates and Thai tech recruiters.</h2>
+    </div>
+
+    <div class="evidence-grid">
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-around;">
+        <div class="evidence-item">
+          <div class="evidence-title">🏛️ Mandatory CWIE Policy (MHESI National Standard)</div>
+          <div class="evidence-text">
+            Thailand's Ministry of Higher Education, Science, Research and Innovation (MHESI) mandates strict 16-week (480+ hour) co-op programs for university graduation. Yet without a shared digital platform between universities and enterprises, companies drown in manual tripartite paperwork.
+          </div>
+        </div>
+
+        <div class="evidence-item">
+          <div class="evidence-title">📉 The Candidate Ghosting Epidemic (JobThai HR Study)</div>
+          <div class="evidence-text">
+            Official recruitment intelligence by JobThai identifies candidate ghosting after offer acceptance (<em>"รับ Offer แล้วหาย"</em>) as one of the top hiring disruptions in Thailand—students hoard multiple offers with zero penalties, leaving teams stranded on start day.
+          </div>
+        </div>
+
+        <div class="evidence-item">
+          <div class="evidence-title">🗣️ Primary Voice of Customer (25+ Thai Tech Employers)</div>
+          <div class="quote-card">
+            "We prepared the workstation, system credentials, and project roadmap. On start day, the student stopped answering calls and ghosted us for another offer. We had already rejected all other applicants and lost our hiring window entirely."<br>
+            <span style="display: block; margin-top: 8px; font-weight: 700; color: #86EFAC; font-style: normal;">— Engineering Team Lead, Bangkok Software Enterprise</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card big-callout-card">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-headline">
+          HIGH RESUME VOLUME IS MEANINGLESS WITHOUT VERIFICATION AND BINDING COMMITMENT
+        </div>
+        <div class="callout-subtext">
+          Employers don't need 500 unvetted applicants. They need 5 pre-screened candidates who are guaranteed to show up and perform.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 5 ==================== -->
+  <section class="slide" id="slide-5">
+    <div class="slide-header">
+      <div class="brand-tag">
+        <div class="brand-logo-badge">IF</div>
+        <span>Customer Insights</span>
+      </div>
+      <div class="dots-tag">
+        <span></span><span></span><span></span><span></span><span class="active"></span><span></span><span></span>
+      </div>
+      <div class="slide-number">05 / 07</div>
+    </div>
+
+    <div>
+      <div class="pill">Insights from Thai Workplace Realities</div>
+      <h1 class="slide-title">What We Learned</h1>
+      <h2 class="slide-subtitle">Three chronic operational bottlenecks paralyzing Thai host companies.</h2>
+    </div>
+
+    <div class="learnings-grid">
+      <div class="card learnings-summary-card">
+        <div>
+          <div class="macro-context-box">
+            <div class="macro-title">Macro Regulatory Context (MHESI CWIE)</div>
+            <div class="macro-desc">
+              The friction is an <strong>institutional infrastructure gap</strong> between Thai universities and employers, not student apathy. Both sides want successful co-ops, but lack a common digital protocol.
+            </div>
+          </div>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 24px; color: #FFFFFF; margin-bottom: 14px;">The Synthesis</h3>
+          <p style="font-size: 16px; color: #CBD5E1; line-height: 1.6;">
+            Interviews with 25+ Thai HR directors and engineering leads revealed that the pain is continuous across all 3 phases of the internship: pre-hire, hiring, and supervision.
+          </p>
+        </div>
+
+        <div style="padding: 20px 24px; border-radius: 18px; background: rgba(163, 230, 53, 0.12); border: 1px dashed rgba(163, 230, 53, 0.4);">
+          <strong style="color: #A3E635; display: block; margin-bottom: 4px;">Key Takeaway:</strong>
+          <span style="font-size: 14px; color: #F1F5F9; line-height: 1.4;">
+            Thai companies need fraud-proof screening at the gate, legally binding commitments at offer acceptance, and 1-click frictionless tracking during supervision.
+          </span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="complaint-item">
+          <div class="complaint-title">
+            <span>1. Unverified Resume Claims</span>
+            <span class="complaint-tag">Pre-Hire Drain</span>
+          </div>
+          <div class="complaint-text">
+            Applicants claim proficient React/SQL skills and 3.5+ GPAs. Live coding tests reveal basic gaps, wasting 30+ screening hours per cycle because resumes cannot be trusted.
+          </div>
+        </div>
+
+        <div class="complaint-item">
+          <div class="complaint-title">
+            <span>2. Offer Hoarding & Day-One Ghosting</span>
+            <span class="complaint-tag">Hiring Risk</span>
+          </div>
+          <div class="complaint-text">
+            Students accept 3–4 confirmation letters concurrently as risk-free safety nets. When one team begins onboarding, the candidate disappears without accountability.
+          </div>
+        </div>
+
+        <div class="complaint-item">
+          <div class="complaint-title">
+            <span>3. 400-Hour Retroactive Logbooks</span>
+            <span class="complaint-tag">Supervision Burden</span>
+          </div>
+          <div class="complaint-text">
+            Mentors face a 400-hour thick paper binder dumped on their desk in week 16, forced to sign off blindly on unverified work while filling out multi-page manual university grading rubrics.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 6 ==================== -->
+  <section class="slide" id="slide-6">
+    <div class="slide-header">
+      <div class="brand-tag">
+        <div class="brand-logo-badge">IF</div>
+        <span>Problem Statement</span>
+      </div>
+      <div class="dots-tag">
+        <span></span><span></span><span></span><span></span><span></span><span class="active"></span><span></span>
+      </div>
+      <div class="slide-number">06 / 07</div>
+    </div>
+
+    <div>
+      <div class="pill">Friction Across the Entire Talent Pipeline</div>
+      <h1 class="slide-title">Our Problem Statement</h1>
+      <h2 class="slide-subtitle">A unified definition of the enterprise dilemma InternFlow exists to solve.</h2>
+    </div>
+
+    <div class="statement-container">
+      <div class="formula-card">
+        <div class="formula-quote">
+          "Our target customers are <strong>Corporate HR Leaders and Engineering Mentors</strong>, who need a <strong>unified, accountable system</strong> to oversee the complete internship lifecycle, because <strong>fragmented recruitment, unverified applicant credentials, last-minute candidate ghosting, and manual supervision</strong> turn internship programs into high-risk operational burdens that derail team productivity and waste valuable leadership hours."
+        </div>
+      </div>
+
+      <div class="formula-breakdown-grid">
+        <div class="breakdown-box">
+          <div class="breakdown-stat">30+ Hours</div>
+          <div class="breakdown-title">Pre-Hire Screening Waste</div>
+          <div class="breakdown-desc">Recruiters spend days verifying fabricated resumes and testing basic skills that should have been pre-screened.</div>
+        </div>
+
+        <div class="breakdown-box">
+          <div class="breakdown-stat">100% Risk</div>
+          <div class="breakdown-title">Day-One Ghosting Vulnerability</div>
+          <div class="breakdown-desc">Without a binding single-commitment protocol, every accepted offer carries the risk of empty desks on start day.</div>
+        </div>
+
+        <div class="breakdown-box">
+          <div class="breakdown-stat">480 Hours</div>
+          <div class="breakdown-title">Unsupervised Paper Chaos</div>
+          <div class="breakdown-desc">Supervisors waste productive engineering hours deciphering physical logbooks and postal university evaluation sheets.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 7 ==================== -->
+  <section class="slide" id="slide-7">
+    <div class="slide-header">
+      <div class="brand-tag">
+        <div class="brand-logo-badge">IF</div>
+        <span>Startup Solution</span>
+      </div>
+      <div class="dots-tag">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span class="active"></span>
+      </div>
+      <div class="slide-number">07 / 07</div>
+    </div>
+
+    <div>
+      <div class="pill">The 3 Lifecycle Stages</div>
+      <h1 class="slide-title">How InternFlow Solves Every Stage</h1>
+      <h2 class="slide-subtitle">A chronological operating system designed around specific operational pain points.</h2>
+    </div>
+
+    <div class="solution-timeline-bar">
+      <div class="timeline-pill-step active-step">
+        <div class="step-badge">1</div>
+        <div class="step-text">
+          <h5>Pre-Hire Stage</h5>
+          <span>AI Transcript Screen & Match</span>
+        </div>
+      </div>
+
+      <div class="timeline-pill-step active-step">
+        <div class="step-badge">2</div>
+        <div class="step-text">
+          <h5>Hiring Stage</h5>
+          <span>Single-Commitment Protocol</span>
+        </div>
+      </div>
+
+      <div class="timeline-pill-step active-step">
+        <div class="step-badge">3</div>
+        <div class="step-text">
+          <h5>Post-Hire Stage</h5>
+          <span>1-Minute Weekly Supervision</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="solution-stages-grid">
+      <div class="solution-card">
+        <div>
+          <div class="solution-icon-box">⚡</div>
+          <div class="solution-title">1. Pre-Hire Stage<br><span style="font-size: 18px; color: #4ADE80; font-weight: 600;">AI Verification & Smart Match</span></div>
+          <div class="solution-body">
+            Direct transcript OCR extracts verified GPAs, majors, and coursework directly from university PDFs. HR sets custom match thresholds (&ge;80%) that automatically filter out unqualified applicants before recruiter review.
+          </div>
+        </div>
+        <div class="feature-tag-list">
+          <span class="feature-tag">OCR Transcript Parser</span>
+          <span class="feature-tag">Threshold Slider (&ge;80%)</span>
+          <span class="feature-tag">Verified Major Badges</span>
+        </div>
+      </div>
+
+      <div class="solution-card">
+        <div>
+          <div class="solution-icon-box">🔒</div>
+          <div class="solution-title">2. Hiring Stage<br><span style="font-size: 18px; color: #4ADE80; font-weight: 600;">Single-Commitment Protocol</span></div>
+          <div class="solution-body">
+            Once a candidate confirms an offer, competing applications are automatically declined and further submissions are locked. Eliminates offer hoarding, guaranteeing 100% first-day reporting and zero candidate ghosting.
+          </div>
+        </div>
+        <div class="feature-tag-list">
+          <span class="feature-tag">Single-Commit Protocol</span>
+          <span class="feature-tag">Auto-Decline Engine</span>
+          <span class="feature-tag">Guaranteed Onboarding</span>
+        </div>
+      </div>
+
+      <div class="solution-card">
+        <div>
+          <div class="solution-icon-box">🛡️</div>
+          <div class="solution-title">3. Post-Hire Stage<br><span style="font-size: 18px; color: #4ADE80; font-weight: 600;">1-Minute Drawer & Rubrics</span></div>
+          <div class="solution-body">
+            A streamlined weekly drawer lets mentors verify hours and deliverables in 60 seconds, auto-compiling university-ready evaluation rubrics and accredited graduation certificates in a single click.
+          </div>
+        </div>
+        <div class="feature-tag-list">
+          <span class="feature-tag">60s Inspector Drawer</span>
+          <span class="feature-tag">1-Click CWIE Rubrics</span>
+          <span class="feature-tag">Certified Credentials</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 8 (APPENDIX) ==================== -->
+  <section class="slide" id="slide-8">
+    <div class="slide-header">
+      <div class="brand-tag">
+        <div class="brand-logo-badge">IF</div>
+        <span>Appendix</span>
+      </div>
+      <div class="dots-tag">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span class="active"></span>
+      </div>
+      <div class="slide-number">Ref / 08</div>
+    </div>
+
+    <div>
+      <div class="pill">Authoritative Evidence Base</div>
+      <h1 class="slide-title">References & Discovery Methodology</h1>
+      <h2 class="slide-subtitle">Strictly verified government standards, industry research, and primary field interviews.</h2>
+    </div>
+
+    <div class="appendix-grid">
+      <div class="reference-box">
+        <div>
+          <div class="ref-icon">🏛️</div>
+          <div class="ref-title">MHESI CWIE National Framework</div>
+          <div class="ref-desc">
+            Official government standard by the Ministry of Higher Education, Science, Research and Innovation (MHESI) establishing the mandatory 16-week / 480+ hour practical internship requirement for accredited universities in Thailand.
+          </div>
+        </div>
+        <a class="ref-link-pill" href="https://cwie.mhesi.go.th" target="_blank">
+          🌐 cwie.mhesi.go.th &rarr;
+        </a>
+      </div>
+
+      <div class="reference-box">
+        <div>
+          <div class="ref-icon">📊</div>
+          <div class="ref-title">JobThai HR Intelligence</div>
+          <div class="ref-desc">
+            National workplace study on Candidate Ghosting (<em>"นัดแล้วไม่มา Offer แล้วหาย! รับมือ Candidate Ghosting ยังไง เมื่อโดนผู้สมัครเท"</em>), analyzing candidate dropouts and employer recruitment costs across Thailand.
+          </div>
+        </div>
+        <a class="ref-link-pill" href="https://blog.jobthai.com/hr/id/7368" target="_blank">
+          🌐 blog.jobthai.com/hr/id/7368 &rarr;
+        </a>
+      </div>
+
+      <div class="reference-box">
+        <div>
+          <div class="ref-icon">🔍</div>
+          <div class="ref-title">Primary Customer Discovery</div>
+          <div class="ref-desc">
+            In-depth discovery interviews with <strong>25+ Thai Tech Employers, Founders & HR Directors</strong> in Bangkok. Validated chronic pain points: resume inflation (80%+ unverified), start-day ghosting, and paper logbook drag.
+          </div>
+        </div>
+        <div class="ref-link-pill" style="color: #86EFAC; border-color: rgba(134, 239, 172, 0.3);">
+          ✓ Primary Research (Founder Fieldwork)
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

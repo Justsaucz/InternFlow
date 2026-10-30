@@ -8,12 +8,14 @@ To address these challenges, this project proposes a **cloud-based, centralized 
 
 The platform will include the following key features:
 * **Centralized Corporate Job Board** with search, filters, allowance details, working hours, and modality.
-* **Application, Commitment & Placement Pipeline** tracking submissions from application to offer extension, single placement commitment, and company-approved release.
+* **Multi-Stage Real-Time Application Pipeline** **tracking candidate submissions from initial application, screening, documentary interview scheduling (`INTERVIEW_SCHEDULED`), offer extension, single-placement exclusivity commitment, through company-approved cancellation.**
+* **Single Placement & Exclusivity Rule** preventing candidate hoarding by automatically declining competing offers upon commitment.
 * **Multi-Artifact S3 File Attachments** for resumes, transcripts, portfolios, and external project links.
 * **Comprehensive Student Profiles** capturing academic metadata (University name, Faculty, Major, Year, GPA, Skills).
-* **Operational Weekly Logbook & Journal** with attendance modality, objective/deliverable pin points, and hour tracking.
-* **Company Mentor Review & Sign-Off** featuring 1–5 star weekly ratings, qualitative feedback, and supervisor verification.
+* **Operational Daily CWIE Logbook** **with attendance modality (`On-site`, `Remote`, `Hybrid`), tasks completed, problems/solutions, backdated detection, and hour tracking.**
+* **Company Mentor Review & Sign-Off** featuring 1–5 star ratings, qualitative feedback, and supervisor verification drawer.
 * **Employer Performance Rubric & Official Completion Report** consolidating verified hours and multi-dimensional rubric scores.
+* **Bilingual Support (TH / EN)** **providing seamless real-time language switching across the entire platform.**
 
 ---
 
@@ -23,37 +25,34 @@ The current internship application and evaluation processes are fragmented and r
 
 * **No centralized job board:** Students must search for opportunities across disparate corporate career pages, job boards, social media groups, and campus flyers. There is no single source of truth for verified internship openings.
 * **Untraceable application status:** Once an application is submitted via email or Google Forms, students receive no automated visibility into whether it is pending review, undergoing screening, or decided upon, leading to excessive manual inquiries.
-* **Unmonitored weekly progress and attendance:** During the internship period, students often compile paper logs only at the end of the term, preventing mentors from verifying attendance, weekly deliverables, and technical problem-solving in real time.
+* **Unmonitored progress and attendance:** During the internship period, students often compile paper logs only at the end of the term, preventing mentors from verifying attendance, daily/weekly deliverables, and technical problem-solving in real time.
 * **Detached performance feedback:** Company feedback is often informal or delayed, making it difficult to generate standardized assessment rubrics and verified completion records.
-* **Duplicate and conflicting submissions:** Without a unified database, candidates may submit duplicate applications to the same employer across multiple channels, cluttering HR pipelines and wasting screening time.
+* **Duplicate submissions:** Without a unified database, candidates may submit duplicate applications to the same employer across multiple channels, cluttering HR pipelines and wasting screening time.
 * **Inconvenient document handling:** Exchanging CVs, portfolios, and certificates via email attachments introduces file version confusion, security risks, and storage management difficulties.
 
 ---
 
-# 3. Key Users
+# 3. Key Stakeholders
 
 The proposed platform will support two primary user groups, each with distinct roles and responsibilities:
 
 * **Students (internship applicants and practicing interns)**
-    * Register and log in using email credentials.
-    * Create and maintain an academic profile (University name, Faculty, Major, Year, GPA, Skills, Bio, Avatar).
-    * Search and filter corporate internship postings by keyword, department, allowance, and work modality.
-    * Submit applications with cover letters, direct S3 file uploads (CVs, portfolios), and external links (GitHub, Figma).
-    * Track application progress in real time (`Submitted` ➔ `Under Review` ➔ `Offer Received` ➔ `Confirmed Working` / `Declined`).
-    * Record weekly logbook entries with work modality (`On-site`, `Remote`, `Hybrid`), hours, deliverables, and troubleshooting notes.
-    * Monitor total logged hours and mentor-approved hours with real-time dashboard counters.
-    * Inspect weekly company mentor sign-offs and star ratings.
-    * Generate and print official accredited Internship Completion Reports.
+    * Search and filter corporate internship postings by department, allowance, and work modality.
+    * Submit applications with resumes, portfolios, and external project links (e.g., GitHub, Figma, Drive).
+    * **Track application status in real time (`PENDING` ➔ `REVIEWING` ➔ `INTERVIEW_SCHEDULED` ➔ `ACCEPTED` ➔ `COMMITTED`).**
+    * **Receive interview notification banners (`INTERVIEW_SCHEDULED`) to prepare for external interview arrangements from HR.**
+    * Confirm acceptance for a single official placement (`COMMITTED`), automatically declining competing offers.
+    * **Record daily CWIE logbook entries with working hours (default 8.0 hrs/day), work modality, deliverables, troubleshooting notes, and backdated detection warnings.**
+    * Monitor mentor-verified hours and generate official internship completion reports.
 
 * **Company HR & Mentors (corporate recruiters and workplace supervisors)**
-    * Register and manage corporate profile (company name, industry, website, logo, address, contact email/phone).
-    * Create, edit, publish, and delete internship job postings with full compensation, schedule, and requirement details.
-    * Review incoming applicants, view student profiles and university details, and inspect uploaded S3 CVs and portfolio links.
-    * Manage candidate statuses across recruitment and placement stages (`Reviewing`, `Extend Offer`, `Reject`, and cancellation release approval).
-    * Inspect student weekly logbooks in an inspector drawer showing all objectives, completed tasks, and attached artifacts.
-    * Sign off on weekly logbook hours with a 1–5 star weekly rating (★) and qualitative mentor feedback.
-    * Submit 3-category performance evaluation rubrics (**Work Quality**, **Punctuality**, **Teamwork**) upon internship completion.
-    * Monitor real-time recruitment metrics through a dedicated corporate dashboard.
+    * Publish and manage internship job listings with compensation, schedule, and requirements.
+    * Review candidate profiles, download resumes, and evaluate incoming applications.
+    * **Advance candidate statuses through the recruitment pipeline: Reviewing ➔ Schedule Interview (`INTERVIEW_SCHEDULED`) ➔ Extend Offer (`ACCEPTED`) ➔ Reject (`REJECTED`).**
+    * **Use the "Schedule Interview" ("นัดสัมภาษณ์") button to indicate applicant shortlisting and display an in-app notice, while coordinating actual interview meetings externally via email/phone.**
+    * Review student placement cancellation requests (`CANCEL_REQUESTED` ➔ `CANCELLED`).
+    * **Inspect student daily logbooks in an interactive inspector drawer, approve hours, and provide 1–5 star ratings with qualitative feedback.**
+    * Submit final performance rubric evaluations upon internship completion.
 
 ---
 
@@ -91,14 +90,20 @@ The proposed platform will support two primary user groups, each with distinct r
 
 * Students must be able to submit applications with cover letters, direct file uploads (CVs/Portfolios), and external URLs (GitHub, Figma, Drive).
 * The system must strictly enforce the **One Active Application Per Company Rule** to prevent candidate spamming and maintain organized employer review workflows.
+* **Interview Scheduling Status (`INTERVIEW_SCHEDULED`)**:
+    * **Company HR can click the "Schedule Interview" ("นัดสัมภาษณ์") button on an applicant card to transition the application status to `INTERVIEW_SCHEDULED`.**
+    * **Operational Scope: This status serves as a workflow notice indicator on the platform to notify the candidate that they passed resume screening and an interview is being arranged.**
+    * **It is not an integrated video call feature; HR contacts the student directly via email or phone to coordinate the interview date, time, physical office location, or meeting link (Google Meet, Zoom, MS Teams).**
+    * **From `INTERVIEW_SCHEDULED`, HR can either extend an official offer (`ACCEPTED`) or decline the candidate (`REJECTED`).**
 * **Single Placement & Exclusivity Rule**: While students can receive internship offers (`ACCEPTED`) from multiple corporate employers, they are strictly limited to committing to **EXACTLY ONE** official placement (`COMMITTED`).
-* **Automatic Auto-Decline of Competing Offers**: Confirming and committing to an internship offer automatically declines/closes all other active applications and offers for that candidate.
+* **Automatic Auto-Decline of Competing Applications & Offers**: Confirming and committing to an internship offer automatically declines/closes all other active applications and stages (`PENDING`, `REVIEWING`, `INTERVIEW_SCHEDULED`, and competing `ACCEPTED` offers) for that candidate across competing companies, ensuring full placement exclusivity.
 * **Company-Approved Cancellation Workflow**: Once committed, a student cannot abandon a placement unilaterally. The student must submit a formal cancellation request stating the reason (`CANCEL_REQUESTED`), and the placement is only released once the corporate employer explicitly confirms and approves (`CANCELLED`).
 * **Standardized Status Lifecycle**:
     * `PENDING` → Submitted and awaiting HR screening
     * `REVIEWING` → Under active review by HR
+    * **`INTERVIEW_SCHEDULED` → Shortlisted for interview; HR coordinating external schedule/meeting link**
     * `ACCEPTED` → Internship offer extended by corporate employer
-    * `COMMITTED` → Student confirmed and working in active placement (unlocks Weekly Logbook)
+    * **`COMMITTED` → Student confirmed and working in active placement (unlocks Daily CWIE Logbook)**
     * `CANCEL_REQUESTED` → Student requested cancellation; awaiting company HR review
     * `CANCELLED` → Company HR approved release; placement officially terminated
     * `REJECTED` → Application declined or automatically closed upon committing elsewhere
@@ -112,35 +117,41 @@ The proposed platform will support two primary user groups, each with distinct r
 * In local development, the system must automatically fall back to local disk storage when AWS credentials are not present.
 * Uploaded filenames must be sanitized and prepended with unique timestamps to prevent S3 object key collisions.
 
-### 5. Weekly Logbook & Journal Management
+### 5. **Daily CWIE Logbook Management**
 
-* Weekly logbook entries are strictly locked until a student holds an active, confirmed placement (`COMMITTED` or `CANCEL_REQUESTED`).
-* Students must be able to log weekly journals specifying week number, hours worked (default 40 hours), work modality (`ON_SITE`, `REMOTE`, `HYBRID`), and supervisor name.
-* Students must be able to record itemized pin-point lists for **Planned Objectives** and **Actual Deliverables Completed**.
-* Students must be able to record technical troubleshooting notes (Problems Encountered & Solutions) and Key Learnings.
-* Students must be able to attach external artifact links and upload supporting documents (timesheets, reports, code screenshots).
-* Students must be able to edit and delete existing weekly log entries with real-time recalculation of total approved hours.
+* **Daily logbook entries are strictly locked until a student holds an active, confirmed placement (`COMMITTED` or `CANCEL_REQUESTED`).**
+* **Students must be able to record daily logbook entries specifying work date, hours worked (1.0–12.0 hours, default 8.0 hrs/day), work modality (`ON_SITE`, `REMOTE`, `HYBRID`), and supervisor name.**
+* **Students must be able to record itemized pin-point lists for Completed Tasks, technical troubleshooting notes (Problems Encountered & Solutions), and Key Learnings.**
+* **Students must be able to attach external artifact links and upload supporting documents (timesheets, reports, code screenshots).**
+* **Backdated Submission Detection: The system automatically detects when a log is submitted for a past date (> 48 hours), flagging the entry as `isBackdated = true` and displaying an amber warning badge for student and mentor review.**
+* **The system enforces a calendar-day uniqueness constraint (`studentId + logDate`) preventing multiple journal entries for the same date.**
+* **Students must be able to monitor their total logged hours and supervisor-approved hours against the required target (e.g., 400 hours).**
 
 ### 6. Company Mentor Verification & Sign-Off
 
-* Company HR and mentors must be able to inspect placed intern logbooks in an inspector drawer showing all objectives, deliverables, troubleshooting notes, and attached artifacts.
-* Company mentors must be able to sign off on weekly logs by setting `mentorApproved = true`, awarding a 1–5 star rating (★), and providing qualitative feedback.
-* Students must see real-time mentor approval badges and feedback on their weekly logbook cards.
+* **Company HR and mentors must be able to inspect placed intern logbooks in an interactive slide-over inspector drawer showing all objectives, deliverables, troubleshooting notes, and attached artifacts.**
+* **Company mentors must be able to sign off on daily logs individually or batch-approve entire weekly periods with a 1–5 star rating (★) and qualitative mentor feedback.**
+* Students must see real-time mentor approval badges and feedback on their logbook cards.
 
 ### 7. Performance Rubric Evaluation & Reports
 
 * Company HR must be able to submit a 3-category evaluation rubric upon internship completion:
-    * **Work Quality** (1–5 Stars)
+    * **Work Quality & Technical Competence** (1–5 Stars)
     * **Punctuality & Responsibility** (1–5 Stars)
     * **Communication & Teamwork** (1–5 Stars)
     * **Qualitative Supervisor Remarks**
-* The system must generate an official printable **Internship Completion Certificate & Performance Report** (`window.print()`) displaying student university metadata, verified hours, mentor sign-offs, and rubric scores.
+* **The system must generate an official printable Internship Completion Certificate & Performance Report (`window.print()`) displaying student university metadata, verified hours, mentor sign-offs, and rubric scores.**
 
 ### 8. Dashboards & In-App Notifications
 
 * Students must have a dedicated dashboard displaying application counts, review statuses, placed company, and logged hours.
 * Company HR must have a dedicated dashboard displaying active job counts, total applicants received, and active placed interns.
 * The system must provide global toast notifications for all major user actions (`success`, `error`, `warning`, `info`) with auto-dismiss countdowns.
+
+### 9. **Bilingual Support (TH / EN)**
+
+* **The platform must provide full client-side internationalization with persistent language selection (`th` / `en`) via `LanguageContext` and browser local storage.**
+* **Dynamic language toggle must instantly switch navigation labels, status badges, forms, modals, error toasts, and printable reports without page reloading.**
 
 ---
 
@@ -218,9 +229,7 @@ The proposed platform will support two primary user groups, each with distinct r
 
 | Component Name | Descriptions |
 |---|---|
-| **Amazon Route 53** | Domain Name System (DNS) service for domain name resolution and intelligent traffic routing. |
-| **Amazon CloudFront** | Content Delivery Network (CDN) service caching and delivering frontend static assets globally. |
-| **Amazon Simple Storage Service (S3)** | Scalable object storage service for frontend React hosting and student CV/resume/report file storage. |
+| **Amazon Simple Storage Service (S3)** | Scalable object storage service for student CV/resume file storage and frontend static hosting. |
 | **Amazon Elastic Container Service (ECS)** | Fully managed container orchestration service running backend Node.js application containers. |
 | **Amazon Elastic Container Registry (ECR)** | Fully managed Docker container registry for securely storing and managing application images. |
 | **Amazon Relational Database Service (RDS)** | Managed database service running PostgreSQL 16 Multi-AZ for all relational data. |
@@ -232,6 +241,7 @@ The proposed platform will support two primary user groups, each with distinct r
 | Component Name | Descriptions |
 |---|---|
 | **Amazon Virtual Private Cloud (VPC)** | Logically isolated virtual network boundary containing all backend compute and database resources. |
+| **Public & Private Subnets** | Multi-AZ network segmentation: Public subnets for ALBs; Private subnets for ECS Fargate tasks; Isolated subnets for RDS. |
 | **Elastic Load Balancing (ALB)** | Network appliance component distributing incoming API requests across backend container targets. |
 | **Security Groups** | Stateful virtual firewalls controlling inbound/outbound port-level traffic for VPC resources. |
 
@@ -251,67 +261,72 @@ The proposed platform will support two primary user groups, each with distinct r
                │   REVIEWING   │ (HR Screening & Candidate Evaluation)
                └───────┬───────┘
                        │
-         ┌─────────────┴─────────────┐
-         ▼                           ▼
-  ┌──────────────┐            ┌──────────────┐
-  │   REJECTED   │            │   ACCEPTED   │ (Company Offer Extended)
-  └──────────────┘            └──────┬───────┘
-                                     │
-                                     ▼ (Student Commits to Offer)
-                              ┌──────────────┐
-                              │  COMMITTED   │ ──▶ [Weekly Logbook Unlocked]
-                              └──────┬───────┘     [All Other Offers Auto-Declined]
-                                     │
-                                     ▼ (Student Requests Cancellation)
-                              ┌──────────────────┐
-                              │ CANCEL_REQUESTED │ (Pending Company Review)
-                              └──────┬───────────┘
-                                     │
-                      ┌──────────────┴──────────────┐
-                      ▼ (HR Rejects Release)        ▼ (HR Approves Release)
-               ┌──────────────┐              ┌──────────────┐
-               │  COMMITTED   │              │  CANCELLED   │ (Released & Free to Re-apply)
-               └──────────────┘              └──────────────┘
+         ┌─────────────┼────────────────────────┐
+         │             │                        │
+         ▼             ▼                        ▼
+  ┌──────────────┐ ┌───────────────────────┐ ┌──────────────┐
+  │   REJECTED   │ │  INTERVIEW_SCHEDULED  │ │   ACCEPTED   │ (Direct Offer Extended)
+  └──────────────┘ │ (Documentary Notice   │ └──────┬───────┘
+                   │  HR Coordinates Ext.) │        │
+                   └───────────┬───────────┘        │
+                               │                    │
+                     ┌─────────┴─────────┐          │
+                     ▼                   ▼          │
+              ┌──────────────┐    ┌──────────────┐  │
+              │   REJECTED   │    │   ACCEPTED   │◀─┘ (Offer Extended Post-Interview)
+              └──────────────┘    └──────┬───────┘
+                                         │
+                                         ▼ (Student Commits to Offer)
+                                  ┌──────────────┐
+                                  │  COMMITTED   │ ──▶ [Daily CWIE Logbook Unlocked]
+                                  └──────┬───────┘     [All Other Offers Auto-Declined]
+                                         │
+                                         ▼ (Student Requests Cancellation)
+                                  ┌──────────────────┐
+                                  │ CANCEL_REQUESTED │ (Pending Company Review)
+                                  └──────┬───────────┘
+                                         │
+                          ┌──────────────┴──────────────┐
+                          ▼ (HR Rejects Release)        ▼ (HR Approves Release)
+                   ┌──────────────┐              ┌──────────────┐
+                   │  COMMITTED   │              │  CANCELLED   │ (Released & Free to Re-apply)
+                   └──────────────┘              └──────────────┘
 ```
 
 ### 2. Production AWS Infrastructure Architecture Diagram
-
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                        │
 │     Users / Browsers (Students, Company HR)                                            │
 │         │                                                                              │
+│         │ (Web & API Requests)                                                         │
 │         ▼                                                                              │
-│    ┌──────────┐                                                                        │
-│    │ Route 53 │ (DNS Resolution)                                                       │
-│    └────┬─────┘                                                                        │
-│         │                                                                              │
-│         ├───────────────────────────────────────┐                                      │
-│         │ Path A: Static UI Assets              │ Path B: API Requests (/api/*)        │
-│         ▼                                       ▼                                      │
-│    ┌─────────────┐                     ┌────────────────────────────────────────────┐  │
-│    │ CloudFront  │ (Global CDN)        │                 Amazon VPC                 │  │
-│    └────┬────────┘                     │                                            │  │
-│         │                              │   ┌──────────────────────────┐             │  │
-│         ▼                              │   │  Application Load        │ (Public     │  │
-│    ┌─────────────┐                     │   │   Balancer (ALB)         │  Subnet)    │  │
-│    │  Amazon S3  │ (Frontend           │   └──────────┬───────────────┘             │  │
-│    │ (React App) │  Build)             │              │                             │  │
-│    └─────────────┘                     │   ┌──────────▼───────────────┐             │  │
-│                                        │   │   Amazon ECS Fargate     │ (Private    │  │
-│                                        │   │   Node.js Express API    │  Subnets    │  │
-│                                        │   └──────────┬───────────────┘  AZ-A &     │  │
-│                                        │              │                  AZ-B)      │  │
-│                                        │   ┌──────────┴───────────────┐             │  │
-│                                        │   ▼                          ▼             │  │
-│  ┌────────────────────┐                │ ┌─────────────────┐        ┌─────────────┐ │  │
-│  │ Amazon S3          │ ◀──────────────┼─┤ Amazon RDS      │        │ Amazon S3   │ │  │
-│  │ (Regional Service) │    File        │ │ PostgreSQL 16   │        │ VPC Endpoint│ │  │
-│  │ (CV/Resume Upload) │    Uploads     │ │ (Primary/Standby│        │ (Gateway)   │ │  │
-│  └────────────────────┘                │ └─────────────────┘        └─────────────┘ │  │
-│                                        └────────────────────────────────────────────┘  │
+│    ┌──────────────────────────────────────────────────────────────────────────────┐    │
+│    │                                 Amazon VPC                                   │    │
+│    │                                                                              │    │
+│    │   ┌──────────────────────────────────────────────┐                           │    │
+│    │   │  Application Load Balancer (ALB)             │ (Public Subnet)           │    │
+│    │   └──────────────────────┬───────────────────────┘                           │    │
+│    │                          │                                                   │    │
+│    │                          ▼ (/api/*)                                          │    │
+│    │   ┌──────────────────────────────────────────────┐                           │    │
+│    │   │  Amazon ECS Fargate (Node.js Express API)    │ (Private Subnets          │    │
+│    │   │                                              │  AZ-A & AZ-B)             │    │
+│    │   └──────────────┬───────────────────────────────┘                           │    │
+│    │                  │                                                           │    │
+│    │                  ▼ (Port 5432)                                               │    │
+│    │   ┌──────────────────────────────────────────────┐                           │    │
+│    │   │  Amazon RDS PostgreSQL 16                    │ (Isolated DB Subnets)     │    │
+│    │   └──────────────────────────────────────────────┘                           │    │
+│    └──────────────────────────┬───────────────────────────────────────────────────┘    │
+│                               │                                                        │
+│                               ▼ (S3 API File Uploads: CVs & Portfolios)                │
+│                    ┌──────────────────────────────────┐                                │
+│                    │  Amazon Simple Storage Service   │                                │
+│                    │  (Amazon S3 Bucket)              │                                │
+│                    └──────────────────────────────────┘                                │
 │                                                                                        │
-│     Supporting Services: Amazon ECR ── Amazon CloudWatch ── AWS KMS ── AWS IAM         │
+│     Supporting Services: Amazon ECR ── AWS IAM ── Amazon CloudWatch                    │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -339,11 +354,10 @@ The proposed platform will support two primary user groups, each with distinct r
 
 # 10. Team Responsibilities
 
-| Person | Area | Key Deliverables |
+| Member Name & Student ID | Core Area | Key Technical Deliverables |
 |---|---|---|
-| **1** | Frontend Dashboards (Student, HR UI) | Student & HR Dashboards, Job Board, Application Pipeline UI, Responsive Layouts |
-| **2** | Backend Auth, RBAC Logic & Security | Express 5 Architecture, JWT Authentication, RBAC Middleware, Profile APIs |
-| **3** | Database Design (Prisma Schema) & Placement Workflows | PostgreSQL Schema, Prisma 7 Migrations, Application Status Workflows |
-| **4** | File Upload Integration (Multer + AWS S3) | AWS S3 Integration, Multer S3, Multi-Document Uploads, Avatar Pipelines |
-| **5** | DevOps & AWS Cloud Infrastructure | Amazon VPC, ECS Fargate, Application Load Balancer, RDS, Docker Compose |
-| **6** | Testing/QA, Logbook & Company Evaluation System, Documentation | Weekly Logbook, Mentor Sign-Off Drawer, Rubrics Engine, README & Kickoff Docs |
+| **Nipparn Penjinda** (6622772869) | Full-Stack Architecture & Application Pipeline | Lead Application Pipeline UI, Job Board Filters, Public Profile Modals, Frontend State Architecture |
+| **Trin Kittacharoenchai** (6622770392) | Backend Security, Auth & RBAC Middleware | Express 5 REST API Routing, JWT Authentication, Bcrypt Password Hashing, RBAC Access Controls |
+| **Napat Pumim** (6622780144) | Database Design & Placement Exclusivity Engine | Prisma 7 Relational Schemas, PostgreSQL Migrations, Atomic Placement Commitment & Auto-Decline Transactions |
+| **Thanyawach Keaohan** (6622780094) | Cloud DevOps & AWS Infrastructure | Amazon VPC Network Architecture, ECS Fargate Container Orchestration, ALB, S3 Direct Streaming, Docker Compose |
+| **Thantip Kangwanwanit** (6622781217) | CWIE Logbook, Evaluation Engine & QA Automation | Daily CWIE Logbook, Backdated Detection Logic, Mentor Rubric Engine, Robot Framework Automated Test Suite |

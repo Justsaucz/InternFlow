@@ -16,10 +16,12 @@ import {
   AlertTriangle,
   Sparkles,
   LogOut,
-  Check
+  Check,
+  Video
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import PublicProfileModal from '../../components/modals/PublicProfileModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Application {
   id: string;
@@ -40,50 +42,56 @@ interface Application {
   };
 }
 
-const statusConfig: Record<string, { label: string; color: string; icon: any; step: number }> = {
+const getStatusConfig = (isThai: boolean): Record<string, { label: string; color: string; icon: any; step: number }> => ({
   PENDING: { 
-    label: 'Pending Review', 
+    label: isThai ? 'รอการตรวจสอบ' : 'Pending Review', 
     color: 'bg-amber-50 text-amber-700 border-amber-200', 
     icon: Clock,
     step: 1 
   },
   REVIEWING: { 
-    label: 'Under HR Review', 
+    label: isThai ? 'ฝ่ายบุคคลกำลังพิจารณา' : 'Under HR Review', 
     color: 'bg-blue-50 text-blue-700 border-blue-200', 
     icon: FileText,
     step: 2 
   },
+  INTERVIEW_SCHEDULED: { 
+    label: isThai ? 'นัดหมายสัมภาษณ์แล้ว' : 'Interview Scheduled', 
+    color: 'bg-indigo-50 text-indigo-700 border-indigo-200 ring-2 ring-indigo-100', 
+    icon: Video,
+    step: 2 
+  },
   ACCEPTED: { 
-    label: 'Offer Received from HR', 
+    label: isThai ? 'ได้รับข้อเสนอฝึกงาน' : 'Offer Received from HR', 
     color: 'bg-emerald-50 text-emerald-700 border-emerald-200', 
     icon: CheckCircle2,
     step: 3 
   },
   COMMITTED: { 
-    label: 'Active Placement (Confirmed)', 
+    label: isThai ? 'ยืนยันสถานที่ฝึกงานแล้ว' : 'Active Placement (Confirmed)', 
     color: 'bg-primary-50 text-primary-700 border-primary-300 ring-2 ring-primary-100', 
     icon: Award,
     step: 4 
   },
   CANCEL_REQUESTED: { 
-    label: 'Cancellation Pending HR Review', 
+    label: isThai ? 'แจ้งขอยกเลิก (รอ HR อนุมัติ)' : 'Cancellation Pending HR Review', 
     color: 'bg-amber-50 text-amber-800 border-amber-300', 
     icon: AlertTriangle,
     step: 3 
   },
   CANCELLED: { 
-    label: 'Placement Cancelled', 
+    label: isThai ? 'ยกเลิกการฝึกงานแล้ว' : 'Placement Cancelled', 
     color: 'bg-slate-100 text-slate-600 border-slate-300', 
     icon: XCircle,
     step: 0 
   },
   REJECTED: { 
-    label: 'Declined / Closed', 
+    label: isThai ? 'ไม่ผ่านการคัดเลือก' : 'Declined / Closed', 
     color: 'bg-rose-50 text-rose-700 border-rose-200', 
     icon: XCircle,
     step: 0 
   },
-};
+});
 
 export default function MyApplications() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -91,6 +99,7 @@ export default function MyApplications() {
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'accepted' | 'rejected'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [viewingCompanyId, setViewingCompanyId] = useState<string | null>(null);
+  const { t, language } = useLanguage();
 
   // Commitment & Cancellation Modal States
   const [commitTargetApp, setCommitTargetApp] = useState<Application | null>(null);
@@ -139,7 +148,7 @@ export default function MyApplications() {
       });
       const data = await res.json();
       if (res.ok) {
-        success(`Placement confirmed at ${commitTargetApp.jobPost.company.companyName}! You can now start logging weekly entries.`);
+        success(`Placement confirmed at ${commitTargetApp.jobPost.company.companyName}! You can now start logging daily entries.`);
         setCommitTargetApp(null);
         fetchApplications();
       } else {
@@ -187,7 +196,7 @@ export default function MyApplications() {
   };
 
   const filteredApps = applications.filter((app) => {
-    if (activeTab === 'active') return app.status === 'PENDING' || app.status === 'REVIEWING';
+    if (activeTab === 'active') return app.status === 'PENDING' || app.status === 'REVIEWING' || app.status === 'INTERVIEW_SCHEDULED';
     if (activeTab === 'accepted') return app.status === 'ACCEPTED' || app.status === 'COMMITTED';
     if (activeTab === 'rejected') return app.status === 'REJECTED' || app.status === 'CANCELLED';
     return true;
@@ -199,18 +208,18 @@ export default function MyApplications() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
-              Application Tracker
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+              {t.nav.myApplications}
             </span>
             <span className="text-xs font-semibold text-slate-500">
-              {applications.length} Submissions Total
+              {applications.length} {language === 'th' ? 'รายการทั้งหมด' : 'Submissions Total'}
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            My Internship Applications
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-heading">
+            {t.applications.title}
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Track your real-time status across corporate applications, review job offers, and commit to your official internship.
+            {t.applications.subtitle}
           </p>
         </div>
 
@@ -256,7 +265,7 @@ export default function MyApplications() {
               <p className="text-xs text-slate-300 mt-0.5">
                 {committedPlacement.status === 'CANCEL_REQUESTED'
                   ? 'Your cancellation request has been submitted to company HR. Waiting for company confirmation.'
-                  : 'You are officially placed! Your weekly logbook is unlocked. Only one placement can be active at a time.'}
+                  : 'You are officially placed! Your daily logbook is unlocked. Only one placement can be active at a time.'}
               </p>
             </div>
           </div>
@@ -264,7 +273,7 @@ export default function MyApplications() {
             to="/dashboard/logbook"
             className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs rounded-xl shadow-md transition-all flex-shrink-0"
           >
-            Go to Weekly Logbook
+            Go to Daily Logbook
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -284,13 +293,15 @@ export default function MyApplications() {
       ) : filteredApps.length > 0 ? (
         <div className="space-y-4">
           {filteredApps.map((app) => {
-            const status = statusConfig[app.status] || statusConfig.PENDING;
+            const statusMap = getStatusConfig(language === 'th');
+            const status = statusMap[app.status] || statusMap.PENDING;
             const StatusIcon = status.icon;
             const isExpanded = expandedId === app.id;
             const companyLogo = app.jobPost.company.logoUrl;
             const isCommitted = app.status === 'COMMITTED';
             const isCancelRequested = app.status === 'CANCEL_REQUESTED';
             const isOfferWaiting = app.status === 'ACCEPTED';
+            const isInterviewScheduled = app.status === 'INTERVIEW_SCHEDULED';
             const hasOtherCommitment = !!committedPlacement && committedPlacement.id !== app.id;
 
             return (
@@ -301,6 +312,8 @@ export default function MyApplications() {
                     ? 'border-primary-300 ring-2 ring-primary-100/70' 
                     : isCancelRequested
                     ? 'border-amber-200 bg-amber-50/20'
+                    : isInterviewScheduled
+                    ? 'border-indigo-300 ring-2 ring-indigo-100/70 bg-gradient-to-b from-white to-indigo-50/10'
                     : 'border-slate-200/80 hover:border-slate-300'
                 }`}
               >
@@ -363,14 +376,14 @@ export default function MyApplications() {
                         title="Accept this offer and confirm your placement"
                       >
                         <Check className="w-3.5 h-3.5" />
-                        Accept Offer & Start
+                        {language === 'th' ? 'ตอบรับข้อเสนอ & ยืนยันฝึกงาน' : 'Accept Offer & Start'}
                       </button>
                     )}
 
                     {/* Offer on hold when student already committed elsewhere */}
                     {isOfferWaiting && hasOtherCommitment && (
                       <span className="text-[11px] font-semibold text-slate-400 italic">
-                        (On hold • Already committed to {committedPlacement?.jobPost.company.companyName})
+                        ({language === 'th' ? `ระงับสิทธิ์ • คุณได้ยืนยันกับ ${committedPlacement?.jobPost.company.companyName} แล้ว` : `On hold • Already committed to ${committedPlacement?.jobPost.company.companyName}`})
                       </span>
                     )}
 
@@ -384,11 +397,30 @@ export default function MyApplications() {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
                       >
                         <LogOut className="w-3.5 h-3.5" />
-                        Request Cancellation
+                        {language === 'th' ? 'แจ้งขอยกเลิก' : 'Request Cancellation'}
                       </button>
                     )}
                   </div>
                 </div>
+
+                {/* Interview Scheduled Notice Box */}
+                {isInterviewScheduled && (
+                  <div className="p-4 sm:p-5 rounded-2xl bg-indigo-50/90 border border-indigo-200 text-xs text-indigo-950 space-y-2 shadow-xs">
+                    <div className="font-extrabold flex items-center gap-2 text-indigo-900 text-sm">
+                      <div className="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700">
+                        <Video className="w-3.5 h-3.5 text-indigo-700" />
+                      </div>
+                      {t.applications.interviewNoticeTitle}
+                    </div>
+                    <p className="text-indigo-900 leading-relaxed font-medium pl-8">
+                      {t.applications.interviewNoticeDesc}
+                    </p>
+                    <div className="pt-1 flex items-center gap-2 text-[11px] font-bold text-indigo-700 pl-8">
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                      {t.applications.interviewActionHint}
+                    </div>
+                  </div>
+                )}
 
                 {/* Cancellation Request Notice Box */}
                 {isCancelRequested && (
@@ -411,10 +443,15 @@ export default function MyApplications() {
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-100">
                     <div className="grid grid-cols-4 gap-2 text-center relative">
                       {[
-                        { stepNum: 1, label: 'Submitted' },
-                        { stepNum: 2, label: 'Under Review' },
-                        { stepNum: 3, label: 'Offer Received' },
-                        { stepNum: 4, label: 'Confirmed Working' },
+                        { stepNum: 1, label: language === 'th' ? 'ส่งใบสมัครแล้ว' : 'Submitted' },
+                        { 
+                          stepNum: 2, 
+                          label: isInterviewScheduled 
+                            ? (language === 'th' ? 'นัดสัมภาษณ์' : 'Interview') 
+                            : (language === 'th' ? 'กำลังพิจารณา' : 'Under Review') 
+                        },
+                        { stepNum: 3, label: language === 'th' ? 'ได้รับข้อเสนอ' : 'Offer Received' },
+                        { stepNum: 4, label: language === 'th' ? 'ยืนยันเข้าฝึกงาน' : 'Confirmed Working' },
                       ].map((s) => {
                         const isDone = status.step >= s.stepNum;
                         const isCurrent = status.step === s.stepNum;

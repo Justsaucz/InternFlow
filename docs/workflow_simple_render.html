@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>InternFlow - Simple Workflow Diagram</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 30px 20px 50px 20px;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
+  }
+  #workflow-container {
+    background: #ffffff;
+    width: 980px;
+    margin: 0 auto;
+    padding-bottom: 30px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .header h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+  }
+  .header p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+<div id="workflow-container">
+  <div class="header">
+    <h2>Workflow of the System</h2>
+    <p>InternFlow End-to-End Operational Lifecycle</p>
+  </div>
+
+  <svg viewBox="0 0 960 1540" width="960" height="1540" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Arrow markers -->
+      <marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#334155" />
+      </marker>
+      <marker id="arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669" />
+      </marker>
+      <marker id="arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb" />
+      </marker>
+      <marker id="arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#dc2626" />
+      </marker>
+
+      <filter id="shadow" x="-3%" y="-2%" width="106%" height="106%" filterUnits="userSpaceOnUse">
+        <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000000" flood-opacity="0.06" />
+      </filter>
+    </defs>
+
+    <style>
+      /* Node Styles */
+      .node-start { fill: #f8fafc; stroke: #334155; stroke-width: 1.8; rx: 20px; }
+      .node-step { fill: #ffffff; stroke: #334155; stroke-width: 1.6; rx: 8px; }
+      .node-stu { fill: #f0fdf4; stroke: #059669; stroke-width: 1.6; rx: 8px; }
+      .node-hr { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.6; rx: 8px; }
+      .node-system { fill: #fef2f2; stroke: #dc2626; stroke-width: 1.6; stroke-dasharray: 4, 3; rx: 8px; }
+      .node-decision { fill: #fffbeb; stroke: #d97706; stroke-width: 1.6; }
+
+      /* Typography */
+      .txt-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 12.5px; font-weight: 700; fill: #0f172a; text-anchor: middle; }
+      .txt-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: 500; fill: #475569; text-anchor: middle; }
+      .txt-branch { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: 700; fill: #1e293b; text-anchor: middle; }
+      .txt-branch-yes { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: 700; fill: #059669; text-anchor: middle; }
+      .txt-branch-no { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: 700; fill: #dc2626; text-anchor: middle; }
+      .txt-role-stu { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: 700; fill: #059669; text-anchor: middle; }
+      .txt-role-hr { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: 700; fill: #2563eb; text-anchor: middle; }
+
+      /* Lines */
+      .line { fill: none; stroke: #334155; stroke-width: 1.6; }
+      .line-green { fill: none; stroke: #059669; stroke-width: 1.6; }
+      .line-blue { fill: none; stroke: #2563eb; stroke-width: 1.6; }
+      .line-red { fill: none; stroke: #dc2626; stroke-width: 1.6; }
+      .line-dash { fill: none; stroke: #94a3b8; stroke-width: 1.4; stroke-dasharray: 4, 3; }
+    </style>
+
+    <!-- ========================================================================= -->
+    <!-- 1. ENTRY & AUTHENTICATION                                                 -->
+    <!-- ========================================================================= -->
+
+    <!-- Start Node (x=480, y=20) -->
+    <rect class="node-start" x="390" y="15" width="180" height="42" filter="url(#shadow)" />
+    <text class="txt-title" x="480" y="41">Start: Visit InternFlow (/)</text>
+
+    <!-- Down to Browse Jobs as Guest -->
+    <path class="line" d="M 480 57 L 480 85" marker-end="url(#arr)" />
+    <rect class="node-step" x="370" y="85" width="220" height="46" filter="url(#shadow)" />
+    <text class="txt-title" x="480" y="105">Step 1: Browse Job Board</text>
+    <text class="txt-sub" x="480" y="121">Search &amp; Filter as Guest User</text>
+
+    <!-- Down to Decision: Has Account? -->
+    <path class="line" d="M 480 131 L 480 160" marker-end="url(#arr)" />
+    <polygon class="node-decision" points="480,160 560,195 480,230 400,195" filter="url(#shadow)" />
+    <text class="txt-title" x="480" y="199">Has Account?</text>
+
+    <!-- Branch: No -> Register (Left) -->
+    <path class="line" d="M 400 195 L 260 195" marker-end="url(#arr)" />
+    <text class="txt-branch-no" x="325" y="188">No</text>
+    <rect class="node-step" x="140" y="172" width="120" height="46" filter="url(#shadow)" />
+    <text class="txt-title" x="200" y="192">Step 2a: Register</text>
+    <text class="txt-sub" x="200" y="208">Select Role (Student/HR)</text>
+
+    <!-- Register loops to Login -->
+    <path class="line" d="M 200 218 L 200 270 L 400 270" marker-end="url(#arr)" />
+
+    <!-- Branch: Yes -> Login (Down) -->
+    <path class="line" d="M 480 230 L 480 250" marker-end="url(#arr)" />
+    <text class="txt-branch-yes" x="495" y="244">Yes</text>
+
+    <rect class="node-step" x="400" y="250" width="160" height="46" filter="url(#shadow)" />
+    <text class="txt-title" x="480" y="270">Step 2: Sign In (/login)</text>
+    <text class="txt-sub" x="480" y="286">Authenticate &amp; Issue JWT</text>
+
+    <!-- Down to Decision: Role? -->
+    <path class="line" d="M 480 296 L 480 320" marker-end="url(#arr)" />
+    <polygon class="node-decision" points="480,320 560,355 480,390 400,355" filter="url(#shadow)" />
+    <text class="txt-title" x="480" y="359">Account Role?</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- 2. ROLE SPLIT: STUDENT (LEFT) vs COMPANY HR (RIGHT)                      -->
+    <!-- ========================================================================= -->
+
+    <!-- Branch Left: Student -->
+    <path class="line-green" d="M 400 355 L 235 355 L 235 420" marker-end="url(#arr-green)" />
+    <text class="txt-role-stu" x="315" y="348">Student Role</text>
+
+    <!-- Branch Right: Company HR -->
+    <path class="line-blue" d="M 560 355 L 730 355 L 730 420" marker-end="url(#arr-blue)" />
+    <text class="txt-role-hr" x="645" y="348">Company HR Role</text>
+
+
+    <!-- --- HR: Post Job (x=630, y=420) --- -->
+    <rect class="node-hr" x="630" y="420" width="200" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="730" y="442">HR: Post Internship Job</text>
+    <text class="txt-sub" x="730" y="458">Title, Allowance, Modality, Skills</text>
+
+    <!-- Dashed sync arrow from HR Post Job -> Student Job Search -->
+    <path class="line-dash" d="M 630 445 L 340 445" marker-end="url(#arr)" />
+    <text class="txt-sub" x="485" y="438">Published to Board</text>
+
+    <!-- --- Student: Apply for Job (x=130, y=420) --- -->
+    <rect class="node-stu" x="130" y="420" width="210" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="235" y="442">Student: Apply with Resume</text>
+    <text class="txt-sub" x="235" y="458">Upload PDF to S3 + Cover Letter</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- 3. SCREENING, INTERVIEW & OFFER EXTENSION                                 -->
+    <!-- ========================================================================= -->
+
+    <!-- Student Application submitted into HR Review -->
+    <path class="line" d="M 235 470 L 235 520 L 620 520" marker-end="url(#arr)" />
+    <text class="txt-sub" x="370" y="513">Application (PENDING)</text>
+
+    <!-- HR: Review Candidate Roster (x=620, y=495) -->
+    <rect class="node-hr" x="620" y="495" width="220" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="730" y="517">HR: Review Applicant Roster</text>
+    <text class="txt-sub" x="730" y="533">Inspect GPA &amp; Download S3 Resume</text>
+
+    <!-- Down to Decision: Pass Screening? -->
+    <path class="line-blue" d="M 730 545 L 730 575" marker-end="url(#arr-blue)" />
+    <polygon class="node-decision" points="730,575 810,610 730,645 650,610" filter="url(#shadow)" />
+    <text class="txt-title" x="730" y="614">Shortlist Candidate?</text>
+
+    <!-- Branch: No -> Rejected (Right) -->
+    <path class="line-red" d="M 810 610 L 870 610" marker-end="url(#arr-red)" />
+    <text class="txt-branch-no" x="840" y="603">No</text>
+    <rect class="node-step" x="870" y="590" width="75" height="40" style="border-color:#dc2626;" filter="url(#shadow)" />
+    <text class="txt-branch-no" x="907" y="615">REJECTED</text>
+
+    <!-- Branch: Yes -> Interview Decision / Scheduling (Down) -->
+    <path class="line-blue" d="M 730 645 L 730 675" marker-end="url(#arr-blue)" />
+    <text class="txt-branch-yes" x="745" y="662">Yes</text>
+
+    <!-- HR: Schedule Interview -->
+    <rect class="node-hr" x="625" y="675" width="210" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="730" y="697">HR: Schedule Interview</text>
+    <text class="txt-sub" x="730" y="713">Status: INTERVIEW_SCHEDULED</text>
+
+    <!-- Sync line left: Student sees Interview Notice in My Applications -->
+    <path class="line-dash" d="M 625 700 L 340 700" marker-end="url(#arr-green)" />
+    <text class="txt-sub" x="480" y="693">Indigo Interview Alert</text>
+
+    <!-- Student: My Applications Page -->
+    <rect class="node-stu" x="130" y="675" width="210" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="235" y="697">Student: Track My Applications</text>
+    <text class="txt-sub" x="235" y="713">Receive External Interview Details</text>
+
+    <!-- HR conducts interview and decides: Offer? -->
+    <path class="line-blue" d="M 730 725 L 730 755" marker-end="url(#arr-blue)" />
+    <polygon class="node-decision" points="730,755 810,790 730,825 650,790" filter="url(#shadow)" />
+    <text class="txt-title" x="730" y="794">Extend Offer?</text>
+
+    <!-- Reject from interview -->
+    <path class="line-red" d="M 810 790 L 870 790" marker-end="url(#arr-red)" />
+    <text class="txt-branch-no" x="840" y="783">No</text>
+    <rect class="node-step" x="870" y="770" width="75" height="40" filter="url(#shadow)" />
+    <text class="txt-branch-no" x="907" y="795">REJECTED</text>
+
+    <!-- Yes -> Extend Offer -->
+    <path class="line-blue" d="M 730 825 L 730 855" marker-end="url(#arr-blue)" />
+    <text class="txt-branch-yes" x="745" y="842">Yes</text>
+    <rect class="node-hr" x="635" y="855" width="190" height="46" filter="url(#shadow)" />
+    <text class="txt-title" x="730" y="876">HR: Extend Official Offer</text>
+    <text class="txt-sub" x="730" y="892">Status: ACCEPTED</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- 4. OFFER COMMITMENT & SINGLE PLACEMENT EXCLUSIVITY                        -->
+    <!-- ========================================================================= -->
+
+    <!-- Offer delivered to student -->
+    <path class="line" d="M 635 878 L 340 878" marker-end="url(#arr)" />
+    <text class="txt-sub" x="480" y="871">Offer Received</text>
+
+    <!-- Student Decision: Accept Offer? -->
+    <polygon class="node-decision" points="235,855 315,890 235,925 155,890" filter="url(#shadow)" />
+    <text class="txt-title" x="235" y="894">Accept Offer?</text>
+
+    <!-- Branch: No -> Decline -->
+    <path class="line" d="M 155 890 L 80 890" marker-end="url(#arr)" />
+    <text class="txt-branch-no" x="120" y="883">No</text>
+    <rect class="node-step" x="10" y="870" width="70" height="40" filter="url(#shadow)" />
+    <text class="txt-sub" x="45" y="895">Declined</text>
+
+    <!-- Branch: Yes -> Accept Offer & Commit Placement -->
+    <path class="line-green" d="M 235 925 L 235 955" marker-end="url(#arr-green)" />
+    <text class="txt-branch-yes" x="250" y="942">Yes</text>
+
+    <rect class="node-stu" x="130" y="955" width="210" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="235" y="976">Accept Offer &amp; Commit</text>
+    <text class="txt-sub" x="235" y="992">Status: COMMITTED (Official Placement)</text>
+
+    <!-- Exclusivity Engine Box (Red/System dashed) -->
+    <path class="line-red" d="M 340 980 L 400 980" marker-end="url(#arr-red)" />
+    <rect class="node-system" x="400" y="955" width="280" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="540" y="976" style="fill:#dc2626;">Single Placement Exclusivity Engine</text>
+    <text class="txt-sub" x="540" y="992" style="fill:#991b1b;">Auto-cancels all competing applications across companies</text>
+
+    <!-- HR Placed Intern Record -->
+    <path class="line-blue" d="M 680 980 L 730 980 L 730 955" />
+    <rect class="node-hr" x="650" y="905" width="170" height="46" filter="url(#shadow)" />
+    <text class="txt-title" x="735" y="925">Confirmed Placement</text>
+    <text class="txt-sub" x="735" y="941">Locked into Company Roster</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- 5. CWIE DAILY LOGBOOK & SUPERVISOR SIGN-OFF                               -->
+    <!-- ========================================================================= -->
+
+    <!-- Student down to Daily Logbook -->
+    <path class="line-green" d="M 235 1005 L 235 1045" marker-end="url(#arr-green)" />
+    <rect class="node-stu" x="130" y="1045" width="210" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="235" y="1066">Record Daily CWIE Logbook</text>
+    <text class="txt-sub" x="235" y="1082">8.0 hrs/day, Modality, Tasks &amp; Fixes</text>
+
+    <!-- Decision: Submitted Late? -->
+    <path class="line" d="M 235 1095 L 235 1120" marker-end="url(#arr)" />
+    <polygon class="node-decision" points="235,1120 305,1150 235,1180 165,1150" filter="url(#shadow)" />
+    <text class="txt-title" x="235" y="1154">Backdated?</text>
+
+    <!-- Yes -> Backdated Warning Flag -->
+    <path class="line" d="M 165 1150 L 80 1150" marker-end="url(#arr)" />
+    <text class="txt-branch-yes" x="125" y="1143">Yes</text>
+    <rect class="node-step" x="10" y="1132" width="70" height="36" filter="url(#shadow)" />
+    <text class="txt-sub" x="45" y="1154" style="fill:#d97706; font-weight:700;">Audit Flag</text>
+
+    <!-- Route into Mentor Sign-Off cleanly -->
+    <path class="line" d="M 235 1180 L 235 1205 L 610 1205" marker-end="url(#arr)" />
+    <path class="line" d="M 45 1168 L 45 1205 L 235 1205" />
+    <text class="txt-sub" x="420" y="1198">Daily Entry Submitted</text>
+
+    <!-- Mentor Inspection Drawer & Sign-Off (x=610, y=1180) -->
+    <rect class="node-hr" x="610" y="1180" width="240" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="730" y="1202">Mentor Inspection Drawer</text>
+    <text class="txt-sub" x="730" y="1218">Approve Hours, 1–5 Stars Rating &amp; Feedback</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- 6. FINAL EVALUATION & CERTIFICATION                                      -->
+    <!-- ========================================================================= -->
+
+    <!-- Down to Decision: Hours Completed? -->
+    <path class="line" d="M 730 1230 L 730 1260" marker-end="url(#arr)" />
+    <polygon class="node-decision" points="730,1260 810,1295 730,1330 650,1295" filter="url(#shadow)" />
+    <text class="txt-title" x="730" y="1299">Hours ≥ 300 hrs?</text>
+
+    <!-- Branch: No -> Continue Daily Logging (Loops back to student logbook) -->
+    <path class="line" d="M 650 1295 L 420 1295 L 420 1070 L 340 1070" marker-end="url(#arr)" />
+    <text class="txt-branch-no" x="535" y="1288">No (Continue Term)</text>
+
+    <!-- Branch: Yes -> Performance Rubric -->
+    <path class="line-blue" d="M 730 1330 L 730 1360" marker-end="url(#arr-blue)" />
+    <text class="txt-branch-yes" x="745" y="1348">Yes</text>
+
+    <!-- Performance Rubric (x=605, y=1360, w=250) -->
+    <rect class="node-hr" x="605" y="1360" width="250" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="730" y="1381">3-Category Performance Rubric</text>
+    <text class="txt-sub" x="730" y="1398">Quality, Punctuality &amp; Teamwork (1–5 ★)</text>
+
+    <!-- Arrow into Certificate -->
+    <path class="line" d="M 605 1385 L 470 1385" marker-end="url(#arr)" />
+
+    <!-- Official Certificate Output (x=200, y=1360, w=270) -->
+    <rect class="node-stu" x="200" y="1360" width="270" height="50" filter="url(#shadow)" />
+    <text class="txt-title" x="335" y="1381">Verified CWIE Completion Report</text>
+    <text class="txt-sub" x="335" y="1398">Official Certificate &amp; Performance Record</text>
+
+    <!-- End Node -->
+    <path class="line" d="M 335 1410 L 335 1445" marker-end="url(#arr)" />
+    <rect class="node-start" x="235" y="1445" width="200" height="40" filter="url(#shadow)" />
+    <text class="txt-title" x="335" y="1470">End: Internship Certified</text>
+
+  </svg>
+</div>
+
+</body>
+</html>

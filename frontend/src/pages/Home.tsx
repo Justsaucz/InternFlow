@@ -2,85 +2,264 @@ import { useState } from 'react';
 import { 
   ArrowRight, 
   Briefcase, 
-  Building2, 
-  GraduationCap, 
-  CheckCircle2, 
   Sparkles, 
-  ShieldCheck, 
-  Users, 
-  ChevronDown
+  ChevronDown,
+  Search,
+  MapPin,
+  Clock,
+  Coins,
+  Code2,
+  Palette,
+  BarChart3,
+  Megaphone,
+  Layers,
+  Check,
+  Compass
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage, LanguageSwitcher } from '../context/LanguageContext';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'student' | 'company'>('student');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [selectedWorkType, setSelectedWorkType] = useState('ALL');
+  const [activeJobTab, setActiveJobTab] = useState<'ALL' | 'TECH' | 'DESIGN' | 'MARKETING' | 'REMOTE'>('ALL');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { t, language } = useLanguage();
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  const faqs = [
+  const isTh = language === 'th';
+
+  // Job Categories Data
+  const categories = [
+    { 
+      id: 'TECH', 
+      name: isTh ? 'วิศวกรรมซอฟต์แวร์และเทคโนโลยี' : 'Software & Engineering', 
+      icon: Code2, 
+      count: isTh ? '180+ ตำแหน่ง' : '180+ Listings', 
+      color: 'from-emerald-500 to-teal-600' 
+    },
+    { 
+      id: 'DESIGN', 
+      name: isTh ? 'การออกแบบผลิตภัณฑ์และ UI/UX' : 'UI/UX & Product Design', 
+      icon: Palette, 
+      count: isTh ? '95+ ตำแหน่ง' : '95+ Listings', 
+      color: 'from-teal-500 to-cyan-600' 
+    },
+    { 
+      id: 'DATA', 
+      name: isTh ? 'วิทยาศาสตร์ข้อมูลและ GenAI' : 'Data Science & GenAI', 
+      icon: BarChart3, 
+      count: isTh ? '75+ ตำแหน่ง' : '75+ Listings', 
+      color: 'from-emerald-600 to-green-700' 
+    },
+    { 
+      id: 'MARKETING', 
+      name: isTh ? 'การตลาดดิจิทัลและสื่อสร้างสรรค์' : 'Digital Growth & Media', 
+      icon: Megaphone, 
+      count: isTh ? '110+ ตำแหน่ง' : '110+ Listings', 
+      color: 'from-green-500 to-emerald-600' 
+    },
+    { 
+      id: 'PRODUCT', 
+      name: isTh ? 'การจัดการผลิตภัณฑ์และโครงการ' : 'Product & Project Ops', 
+      icon: Layers, 
+      count: isTh ? '60+ ตำแหน่ง' : '60+ Listings', 
+      color: 'from-teal-600 to-emerald-800' 
+    },
+    { 
+      id: 'BUSINESS', 
+      name: isTh ? 'ธุรกิจ การเงินและการลงทุน' : 'Business & Finance', 
+      icon: Briefcase, 
+      count: isTh ? '85+ ตำแหน่ง' : '85+ Listings', 
+      color: 'from-emerald-700 to-teal-700' 
+    },
+  ];
+
+  // Featured Internships
+  const featuredJobs = [
     {
-      q: "How does the application process work?",
-      a: "Students create a profile and apply to internship listings posted by companies. Applications flow through a simple pipeline: Pending → Reviewing → Accepted or Rejected. Companies have full control over the hiring decision."
+      id: 1,
+      title: 'Frontend Engineer Intern (React / Next.js)',
+      company: 'SCB 10X Venture Lab',
+      category: 'TECH',
+      logo: '10X',
+      logoBg: 'bg-emerald-600',
+      location: isTh ? 'กรุงเทพฯ (BTS เพลินจิต)' : 'Bangkok (BTS Phloen Chit)',
+      type: isTh ? 'ผสมผสาน (เข้าออฟฟิศ 3 วัน)' : 'Hybrid (3d Office)',
+      stipend: isTh ? '฿18,000 / เดือน' : '฿18,000 / mo',
+      duration: isTh ? '4 - 6 เดือน' : '4 - 6 Months',
+      tags: ['React', 'TypeScript', 'Tailwind', 'CWIE Ready'],
+      featured: true,
+      appliedCount: 24
     },
     {
-      q: "Is InternFlow free for students?",
-      a: "Yes! InternFlow is 100% free for students to build profiles, discover opportunities, submit applications, and track progress throughout their internship journey."
+      id: 2,
+      title: 'Product Design Intern (Design Systems & UX)',
+      company: 'Agoda Thailand',
+      category: 'DESIGN',
+      logo: 'AG',
+      logoBg: 'bg-teal-600',
+      location: isTh ? 'กรุงเทพฯ (เซ็นทรัลเวิลด์)' : 'Bangkok (Central World)',
+      type: isTh ? 'ผสมผสาน (WFH 2 วัน)' : 'Hybrid (2d Remote)',
+      stipend: isTh ? '฿20,000 / เดือน' : '฿20,000 / mo',
+      duration: isTh ? '4 เดือน (สหกิจศึกษา)' : '4 Months (CWIE)',
+      tags: ['Figma', 'User Research', 'Design Systems'],
+      featured: true,
+      appliedCount: 18
     },
     {
-      q: "How do companies verify applicant credentials?",
-      a: "Students upload verified academic transcripts, CVs, and portfolio documents directly to their profiles. Recruiters can view GPAs, faculties, majors, and skill tags right inside their applicant pipeline."
+      id: 3,
+      title: 'Data Analyst & Machine Learning Trainee',
+      company: 'LINE MAN Wongnai',
+      category: 'TECH',
+      logo: 'LM',
+      logoBg: 'bg-green-600',
+      location: isTh ? 'กรุงเทพฯ (สีลม)' : 'Bangkok (Silom)',
+      type: isTh ? 'เข้าสำนักงาน' : 'On-site',
+      stipend: isTh ? '฿16,000 / เดือน' : '฿16,000 / mo',
+      duration: isTh ? '16 สัปดาห์' : '16 Weeks',
+      tags: ['Python', 'SQL', 'BigQuery', 'Tableau'],
+      featured: false,
+      appliedCount: 31
     },
     {
-      q: "What security measures protect user data?",
-      a: "InternFlow employs role-based access control (RBAC), end-to-end encrypted sessions, and compliant cloud storage for CVs and institutional documents."
+      id: 4,
+      title: 'Digital Marketing & Content Creator Intern',
+      company: 'Bitkub Capital Group',
+      category: 'MARKETING',
+      logo: 'BK',
+      logoBg: 'bg-emerald-700',
+      location: isTh ? 'กรุงเทพฯ (อโศก)' : 'Bangkok (Asok)',
+      type: isTh ? 'ไฮบริด' : 'Hybrid',
+      stipend: isTh ? '฿15,000 / เดือน' : '฿15,000 / mo',
+      duration: isTh ? '4 เดือน' : '4 Months',
+      tags: ['TikTok & Reels', 'SEO', 'Content Strategy'],
+      featured: false,
+      appliedCount: 15
+    },
+    {
+      id: 5,
+      title: 'Full-Stack Developer Intern (Node.js & Go)',
+      company: 'True Digital Park Labs',
+      category: 'TECH',
+      logo: 'TD',
+      logoBg: 'bg-teal-700',
+      location: isTh ? 'กรุงเทพฯ (ปุณณวิถี)' : 'Bangkok (Punnawithi)',
+      type: isTh ? 'ทำงานทางไกล' : 'Remote Allowed',
+      stipend: isTh ? '฿18,000 / เดือน' : '฿18,000 / mo',
+      duration: isTh ? '4 - 6 เดือน' : '4 - 6 Months',
+      tags: ['Go', 'Node.js', 'PostgreSQL', 'Docker'],
+      featured: true,
+      appliedCount: 29
+    },
+    {
+      id: 6,
+      title: 'Junior UX Researcher & Usability Tester',
+      company: 'KBTG (Kasikorn Tech)',
+      category: 'DESIGN',
+      logo: 'KB',
+      logoBg: 'bg-emerald-800',
+      location: isTh ? 'นนทบุรี (แจ้งวัฒนะ)' : 'Nonthaburi (Chaengwattana)',
+      type: isTh ? 'ไฮบริด' : 'Hybrid',
+      stipend: isTh ? '฿17,500 / เดือน' : '฿17,500 / mo',
+      duration: isTh ? '16 สัปดาห์ (CWIE)' : '16 Weeks (CWIE)',
+      tags: ['User Testing', 'Wireframing', 'Prototyping'],
+      featured: false,
+      appliedCount: 12
+    }
+  ];
+
+  // Filter jobs based on active tab
+  const filteredJobs = activeJobTab === 'ALL' 
+    ? featuredJobs 
+    : activeJobTab === 'REMOTE'
+      ? featuredJobs.filter(j => j.type.toLowerCase().includes('remote') || j.type.toLowerCase().includes('hybrid') || j.type.includes('ไกล') || j.type.includes('ผสม'))
+      : featuredJobs.filter(j => j.category === activeJobTab);
+
+  const faqs = isTh ? [
+    {
+      q: "ขั้นตอนการสมัครและระบบตรวจสอบทำงานอย่างไร?",
+      a: "นักศึกษาสร้างโปรไฟล์ฟรี อัปโหลดใบทรานสคริปต์มหาวิทยาลัย และเลือกตำแหน่งงานที่สนใจ ระบบจะดึงเกรดเฉลี่ยและวิชาที่เรียนอย่างโปร่งใส พร้อมจับคู่กับสถานประกอบการที่ต้องการทักษะตรงกัน เมื่อได้รับการตอบรับ ที่ฝึกงานของคุณจะได้รับการการันตี 100% ไม่มีปัญหาการยกเลิกกระทันหัน"
+    },
+    {
+      q: "InternFlow ใช้งานได้ฟรีสำหรับนักศึกษาหรือไม่?",
+      a: "ฟรี 100%! สำหรับนักศึกษาทุกคน คุณสามารถค้นหาตำแหน่งงาน ส่งใบสมัคร บันทึก Logbook มากกว่า 400 ชั่วโมง และรับรายงานประเมินผลตามเกณฑ์ CWIE ได้โดยไม่มีค่าใช้จ่ายใดๆ"
+    },
+    {
+      q: "กฎการยืนยันสิทธิ์เพียงแห่งเดียว (Single-Commitment) คืออะไร?",
+      a: "เมื่อนักศึกษายืนยันรับข้อเสนอฝึกงานจากบริษัทใดแล้ว ระบบจะยกเลิกใบสมัครอื่นๆ ให้อัตโนมัติ เพื่อสร้างความมั่นใจแก่สถานประกอบการว่านักศึกษาจะไปปฏิบัติงานจริง และการันตีว่าสถานประกอบการจะไม่ยกเลิกสิทธิ์ของนักศึกษาเช่นกัน"
+    },
+    {
+      q: "พี่เลี้ยงสถานประกอบการตรวจและรับรอง Logbook อย่างไร?",
+      a: "แทนที่จะต้องตรวจสมุดบันทึกเล่มหนาช่วงปลายเทอม พี่เลี้ยงสามารถใช้ระบบตรวจรายสัปดาห์ในคลิกเดียว ตรวจสอบงานที่ส่งจริง และระบบจะคำนวณชั่วโมงพร้อมสรุปแบบประเมินให้อัตโนมัติ"
+    }
+  ] : [
+    {
+      q: "How does the application and verification process work?",
+      a: "Students create a free profile, upload their university transcript, and browse curated internships. Our engine extracts verified GPAs and courses directly, matching you with employers seeking your exact academic background. Once offered, your placement is guaranteed with zero start-day ghosting."
+    },
+    {
+      q: "Is InternFlow completely free for students?",
+      a: "Yes! InternFlow is 100% free for all students. You can search positions, submit applications, track your 400+ hour logbooks, and receive university-accredited CWIE graduation rubrics at zero cost."
+    },
+    {
+      q: "What is the Single-Commitment Protocol?",
+      a: "When a student confirms an internship offer on InternFlow, competing pending applications are automatically declined and new applications are locked. This guarantees to employers that the student will report on start day, and guarantees to the student that their seat cannot be revoked."
+    },
+    {
+      q: "How do mentors track and sign off on university logbooks?",
+      a: "Instead of dealing with thick paper binders at week 16, mentors use our Daily Logbook Inspector Drawer. Mentors approve logged tasks in 1 click, which automatically compiles compliant CWIE rubrics and certificates."
     }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-primary-500 selection:text-white font-sans antialiased">
-      {/* ── Navigation ──────────────────────────────────────────────────────── */}
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-emerald-500 selection:text-white font-sans antialiased">
+      {/* ── Sticky Top Navigation ────────────────────────────── */}
       <nav className="fixed w-full z-50 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
-              <div className="w-11 h-11 bg-gradient-to-tr from-primary-600 via-primary-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/25 group-hover:scale-105 transition-transform">
-                <GraduationCap className="text-white w-6 h-6" />
+              <div className="w-11 h-11 bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/25 group-hover:scale-105 transition-transform text-white font-black text-lg">
+                IF
               </div>
               <div>
-                <span className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
-                  Intern<span className="text-primary-600">Flow</span>
+                <span className="text-2xl font-black tracking-tight text-slate-900 font-heading">
+                  Intern<span className="text-emerald-600">Flow</span>
                 </span>
-                <span className="hidden sm:inline-block ml-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-primary-50 text-primary-700 rounded-full border border-primary-200">
-                  v1.0 Live
+                <span className="hidden sm:inline-block ml-2 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
+                  CWIE Certified
                 </span>
               </div>
             </Link>
 
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-sm font-semibold text-slate-600 hover:text-primary-600 transition-colors">Features</a>
-              <a href="#how-it-works" className="text-sm font-semibold text-slate-600 hover:text-primary-600 transition-colors">How It Works</a>
-              <a href="#roles" className="text-sm font-semibold text-slate-600 hover:text-primary-600 transition-colors">For You</a>
-              <a href="#faq" className="text-sm font-semibold text-slate-600 hover:text-primary-600 transition-colors">FAQ</a>
+              <a href="#search" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">{t.home.findInternships}</a>
+              <a href="#categories" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">{t.home.categories}</a>
+              <a href="#featured" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">{t.home.featuredJobs}</a>
+              <a href="#how-it-works" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">{t.home.howItWorks}</a>
+              <a href="#faq" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">{t.home.faq}</a>
             </div>
 
             {/* Action Buttons */}
             <div className="flex items-center gap-3">
+              <LanguageSwitcher />
               <Link 
                 to="/login" 
-                className="text-sm font-semibold text-slate-700 hover:text-primary-600 px-4 py-2 rounded-xl transition-colors"
+                className="text-sm font-semibold text-slate-700 hover:text-emerald-600 px-4 py-2 rounded-xl transition-colors"
               >
-                Log In
+                {t.home.signIn}
               </Link>
               <Link 
                 to="/register" 
-                className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-indigo-600 rounded-xl hover:from-primary-700 hover:to-indigo-700 shadow-md hover:shadow-lg shadow-primary-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl hover:from-emerald-700 hover:to-teal-700 shadow-md hover:shadow-lg shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
-                Get Started
+                {t.home.getStarted}
                 <ArrowRight className="ml-1.5 w-4 h-4" />
               </Link>
             </div>
@@ -88,433 +267,453 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* ── Hero Section ────────────────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-36 overflow-hidden">
-        {/* Background Glowing Mesh */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] overflow-hidden -z-10 pointer-events-none">
-          <div className="absolute -top-32 left-1/4 w-96 h-96 bg-primary-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute -top-20 right-1/4 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-40 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-sky-300/15 rounded-full blur-3xl"></div>
+      {/* ── Hero Section (Student-Centric Job Portal) ────────── */}
+      <section id="search" className="relative pt-32 pb-20 lg:pt-44 lg:pb-28 overflow-hidden bg-gradient-to-b from-emerald-50/50 via-slate-50 to-slate-50">
+        {/* Glow Spheres */}
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[550px] overflow-hidden -z-10 pointer-events-none">
+          <div className="absolute -top-20 left-1/4 w-96 h-96 bg-emerald-400/15 rounded-full blur-3xl" />
+          <div className="absolute -top-10 right-1/4 w-96 h-96 bg-teal-400/15 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Tagline Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-primary-100 text-primary-800 text-xs sm:text-sm font-semibold shadow-sm mb-8">
-              <span className="flex h-2 w-2 rounded-full bg-primary-500 animate-ping"></span>
-              <Sparkles className="w-4 h-4 text-primary-600" />
-              <span>Internship & Career Ecosystem</span>
+          <div className="text-center max-w-4xl mx-auto mb-10">
+            {/* Pill Tag */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold shadow-xs mb-6">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span>{t.home.heroBadge}</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.15] mb-6">
-              Empowering <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-sky-600 to-indigo-600">Students</span>, Connecting <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-primary-600">Companies</span>, Launching Careers.
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.15] mb-6 font-heading">
+              {t.home.heroTitle1} <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700">{t.home.heroTitle2}</span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-              The unified cloud platform bridging ambitious students and top hiring partners with transparent application workflows and real-time tracking.
+            <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              {t.home.heroSubtitle}
             </p>
+          </div>
 
-            {/* Hero CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <Link 
-                to="/register" 
-                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-primary-600 to-indigo-600 rounded-2xl hover:from-primary-700 hover:to-indigo-700 shadow-xl shadow-primary-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all group"
-              >
-                Create Free Account
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link 
-                to="/login" 
-                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-bold text-slate-700 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all"
-              >
-                Explore Dashboard
-              </Link>
+          {/* ── Main Interactive Search Box ───────────────────── */}
+          <div className="max-w-4xl mx-auto bg-white p-3 sm:p-4 rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/80 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+              {/* Field 1: Keyword */}
+              <div className="md:col-span-5 relative flex items-center">
+                <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={t.home.searchPlaceholder}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3.5 text-sm font-medium bg-slate-50 md:bg-transparent border md:border-none border-slate-200 rounded-2xl md:rounded-none focus:outline-none focus:ring-2 md:focus:ring-0 focus:ring-emerald-500 text-slate-900 placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Divider on desktop */}
+              <div className="hidden md:block w-px h-8 bg-slate-200 mx-auto" />
+
+              {/* Field 2: Category Selector */}
+              <div className="md:col-span-3 relative flex items-center">
+                <Compass className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full pl-12 pr-8 py-3.5 text-sm font-medium bg-slate-50 md:bg-transparent border md:border-none border-slate-200 rounded-2xl md:rounded-none focus:outline-none focus:ring-2 md:focus:ring-0 focus:ring-emerald-500 text-slate-700 appearance-none cursor-pointer"
+                >
+                  <option value="ALL">{isTh ? 'ทุกหมวดหมู่' : 'All Categories'}</option>
+                  <option value="TECH">{isTh ? 'ซอฟต์แวร์และเทค' : 'Software & Tech'}</option>
+                  <option value="DESIGN">{isTh ? 'ดีไซน์และ UX/UI' : 'Product & UI/UX'}</option>
+                  <option value="DATA">{isTh ? 'ข้อมูลและ AI' : 'Data & AI'}</option>
+                  <option value="MARKETING">{isTh ? 'การตลาดดิจิทัล' : 'Digital Growth'}</option>
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 pointer-events-none" />
+              </div>
+
+              {/* Divider on desktop */}
+              <div className="hidden md:block w-px h-8 bg-slate-200 mx-auto" />
+
+              {/* Field 3: Location / Work Type */}
+              <div className="md:col-span-2 relative flex items-center">
+                <MapPin className="w-5 h-5 text-slate-400 absolute left-3 pointer-events-none" />
+                <select
+                  value={selectedWorkType}
+                  onChange={(e) => setSelectedWorkType(e.target.value)}
+                  className="w-full pl-10 pr-6 py-3.5 text-sm font-medium bg-slate-50 md:bg-transparent border md:border-none border-slate-200 rounded-2xl md:rounded-none focus:outline-none focus:ring-2 md:focus:ring-0 focus:ring-emerald-500 text-slate-700 appearance-none cursor-pointer"
+                >
+                  <option value="ALL">{isTh ? 'ทุกสถานที่' : 'All Locations'}</option>
+                  <option value="BANGKOK">{isTh ? 'กรุงเทพฯ' : 'Bangkok'}</option>
+                  <option value="HYBRID">{isTh ? 'แบบผสมผสาน' : 'Hybrid'}</option>
+                  <option value="REMOTE">{isTh ? 'ทำงานทางไกล' : 'Remote'}</option>
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2 pointer-events-none" />
+              </div>
+
+              {/* Search Button */}
+              <div className="md:col-span-2">
+                <Link
+                  to="/register"
+                  className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-600/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  {t.home.searchBtn}
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
+          </div>
 
-            {/* Key Trust Numbers */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-6 border-t border-slate-200/80">
-              <div className="p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-xs">
-                <p className="text-2xl sm:text-3xl font-black text-primary-600">500+</p>
-                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Active Listings</p>
-              </div>
-              <div className="p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-xs">
-                <p className="text-2xl sm:text-3xl font-black text-indigo-600">24 Hrs</p>
-                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Avg. Response Time</p>
-              </div>
-              <div className="p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-xs">
-                <p className="text-2xl sm:text-3xl font-black text-sky-600">2-Tier</p>
-                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Integrated RBAC</p>
-              </div>
-              <div className="p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-xs">
-                <p className="text-2xl sm:text-3xl font-black text-emerald-600">Secure</p>
-                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1">Cloud Architecture</p>
-              </div>
+          {/* Quick Filter Tags */}
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
+            <span className="font-semibold text-slate-700">{t.home.trending}</span>
+            {['#Frontend', '#DataScience', '#UXUI', '#ProductOps', '#CWIE-480Hrs', '#Bangkok-BTS'].map(tag => (
+              <button 
+                key={tag}
+                onClick={() => setSearchQuery(tag.replace('#', ''))}
+                className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 hover:border-emerald-400 hover:text-emerald-700 hover:bg-emerald-50/50 transition-all cursor-pointer"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
+          {/* Key Metric Badges */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-14 pt-8 border-t border-slate-200/80">
+            <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
+              <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 font-heading">500+</p>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">{isTh ? 'ตำแหน่งงานที่รับรองแล้ว' : 'Verified Listings'}</p>
+            </div>
+            <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
+              <p className="text-2xl sm:text-3xl font-extrabold text-teal-600 font-heading">฿15k - ฿22k</p>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">{isTh ? 'เบี้ยเลี้ยงเฉลี่ย / เดือน' : 'Avg. Monthly Stipend'}</p>
+            </div>
+            <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
+              <p className="text-2xl sm:text-3xl font-extrabold text-emerald-700 font-heading">0% Ghosting</p>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">{isTh ? 'กฎข้อเสนอมีผลผูกพัน' : 'Single-Commitment Rule'}</p>
+            </div>
+            <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
+              <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 font-heading">16 Weeks</p>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">{isTh ? 'เกณฑ์ตามมาตรฐาน CWIE' : 'CWIE Compliant Rubrics'}</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Interactive Platform Preview Card ───────────────────────────────── */}
-      <section className="pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-b from-slate-900 to-slate-950 p-4 sm:p-8 rounded-3xl shadow-2xl border border-slate-800 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
-          {/* Window Header */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-rose-500"></div>
-              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-              <span className="text-xs text-slate-400 font-mono ml-2">internflow.workspace / live-preview</span>
-            </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Live Pipeline Active
-            </span>
-          </div>
-
-          {/* Preview Mockup Grid */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Card 1: Job Feed */}
-            <div className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary-400 flex items-center gap-1">
-                    <Briefcase className="w-3.5 h-3.5" /> Open Listing
-                  </span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-primary-500/10 text-primary-300 font-medium">
-                    15,000 THB/mo
-                  </span>
-                </div>
-                <h4 className="text-base font-bold text-white mb-1">Frontend Engineering Intern</h4>
-                <p className="text-xs text-slate-400 mb-3">Tech Innovators Corp • Bangkok / Hybrid</p>
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">React</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">TypeScript</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">Tailwind</span>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
-                <span>3 Positions Left</span>
-                <span className="text-primary-400 font-semibold flex items-center gap-1">1-Click Apply <ArrowRight className="w-3 h-3" /></span>
-              </div>
-            </div>
-
-            {/* Card 2: Student Pipeline Status */}
-            <div className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5" /> Application Stage
-                  </span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-300 font-medium">
-                    98% Match
-                  </span>
-                </div>
-                <h4 className="text-base font-bold text-white mb-1">Somchai Prasert</h4>
-                <p className="text-xs text-slate-400 mb-3">Computer Science • Year 3 • GPA 3.75</p>
-                
-                {/* Visual Pipeline Bar */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-slate-300">
-                    <span>Applied</span>
-                    <span>HR Review</span>
-                    <span className="text-emerald-400 font-bold">Approved</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden flex">
-                    <div className="h-full bg-primary-500 w-1/3"></div>
-                    <div className="h-full bg-indigo-500 w-1/3"></div>
-                    <div className="h-full bg-emerald-500 w-1/3"></div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs">
-                <span className="text-slate-400">Status</span>
-                <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Company Approved
-                </span>
-              </div>
-            </div>
-
-            {/* Card 3: Company Evaluation & Tracking */}
-            <div className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Evaluation
-                  </span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 font-medium">
-                    Company Review
-                  </span>
-                </div>
-                <h4 className="text-base font-bold text-white mb-1">Intern Performance</h4>
-                <p className="text-xs text-slate-400 mb-3">Weekly Logbook & Mentor Scoring</p>
-                <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/40 text-xs text-slate-300 space-y-1">
-                  <div className="flex justify-between"><span>Work Quality:</span><strong className="text-emerald-400">5/5</strong></div>
-                  <div className="flex justify-between"><span>Punctuality:</span><strong className="text-emerald-400">4/5</strong></div>
-                  <div className="flex justify-between"><span>Teamwork:</span><strong className="text-sky-400">5/5</strong></div>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
-                <span>Mentor Feedback</span>
-                <span className="text-emerald-400 font-semibold">Approved ✓</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Tailored Roles (3-Tab Pillar Section) ─────────────────────────────── */}
-      <section id="roles" className="py-24 bg-white border-y border-slate-200/80">
+      {/* ── Popular Job Categories Section ──────────────────── */}
+      <section id="categories" className="py-20 bg-white border-y border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
-              One Platform, Two Ecosystems
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-4 tracking-tight">
-              Designed specifically for your workflow
-            </h2>
-            <p className="text-base sm:text-lg text-slate-600 mt-3">
-              Whether you are seeking your first internship or recruiting the next generation of talent.
-            </p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-3">
+                {isTh ? 'สายงานยอดนิยม' : 'Top Fields'}
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 font-heading">
+                {t.home.browseByCategory}
+              </h2>
+              <p className="text-slate-600 mt-2 text-base">
+                {t.home.browseSubtitle}
+              </p>
+            </div>
+            <Link 
+              to="/register" 
+              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
+            >
+              {t.home.viewAllJobs}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
 
-            {/* Tab Switches */}
-            <div className="flex items-center justify-center gap-2 mt-8 p-1.5 bg-slate-100 rounded-2xl max-w-md mx-auto">
-              <button
-                onClick={() => setActiveTab('student')}
-                className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all ${
-                  activeTab === 'student' 
-                    ? 'bg-white text-primary-700 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                For Students
-              </button>
-              <button
-                onClick={() => setActiveTab('company')}
-                className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all ${
-                  activeTab === 'company' 
-                    ? 'bg-white text-primary-700 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                For Companies
-              </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <div 
+                  key={cat.id}
+                  onClick={() => {
+                    setSelectedCategory(cat.id);
+                    const el = document.getElementById('search');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="group relative p-6 rounded-3xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 cursor-pointer flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base group-hover:text-emerald-700 transition-colors font-heading">
+                        {cat.name}
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium mt-1">
+                        {cat.count}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-white group-hover:bg-emerald-50 border border-slate-200 group-hover:border-emerald-200 flex items-center justify-center text-slate-400 group-hover:text-emerald-600 transition-all">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Featured Internships Grid ────────────────────────── */}
+      <section id="featured" className="py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-3">
+                {isTh ? 'เปิดรับสมัครตรง' : 'Handpicked Openings'}
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 font-heading">
+                {t.home.featuredTitle}
+              </h2>
+              <p className="text-slate-600 mt-2 text-base">
+                {t.home.featuredSubtitle}
+              </p>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap gap-2 mt-6 md:mt-0 p-1.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
+              {(['ALL', 'TECH', 'DESIGN', 'MARKETING', 'REMOTE'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveJobTab(tab)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeJobTab === tab 
+                      ? 'bg-emerald-600 text-white shadow-xs' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {tab === 'ALL' ? (isTh ? 'ทั้งหมด' : 'All') :
+                   tab === 'TECH' ? (isTh ? 'เทคโนโลยี' : 'Tech') :
+                   tab === 'DESIGN' ? (isTh ? 'การออกแบบ' : 'Design') :
+                   tab === 'MARKETING' ? (isTh ? 'การตลาด' : 'Marketing') : (isTh ? 'ทำงานทางไกล' : 'Remote')}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Tab Content Display */}
-          <div className="bg-slate-50 p-8 sm:p-12 rounded-3xl border border-slate-200">
-            {activeTab === 'student' && (
-              <div className="grid md:grid-cols-2 gap-10 items-center">
-                <div className="space-y-6">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-100 flex items-center justify-center text-primary-700">
-                    <GraduationCap className="w-6 h-6" />
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredJobs.map(job => (
+              <div 
+                key={job.id}
+                className="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 flex flex-col justify-between group"
+              >
+                <div>
+                  {/* Top Bar */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-2xl ${job.logoBg} flex items-center justify-center text-white font-extrabold text-sm shadow-md`}>
+                        {job.logo}
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                          {job.company}
+                        </div>
+                        <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          {job.location}
+                        </div>
+                      </div>
+                    </div>
+
+                    {job.featured && (
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        Hot
+                      </span>
+                    )}
                   </div>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                    Fast-track your dream career with certified applications
+
+                  {/* Title */}
+                  <h3 className="text-lg font-extrabold text-slate-900 mb-3 leading-snug font-heading group-hover:text-emerald-800 transition-colors">
+                    {job.title}
                   </h3>
-                  <p className="text-slate-600 leading-relaxed">
-                    Build a standout profile with verified academic credentials. Browse pre-approved internship posts, apply with your resume in seconds, and track every stage transparently.
-                  </p>
-                  <ul className="space-y-3.5">
-                    <li className="flex items-center text-sm font-medium text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Build a verified profile with GPA, skills, and portfolio
-                    </li>
-                    <li className="flex items-center text-sm font-medium text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Real-time push updates on HR review, interview calls, and offers
-                    </li>
-                    <li className="flex items-center text-sm font-medium text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Weekly logbook tracking with mentor feedback and ratings
-                    </li>
-                  </ul>
-                  <div className="pt-2">
-                    <Link to="/register" className="inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
-                      Join as a Student <ArrowRight className="w-4 h-4 ml-1" />
-                    </Link>
+
+                  {/* Meta Specs */}
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 mb-4 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-1.5 font-semibold text-emerald-700">
+                      <Coins className="w-3.5 h-3.5 text-emerald-600" />
+                      {job.stipend}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      {job.type}
+                    </div>
+                  </div>
+
+                  {/* Skill Badges */}
+                  <div className="flex flex-wrap gap-1.5 mb-6">
+                    {job.tags.map(tag => (
+                      <span 
+                        key={tag}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-600 group-hover:bg-emerald-50 group-hover:text-emerald-800 transition-colors"
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <span className="text-sm font-bold text-slate-900">Student Portal Preview</span>
-                    <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md">Active Account</span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                    <div>
-                      <h5 className="text-sm font-bold text-slate-900">Frontend Intern Application</h5>
-                      <p className="text-xs text-slate-500 mt-0.5">Applied to TechCorp • Bangkok</p>
-                    </div>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                      Accepted
-                    </span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                    <div>
-                      <h5 className="text-sm font-bold text-slate-900">Data Analytics Intern</h5>
-                      <p className="text-xs text-slate-500 mt-0.5">Applied to DataHub • Remote</p>
-                    </div>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-sky-100 text-sky-800">
-                      In Review
-                    </span>
-                  </div>
+                {/* Footer Action */}
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-xs text-slate-400 font-medium">
+                    {job.appliedCount} {isTh ? 'ผู้สมัคร' : 'applicants'}
+                  </span>
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white transition-all shadow-xs"
+                  >
+                    {t.home.applyNow}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
-            )}
+            ))}
+          </div>
 
-            {activeTab === 'company' && (
-              <div className="grid md:grid-cols-2 gap-10 items-center">
-                <div className="space-y-6">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-700">
-                    <Building2 className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                    Hire top talent and manage intern performance end-to-end
-                  </h3>
-                  <p className="text-slate-600 leading-relaxed">
-                    Post verified internship roles, filter students by major, GPA, and skill tags, and streamline hiring decisions without messy email attachments or lost resumes.
-                  </p>
-                  <ul className="space-y-3.5">
-                    <li className="flex items-center text-sm font-medium text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Unified applicant pipeline with CV preview and status updates
-                    </li>
-                    <li className="flex items-center text-sm font-medium text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Instant offer dispatch with real-time status tracking
-                    </li>
-                    <li className="flex items-center text-sm font-medium text-slate-700">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                      Customizable job requirements, allowances, and hybrid options
-                    </li>
-                  </ul>
-                  <div className="pt-2">
-                    <Link to="/register" className="inline-flex items-center text-sm font-bold text-indigo-600 hover:text-indigo-700">
-                      Join as Employer / HR <ArrowRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <span className="text-sm font-bold text-slate-900">Recruiter Pipeline</span>
-                    <span className="text-xs text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-md">3 Active Listings</span>
-                  </div>
-                  <div className="space-y-2.5">
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-semibold text-slate-900">Software Engineer Intern</span>
-                        <p className="text-[11px] text-slate-500">12 Applicants • 2 Shortlisted</p>
-                      </div>
-                      <span className="text-xs font-bold text-primary-600">Review (2)</span>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-semibold text-slate-900">UX/UI Design Intern</span>
-                        <p className="text-[11px] text-slate-500">8 Applicants • 1 Accepted</p>
-                      </div>
-                      <span className="text-xs font-bold text-emerald-600">Offer Sent</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-
+          {/* View More CTA */}
+          <div className="text-center mt-12">
+            <Link 
+              to="/register"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 shadow-md hover:shadow-lg transition-all"
+            >
+              {t.home.viewAllJobs}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ── How It Works (4-Step Roadmap) ───────────────────────────────────── */}
-      <section id="how-it-works" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
-            Streamlined Process
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-4 tracking-tight">
-            How InternFlow Connects the Loop in 4 Steps
-          </h2>
-        </div>
-
-        <div className="grid md:grid-cols-4 gap-6">
-          {/* Step 1 */}
-          <div className="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm relative group hover:shadow-xl hover:-translate-y-1 transition-all">
-            <span className="w-10 h-10 rounded-2xl bg-primary-50 text-primary-700 font-black text-base flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:text-white transition-colors">
-              01
-            </span>
-            <h4 className="text-lg font-bold text-slate-900 mb-2">Create Profile</h4>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Register as a student to find internships, or as an HR recruiter to find talent.
+      {/* ── How It Works (3 Steps for Students) ─────────────── */}
+      <section id="how-it-works" className="py-24 bg-white border-t border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-3">
+              {isTh ? 'ขั้นตอนที่ราบรื่น' : 'Frictionless Journey'}
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 font-heading">
+              {t.home.howTitle}
+            </h2>
+            <p className="text-slate-600 mt-2 text-base">
+              {t.home.howSubtitle}
             </p>
           </div>
 
-          {/* Step 2 */}
-          <div className="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm relative group hover:shadow-xl hover:-translate-y-1 transition-all">
-            <span className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 font-black text-base flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-              02
-            </span>
-            <h4 className="text-lg font-bold text-slate-900 mb-2">Discover & Apply</h4>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Browse curated internships matching your skills, upload resumes, and submit applications with 1-click.
-            </p>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 relative">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white font-extrabold text-xl flex items-center justify-center mb-6 shadow-md shadow-emerald-600/20 font-heading">
+                1
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3 font-heading">
+                {t.home.step1Title}
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {t.home.step1Desc}
+              </p>
+            </div>
 
-          {/* Step 3 */}
-          <div className="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm relative group hover:shadow-xl hover:-translate-y-1 transition-all">
-            <span className="w-10 h-10 rounded-2xl bg-sky-50 text-sky-700 font-black text-base flex items-center justify-center mb-6 group-hover:bg-sky-600 group-hover:text-white transition-colors">
-              03
-            </span>
-            <h4 className="text-lg font-bold text-slate-900 mb-2">HR Interview & Offer</h4>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Company recruiters review verified credentials and accept qualified candidates directly on the platform.
-            </p>
-          </div>
+            <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 relative">
+              <div className="w-12 h-12 rounded-2xl bg-teal-600 text-white font-extrabold text-xl flex items-center justify-center mb-6 shadow-md shadow-teal-600/20 font-heading">
+                2
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3 font-heading">
+                {t.home.step2Title}
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {t.home.step2Desc}
+              </p>
+            </div>
 
-          {/* Step 4 */}
-          <div className="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm relative group hover:shadow-xl hover:-translate-y-1 transition-all">
-            <span className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 font-black text-base flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-              04
-            </span>
-            <h4 className="text-lg font-bold text-slate-900 mb-2">Company Evaluation</h4>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Company mentors review weekly logs, rate intern performance, and provide feedback to complete the internship cycle.
-            </p>
+            <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 relative">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-800 text-white font-extrabold text-xl flex items-center justify-center mb-6 shadow-md shadow-emerald-800/20 font-heading">
+                3
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3 font-heading">
+                {t.home.step3Title}
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {t.home.step3Desc}
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── FAQ Accordion Section ───────────────────────────────────────────── */}
-      <section id="faq" className="py-24 bg-white border-t border-slate-200">
+      {/* ── Hiring Partner Callout (For Employers) ───────────── */}
+      <section className="py-20 bg-gradient-to-br from-[#062314] via-[#0a3820] to-[#04190e] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            <div className="lg:col-span-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-4">
+                {isTh ? 'สำหรับสถานประกอบการและ HR' : 'For Employers & Recruiters'}
+              </div>
+              <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight mb-4 font-heading">
+                {isTh ? 'เบื่อไหมกับเรซูเมที่ไม่ตรงปก และผู้สมัครสละสิทธิ์กระทันหัน?' : 'Tired of Unverified Resumes and Candidate Ghosting?'}
+              </h2>
+              <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl mb-6">
+                {isTh ? 'เปิดรับสมัครตำแหน่งฝึกงานได้ใน 2 นาที รับผู้สมัครที่ผ่านการคัดกรองคุณสมบัติจริง พร้อมระบบตอบรับข้อเสนอที่มีผลผูกพันและการตรวจ Logbook ใน 1 คลิก' : 'Post your openings in 2 minutes. Receive pre-screened candidates matching your exact criteria with binding offer commitments and 1-click mentor oversight.'}
+              </p>
+              <div className="flex flex-wrap gap-4 text-sm text-emerald-300 font-semibold">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>{isTh ? 'คัดกรองไวกว่าเดิม 80%' : '80% Faster Screening'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>{isTh ? 'ไม่มีการสละสิทธิ์วันแรก' : 'Zero Day-One No-Shows'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>{isTh ? 'รองรับมาตรฐาน CWIE 16 สัปดาห์' : 'CWIE 16-Week Ready'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-4 text-left lg:text-right">
+              <Link 
+                to="/register"
+                className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-105 transition-all"
+              >
+                {isTh ? 'ลงประกาศรับสมัครงาน' : 'Post an Internship'}
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ Section ─────────────────────────────────────── */}
+      <section id="faq" className="py-24 bg-slate-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
-              Got Questions?
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-4 tracking-tight">
-              Frequently Asked Questions
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-heading">
+              {t.home.faq}
             </h2>
+            <p className="text-slate-600 mt-2 text-base">
+              {isTh ? 'ตอบทุกข้อสงสัยเกี่ยวกับการใช้งานแพลตฟอร์ม InternFlow' : 'Everything you need to know about the InternFlow platform.'}
+            </p>
           </div>
 
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <div 
                 key={index}
-                className="border border-slate-200 rounded-2xl overflow-hidden transition-all bg-slate-50/50"
+                className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden transition-all shadow-xs"
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 hover:text-primary-600 transition-colors"
+                  className="w-full p-6 text-left flex justify-between items-center gap-4 hover:bg-slate-50 transition-colors cursor-pointer"
                 >
-                  <span className="text-base sm:text-lg">{faq.q}</span>
-                  <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${openFaq === index ? 'rotate-180 text-primary-600' : ''}`} />
+                  <span className="text-base font-bold text-slate-900 font-heading">
+                    {faq.q}
+                  </span>
+                  <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${openFaq === index ? 'rotate-180 text-emerald-600' : ''}`} />
                 </button>
                 {openFaq === index && (
-                  <div className="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                  <div className="px-6 pb-6 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
                     {faq.a}
                   </div>
                 )}
@@ -524,62 +723,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Call to Action Banner ───────────────────────────────────────────── */}
-      <section className="py-20 relative overflow-hidden bg-slate-900 text-white">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-primary-300 text-xs font-semibold mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-primary-400" /> Start Your Journey Today
-          </div>
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-6 leading-tight">
-            Ready to streamline your internship journey?
-          </h2>
-          <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Join students and company recruiters already collaborating seamlessly on InternFlow.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link 
-              to="/register" 
-              className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-bold text-slate-900 bg-white rounded-2xl hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] shadow-2xl transition-all"
-            >
-              Get Started Now
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
-            <Link 
-              to="/login" 
-              className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-slate-800/80 border border-slate-700 rounded-2xl hover:bg-slate-800 transition-all"
-            >
-              Sign In to Account
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      {/* ── Modern Footer ───────────────────────────────────── */}
       <footer className="bg-white border-t border-slate-200 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center shadow-md">
-                <GraduationCap className="text-white w-5 h-5" />
+              <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-sm">
+                IF
               </div>
-              <span className="text-xl font-bold text-slate-900">InternFlow</span>
+              <span className="text-xl font-black text-slate-900 font-heading">
+                Intern<span className="text-emerald-600">Flow</span>
+              </span>
+              <span className="text-xs text-slate-400 ml-2">
+                © {new Date().getFullYear()} InternFlow Platform. All rights reserved.
+              </span>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600">
-              <a href="#features" className="hover:text-primary-600 transition-colors">Features</a>
-              <a href="#how-it-works" className="hover:text-primary-600 transition-colors">How It Works</a>
-              <a href="#roles" className="hover:text-primary-600 transition-colors">Ecosystem</a>
-              <a href="#faq" className="hover:text-primary-600 transition-colors">FAQ</a>
-              <Link to="/login" className="hover:text-primary-600 transition-colors">Log In</Link>
-              <Link to="/register" className="hover:text-primary-600 transition-colors">Sign Up</Link>
+            <div className="flex items-center gap-6 text-sm text-slate-600">
+              <Link to="/register" className="hover:text-emerald-600 transition-colors">{t.home.findInternships}</Link>
+              <Link to="/login" className="hover:text-emerald-600 transition-colors">{t.home.signIn}</Link>
+              <a href="https://cwie.mhesi.go.th" target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline">
+                MHESI CWIE Framework &rarr;
+              </a>
             </div>
-
-            <p className="text-xs text-slate-500">
-              © {new Date().getFullYear()} InternFlow. All rights reserved.
-            </p>
           </div>
         </div>
       </footer>

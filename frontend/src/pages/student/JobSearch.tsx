@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import PublicProfileModal from '../../components/modals/PublicProfileModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface AttachmentLink {
   title: string;
@@ -58,6 +59,7 @@ export default function JobSearch() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'remote' | 'onsite'>('all');
+  const { t, language } = useLanguage();
 
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [viewingCompanyId, setViewingCompanyId] = useState<string | null>(null);
@@ -218,18 +220,18 @@ export default function JobSearch() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
-              Job Board
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+              {t.nav.findInternships}
             </span>
             <span className="text-xs font-semibold text-slate-500">
-              {jobs.length} Opportunities Open
+              {jobs.length} {language === 'th' ? 'ตำแหน่งที่เปิดรับ' : 'Opportunities Open'}
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Find Your Next Internship
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-heading">
+            {t.jobs.title}
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Browse verified company postings and apply directly with 1-click.
+            {t.jobs.subtitle}
           </p>
         </div>
 
@@ -239,8 +241,8 @@ export default function JobSearch() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search by role, company, location..."
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-2xs"
+              placeholder={t.jobs.searchPlaceholder}
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -249,27 +251,27 @@ export default function JobSearch() {
           <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl w-full sm:w-auto justify-center">
             <button
               onClick={() => setFilterType('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 filterType === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              All ({jobs.length})
+              {language === 'th' ? `ทั้งหมด (${jobs.length})` : `All (${jobs.length})`}
             </button>
             <button
               onClick={() => setFilterType('remote')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                filterType === 'remote' ? 'bg-white text-primary-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                filterType === 'remote' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Remote
+              {t.common.modalities.remote}
             </button>
             <button
               onClick={() => setFilterType('onsite')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 filterType === 'onsite' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              On-site
+              {t.common.modalities.onSite}
             </button>
           </div>
         </div>
@@ -518,10 +520,10 @@ export default function JobSearch() {
                         <button
                           type="button"
                           onClick={handleAddAttachmentLink}
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1 rounded-lg transition-colors"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                          + Add Link
+                          Add Link
                         </button>
                       </div>
                     </div>

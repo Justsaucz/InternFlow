@@ -9,16 +9,19 @@ datasource db {
 enum Role {
   STUDENT
   COMPANY_HR
+  UNIVERSITY_ADMIN
 }
 
 enum ApplicationStatus {
   PENDING
   REVIEWING
+  INTERVIEW_SCHEDULED
   ACCEPTED
   COMMITTED
   CANCEL_REQUESTED
   CANCELLED
   REJECTED
+  APPROVED_BY_UNIVERSITY
 }
 
 model User {
@@ -54,6 +57,7 @@ model StudentProfile {
   
   applications Application[]
   weeklyLogs   WeeklyLog[]
+  dailyLogs    DailyLog[]
   evaluations  InternshipEvaluation[]
 }
 
@@ -118,6 +122,7 @@ model Application {
   
   documents      Document[]
   weeklyLogs     WeeklyLog[]
+  dailyLogs      DailyLog[]
   evaluation     InternshipEvaluation?
 
   @@unique([studentId, jobPostId])
@@ -147,7 +152,7 @@ model WeeklyLog {
   weekNumber           Int
   startDate            DateTime
   endDate              DateTime
-  workModality         String         @default("ON_SITE") // ON_SITE, REMOTE, HYBRID
+  workModality         String         @default("ON_SITE")
   supervisorName       String?
   plannedTasks         String?
   tasksDone            String
@@ -156,20 +161,48 @@ model WeeklyLog {
   hoursWorked          Float          @default(40.0)
   attachmentUrl        String?
   
-  // Company Sign-off
   mentorApproved       Boolean        @default(false)
-  mentorRating         Int?           // 1-5 stars
+  mentorRating         Int?
   mentorFeedback       String?
-  
-
   
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 }
 
+model DailyLog {
+  id                   String         @id @default(uuid())
+  studentId            String
+  student              StudentProfile @relation(fields: [studentId], references: [id])
+  applicationId        String?
+  application          Application?   @relation(fields: [applicationId], references: [id])
+  
+  logDate              DateTime
+  weekNumber           Int            @default(1)
+  hoursWorked          Float          @default(8.0)
+  workModality         String         @default("ON_SITE") // ON_SITE, REMOTE, HYBRID
+  supervisorName       String?
+  tasksDone            String         // JSON string of task items
+  problemsAndSolutions String?
+  learnings            String
+  attachmentUrl        String?
+  
+  isBackdated          Boolean        @default(false)
+  
+  // Company Sign-off (Can be approved per-day or batch-approved per-week)
+  mentorApproved       Boolean        @default(false)
+  mentorRating         Int?           // 1-5 stars
+  mentorFeedback       String?
+  
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@unique([studentId, logDate])
+}
+
 enum EvaluationStatus {
   PENDING_REVIEW
   COMPANY_EVALUATED
+  GRADED
 }
 
 model InternshipEvaluation {

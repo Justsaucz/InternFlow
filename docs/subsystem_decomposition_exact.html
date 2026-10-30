@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>InternFlow - Subsystem Decomposition</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 35px 45px;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #000000;
+  }
+  #capture-area {
+    background: #ffffff;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .header {
+    margin-bottom: 25px;
+  }
+  .header h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 10px 0;
+  }
+  .header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 14px 0;
+  }
+  .header p {
+    font-size: 15px;
+    color: #111;
+    margin: 0 0 20px 28px;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+<div id="capture-area">
+  <div class="header">
+    <h2>Software architecture</h2>
+    <h3>Subsystem decomposition</h3>
+    <p>The diagram below illustrates the different subsystems implemented into InternFlow.</p>
+  </div>
+
+  <svg viewBox="0 0 960 410" width="960" height="410" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Arrow marker -->
+      <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#000000" />
+      </marker>
+      <style>
+        .box-rect { fill: #ffffff; stroke: #000000; stroke-width: 2; rx: 12px; ry: 12px; }
+        .box-title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13.5px; font-weight: 600; fill: #000000; text-anchor: middle; }
+        .tree-line { stroke: #000000; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .item-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13.5px; font-weight: 400; fill: #000000; }
+      </style>
+    </defs>
+
+    <!-- ================= ROW 1 ================= -->
+    <!-- Col 1: User Authentication System -->
+    <g transform="translate(10, 10)">
+      <rect x="0" y="8" width="160" height="74" class="box-rect" />
+      <text x="80" y="42" class="box-title">User Authentication</text>
+      <text x="80" y="59" class="box-title">System</text>
+      <!-- Tree fork lines -->
+      <path d="M 160 45 L 210 45" class="tree-line" />
+      <path d="M 210 20 L 210 70" class="tree-line" />
+      <line x1="210" y1="20" x2="255" y2="20" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="45" x2="255" y2="45" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="70" x2="255" y2="70" class="tree-line" marker-end="url(#arrow)" />
+      <!-- Items -->
+      <text x="265" y="24" class="item-text">User Login</text>
+      <text x="265" y="49" class="item-text">User Signup</text>
+      <text x="265" y="74" class="item-text">Role Selection</text>
+    </g>
+
+    <!-- Col 2: Job Board System -->
+    <g transform="translate(500, 10)">
+      <rect x="0" y="8" width="160" height="74" class="box-rect" />
+      <text x="80" y="42" class="box-title">Job Board</text>
+      <text x="80" y="59" class="box-title">System</text>
+      <!-- Tree fork lines -->
+      <path d="M 160 45 L 210 45" class="tree-line" />
+      <path d="M 210 20 L 210 70" class="tree-line" />
+      <line x1="210" y1="20" x2="255" y2="20" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="45" x2="255" y2="45" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="70" x2="255" y2="70" class="tree-line" marker-end="url(#arrow)" />
+      <!-- Items -->
+      <text x="265" y="24" class="item-text">Search &amp; Filter Jobs</text>
+      <text x="265" y="49" class="item-text">Post Internship Listings</text>
+      <text x="265" y="74" class="item-text">View Applicant Pool</text>
+    </g>
+
+    <!-- ================= ROW 2 ================= -->
+    <!-- Col 1: Application Tracking System -->
+    <g transform="translate(10, 145)">
+      <rect x="0" y="8" width="160" height="74" class="box-rect" />
+      <text x="80" y="42" class="box-title">Application Tracking</text>
+      <text x="80" y="59" class="box-title">System</text>
+      <!-- Tree fork lines -->
+      <path d="M 160 45 L 210 45" class="tree-line" />
+      <path d="M 210 20 L 210 70" class="tree-line" />
+      <line x1="210" y1="20" x2="255" y2="20" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="45" x2="255" y2="45" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="70" x2="255" y2="70" class="tree-line" marker-end="url(#arrow)" />
+      <!-- Items -->
+      <text x="265" y="24" class="item-text">Submit Application</text>
+      <text x="265" y="49" class="item-text">Track Review Status</text>
+      <text x="265" y="74" class="item-text">Accept &amp; Commit Offer</text>
+    </g>
+
+    <!-- Col 2: CWIE Daily Logbook System -->
+    <g transform="translate(500, 145)">
+      <rect x="0" y="8" width="160" height="74" class="box-rect" />
+      <text x="80" y="42" class="box-title">CWIE Daily Logbook</text>
+      <text x="80" y="59" class="box-title">System</text>
+      <!-- Tree fork lines -->
+      <path d="M 160 45 L 210 45" class="tree-line" />
+      <path d="M 210 20 L 210 70" class="tree-line" />
+      <line x1="210" y1="20" x2="255" y2="20" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="45" x2="255" y2="45" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="70" x2="255" y2="70" class="tree-line" marker-end="url(#arrow)" />
+      <!-- Items -->
+      <text x="265" y="24" class="item-text">Record Daily Tasks</text>
+      <text x="265" y="49" class="item-text">Log Work Hours</text>
+      <text x="265" y="74" class="item-text">Supervisor Sign-Off</text>
+    </g>
+
+    <!-- ================= ROW 3 ================= -->
+    <!-- Col 1: Document Storage Service -->
+    <g transform="translate(10, 280)">
+      <rect x="0" y="10" width="160" height="66" class="box-rect" />
+      <text x="80" y="40" class="box-title">Document Storage</text>
+      <text x="80" y="57" class="box-title">Service</text>
+      <!-- Tree fork lines (2 items) -->
+      <path d="M 160 43 L 210 43" class="tree-line" />
+      <path d="M 210 28 L 210 58" class="tree-line" />
+      <line x1="210" y1="28" x2="255" y2="28" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="58" x2="255" y2="58" class="tree-line" marker-end="url(#arrow)" />
+      <!-- Items -->
+      <text x="265" y="32" class="item-text">Upload CV &amp; Resume</text>
+      <text x="265" y="62" class="item-text">Stream Files to S3</text>
+    </g>
+
+    <!-- Col 2: Evaluation & Report System -->
+    <g transform="translate(500, 280)">
+      <rect x="0" y="10" width="160" height="66" class="box-rect" />
+      <text x="80" y="40" class="box-title">Evaluation &amp; Report</text>
+      <text x="80" y="57" class="box-title">System</text>
+      <!-- Tree fork lines (2 items) -->
+      <path d="M 160 43 L 210 43" class="tree-line" />
+      <path d="M 210 28 L 210 58" class="tree-line" />
+      <line x1="210" y1="28" x2="255" y2="28" class="tree-line" marker-end="url(#arrow)" />
+      <line x1="210" y1="58" x2="255" y2="58" class="tree-line" marker-end="url(#arrow)" />
+      <!-- Items -->
+      <text x="265" y="32" class="item-text">Submit Rubric Rating</text>
+      <text x="265" y="62" class="item-text">Generate Certificate</text>
+    </g>
+  </svg>
+</div>
+
+</body>
+</html>

@@ -29,8 +29,8 @@ const getCompanyInternsHandler = async (req: AuthRequest, res: Response): Promis
         student: {
           include: {
             user: { select: { id: true, name: true, email: true, avatarUrl: true } },
-            weeklyLogs: {
-              orderBy: { weekNumber: 'asc' }
+            dailyLogs: {
+              orderBy: { logDate: 'asc' }
             },
             evaluations: {
               where: { companyId: company.id }
@@ -43,7 +43,7 @@ const getCompanyInternsHandler = async (req: AuthRequest, res: Response): Promis
     });
 
     const interns = applications.map((app) => {
-      const logs = app.student.weeklyLogs;
+      const logs = app.student.dailyLogs || [];
       const totalHours = logs.reduce((sum, l) => sum + l.hoursWorked, 0);
       const approvedHours = logs.filter(l => l.mentorApproved).reduce((sum, l) => sum + l.hoursWorked, 0);
 
@@ -94,11 +94,28 @@ router.post('/submit', authenticate, authorize([Role.COMPANY_HR]), async (req: A
       return;
     }
 
+    // Resolve studentId if not provided directly
+    let targetStudentId = studentId;
+    if (!targetStudentId && applicationId) {
+      const app = await prisma.application.findUnique({
+        where: { id: applicationId },
+        select: { studentId: true }
+      });
+      targetStudentId = app?.studentId;
+    }
+
+    if (!targetStudentId) {
+      res.status(400).json({ error: 'Student ID or valid Application ID is required.' });
+      return;
+    }
+
     // Check if evaluation exists
     const existing = await prisma.internshipEvaluation.findFirst({
       where: {
-        studentId,
-        companyId: company.id
+        OR: [
+          ...(applicationId ? [{ applicationId }] : []),
+          { studentId: targetStudentId, companyId: company.id }
+        ]
       }
     });
 
@@ -119,7 +136,7 @@ router.post('/submit', authenticate, authorize([Role.COMPANY_HR]), async (req: A
 
     const created = await prisma.internshipEvaluation.create({
       data: {
-        studentId,
+        studentId: targetStudentId,
         companyId: company.id,
         applicationId: applicationId || null,
         workQualityScore: Number(workQualityScore),
@@ -148,8 +165,8 @@ router.get('/report/:studentId', authenticate, async (req: AuthRequest, res: Res
       where: { id: studentId },
       include: {
         user: { select: { name: true, email: true } },
-        weeklyLogs: {
-          orderBy: { weekNumber: 'asc' }
+        dailyLogs: {
+          orderBy: { logDate: 'asc' }
         },
         evaluations: {
           include: {
@@ -177,7 +194,7 @@ router.get('/report/:studentId', authenticate, async (req: AuthRequest, res: Res
     const studentAny = student as any;
     const activeApp = studentAny.applications ? studentAny.applications[0] : null;
     const evaluation = studentAny.evaluations ? studentAny.evaluations[0] : null;
-    const logs = studentAny.weeklyLogs || [];
+    const logs = studentAny.dailyLogs || [];
     const totalHours = logs.reduce((sum: number, l: any) => sum + l.hoursWorked, 0);
 
     res.json({
@@ -185,6 +202,7 @@ router.get('/report/:studentId', authenticate, async (req: AuthRequest, res: Res
       activeApp,
       evaluation,
       totalHours,
+      dailyLogs: logs,
       weeklyLogs: logs
     });
   } catch (error) {

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>InternFlow - Dual-Role Swimlane Workflow</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
+  }
+  #workflow-container {
+    background: #ffffff;
+    width: 960px;
+    margin: 0 auto;
+    padding: 10px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .header h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 5px 0;
+    letter-spacing: -0.5px;
+  }
+  .header p {
+    font-size: 13.5px;
+    color: #64748b;
+    margin: 0 0 14px 0;
+  }
+  .legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #334155;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+<div id="workflow-container">
+  <div class="header">
+    <h2>Workflow of the System</h2>
+    <p>InternFlow Dual-Role Operational Lifecycle &amp; Interaction Touchpoints</p>
+    
+    <div class="legend">
+      <div class="legend-item"><span class="legend-box" style="background: #f0fdf4; border: 1.5px solid #059669;"></span> <span>Student Action</span></div>
+      <div class="legend-item"><span class="legend-box" style="background: #eff6ff; border: 1.5px solid #2563eb;"></span> <span>Company HR / Mentor Action</span></div>
+      <div class="legend-item"><span class="legend-box" style="background: #fef2f2; border: 1.5px solid #dc2626;"></span> <span>Automated System Engine</span></div>
+      <div class="legend-item"><span class="legend-box" style="background: #fffbeb; border: 1.5px solid #d97706; transform: rotate(45deg); width: 10px; height: 10px; margin: 0 3px;"></span> <span>Decision Gate</span></div>
+      <div class="legend-item"><span style="color: #6366f1; font-weight: 800; font-size: 14px;">⇄</span> <span>Cross-Role Touchpoint</span></div>
+    </div>
+  </div>
+
+  <svg viewBox="0 0 940 1285" width="940" height="1285" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Markers -->
+      <marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#475569" />
+      </marker>
+      <marker id="arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669" />
+      </marker>
+      <marker id="arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb" />
+      </marker>
+      <marker id="arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#dc2626" />
+      </marker>
+      <marker id="arr-sync" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366f1" />
+      </marker>
+
+      <filter id="shadow" x="-3%" y="-2%" width="106%" height="106%" filterUnits="userSpaceOnUse">
+        <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000000" flood-opacity="0.06" />
+      </filter>
+    </defs>
+
+    <style>
+      /* Swimlane Containers */
+      .lane-stu-bg { fill: #fcfdfd; stroke: #bbf7d0; stroke-width: 1.4; rx: 12px; }
+      .lane-hr-bg  { fill: #fcfdfd; stroke: #bfdbfe; stroke-width: 1.4; rx: 12px; }
+      .lane-hdr-stu { fill: #f0fdf4; stroke: #059669; stroke-width: 1.5; rx: 8px; }
+      .lane-hdr-hr  { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.5; rx: 8px; }
+      .lane-title-stu { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 13px; font-weight: 800; fill: #059669; text-anchor: middle; letter-spacing: 0.5px; }
+      .lane-title-hr  { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 13px; font-weight: 800; fill: #2563eb; text-anchor: middle; letter-spacing: 0.5px; }
+
+      /* Nodes */
+      .node-start { fill: #f8fafc; stroke: #334155; stroke-width: 1.8; rx: 18px; }
+      .node-pub   { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; rx: 8px; }
+      .node-stu   { fill: #f0fdf4; stroke: #059669; stroke-width: 1.6; rx: 8px; }
+      .node-hr    { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.6; rx: 8px; }
+      .node-sys   { fill: #fef2f2; stroke: #dc2626; stroke-width: 1.6; rx: 8px; }
+      .node-dec   { fill: #fffbeb; stroke: #d97706; stroke-width: 1.5; }
+      .node-term  { fill: #fef2f2; stroke: #dc2626; stroke-width: 1.5; rx: 6px; }
+
+      /* Tags / Badges inside cards */
+      .tag-stu { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9px; font-weight: 800; fill: #059669; text-anchor: middle; letter-spacing: 0.6px; }
+      .tag-hr  { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9px; font-weight: 800; fill: #2563eb; text-anchor: middle; letter-spacing: 0.6px; }
+      .tag-sys { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9px; font-weight: 800; fill: #dc2626; text-anchor: middle; letter-spacing: 0.6px; }
+      .tag-pub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9px; font-weight: 800; fill: #64748b; text-anchor: middle; letter-spacing: 0.6px; }
+
+      /* Typography */
+      .txt-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11.5px; font-weight: 700; fill: #0f172a; text-anchor: middle; }
+      .txt-sub   { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9.8px; font-weight: 500; fill: #64748b; text-anchor: middle; }
+      .txt-yes   { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 10.5px; font-weight: 700; fill: #059669; text-anchor: middle; }
+      .txt-no    { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 10.5px; font-weight: 700; fill: #dc2626; text-anchor: middle; }
+
+      /* Touchpoint Connectors */
+      .sync-line  { fill: none; stroke: #6366f1; stroke-width: 1.8; stroke-dasharray: 4,3; }
+      .sync-bg    { fill: #eef2ff; stroke: #6366f1; stroke-width: 1.2; rx: 11px; }
+      .sync-txt   { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9px; font-weight: 800; fill: #4338ca; text-anchor: middle; }
+
+      /* Standard Lines */
+      .line       { fill: none; stroke: #475569; stroke-width: 1.5; }
+      .line-green { fill: none; stroke: #059669; stroke-width: 1.5; }
+      .line-blue  { fill: none; stroke: #2563eb; stroke-width: 1.5; }
+      .line-red   { fill: none; stroke: #dc2626; stroke-width: 1.5; }
+    </style>
+
+    <!-- ========================================================================= -->
+    <!-- SWIMLANE BACKGROUNDS & HEADERS                                            -->
+    <!-- Left Lane: Student (x = 20 to 455, width = 435, center = 237)             -->
+    <!-- Right Lane: Company (x = 485 to 920, width = 435, center = 702)           -->
+    <!-- ========================================================================= -->
+
+    <!-- Student Lane Background -->
+    <rect class="lane-stu-bg" x="20" y="10" width="435" height="1260" />
+    <rect class="lane-hdr-stu" x="40" y="22" width="395" height="36" filter="url(#shadow)" />
+    <text class="lane-title-stu" x="237" y="45">🟢 STUDENT APPLICANT &amp; INTERN</text>
+
+    <!-- Company Lane Background -->
+    <rect class="lane-hr-bg" x="485" y="10" width="435" height="1260" />
+    <rect class="lane-hdr-hr" x="505" y="22" width="395" height="36" filter="url(#shadow)" />
+    <text class="lane-title-hr" x="702" y="45">🔵 COMPANY HR &amp; CWIE MENTOR</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- LEVEL 1: ACCESS & JOB POSTING                                             -->
+    <!-- ========================================================================= -->
+
+    <!-- Student: Start & Browse Jobs -->
+    <rect class="node-start" x="147" y="78" width="180" height="32" filter="url(#shadow)" />
+    <text class="txt-title" x="237" y="99">Start: Visit Platform (/)</text>
+
+    <path class="line-green" d="M 237 110 L 237 132" marker-end="url(#arr-green)" />
+
+    <rect class="node-stu" x="87" y="132" width="300" height="50" filter="url(#shadow)" />
+    <text class="tag-stu" x="237" y="146">STUDENT DISCOVERY</text>
+    <text class="txt-title" x="237" y="160">Step 1: Browse Job Board</text>
+    <text class="txt-sub" x="237" y="173">Filter modality, stipend &amp; company details</text>
+
+    <!-- Company: Start & Post Job Opening -->
+    <rect class="node-start" x="612" y="78" width="180" height="32" filter="url(#shadow)" />
+    <text class="txt-title" x="702" y="99">Start: Corporate Sign In</text>
+
+    <path class="line-blue" d="M 702 110 L 702 132" marker-end="url(#arr-blue)" />
+
+    <rect class="node-hr" x="552" y="132" width="300" height="50" filter="url(#shadow)" />
+    <text class="tag-hr" x="702" y="146">COMPANY HR RECRUITMENT</text>
+    <text class="txt-title" x="702" y="160">Step 2: Post Internship Job Opening</text>
+    <text class="txt-sub" x="702" y="173">Specify title, target hours, allowance &amp; skills</text>
+
+    <!-- Touchpoint 0: Published to Board (Right to Left) -->
+    <path class="sync-line" d="M 552 157 L 387 157" marker-end="url(#arr-sync)" />
+    <rect class="sync-bg" x="415" y="146" width="110" height="22" />
+    <text class="sync-txt" x="470" y="160">Jobs Published</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- LEVEL 2: APPLICATION & RESUME SCREENING                                   -->
+    <!-- ========================================================================= -->
+
+    <!-- Student: Submit Application -->
+    <path class="line-green" d="M 237 182 L 237 224" marker-end="url(#arr-green)" />
+
+    <rect class="node-stu" x="77" y="224" width="320" height="50" filter="url(#shadow)" />
+    <text class="tag-stu" x="237" y="238">STUDENT APPLICATION</text>
+    <text class="txt-title" x="237" y="252">Step 3: Submit Application with Resume</text>
+    <text class="txt-sub" x="237" y="265">Upload PDF to S3 + Cover Letter (1 app/company)</text>
+
+    <!-- TOUCHPOINT 1: Application Submitted (Left to Right) -->
+    <path class="sync-line" d="M 397 249 L 552 249" marker-end="url(#arr-sync)" />
+    <rect class="sync-bg" x="408" y="238" width="124" height="22" />
+    <text class="sync-txt" x="470" y="252">1. Submit Application</text>
+
+    <!-- Company: Review Applicant Roster -->
+    <rect class="node-hr" x="552" y="224" width="300" height="50" filter="url(#shadow)" />
+    <text class="tag-hr" x="702" y="238">COMPANY HR SCREENING</text>
+    <text class="txt-title" x="702" y="252">Step 4: Screen Candidate Roster</text>
+    <text class="txt-sub" x="702" y="265">Inspect GPA &amp; download verified S3 resume</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- LEVEL 3: TRACKING, INTERVIEW SHORTLISTING & SCHEDULING                    -->
+    <!-- ========================================================================= -->
+
+    <!-- Student: Connect Step 3 down to Application Tracking -->
+    <path class="line-green" d="M 237 274 L 237 306" marker-end="url(#arr-green)" />
+
+    <rect class="node-stu" x="87" y="306" width="300" height="48" filter="url(#shadow)" />
+    <text class="tag-stu" x="237" y="320">APPLICATION TRACKING</text>
+    <text class="txt-title" x="237" y="334">Track Status: PENDING / REVIEWING</text>
+    <text class="txt-sub" x="237" y="346">Monitors dashboard &amp; awaits employer screening</text>
+
+    <!-- Student: Connect Tracking down to Interview Alert -->
+    <path class="line-green" d="M 237 354 L 237 388" marker-end="url(#arr-green)" />
+
+    <!-- Company: Decision Shortlist Candidate? -->
+    <path class="line-blue" d="M 702 274 L 702 304" marker-end="url(#arr-blue)" />
+
+    <polygon class="node-dec" points="702,304 782,330 702,356 622,330" filter="url(#shadow)" />
+    <text class="txt-title" x="702" y="334">Shortlist Candidate?</text>
+
+    <!-- Company: Shortlist No -> REJECTED -->
+    <path class="line-red" d="M 782 330 L 825 330" marker-end="url(#arr-red)" />
+    <text class="txt-no" x="803" y="322">No</text>
+    <rect class="node-term" x="825" y="316" width="75" height="28" filter="url(#shadow)" />
+    <text class="txt-no" x="862" y="334">REJECTED</text>
+
+    <!-- Company: Shortlist Yes -> Schedule Interview -->
+    <path class="line-blue" d="M 702 356 L 702 388" marker-end="url(#arr-blue)" />
+    <text class="txt-yes" x="715" y="375">Yes</text>
+
+    <rect class="node-hr" x="542" y="388" width="320" height="50" filter="url(#shadow)" />
+    <text class="tag-hr" x="702" y="402">COMPANY HR PIPELINE</text>
+    <text class="txt-title" x="702" y="416">Step 5: Schedule Interview</text>
+    <text class="txt-sub" x="702" y="429">Set INTERVIEW_SCHEDULED &amp; external meeting details</text>
+
+    <!-- TOUCHPOINT 2: Interview Scheduled Alert (Right to Left) -->
+    <path class="sync-line" d="M 542 413 L 387 413" marker-end="url(#arr-sync)" />
+    <rect class="sync-bg" x="408" y="402" width="124" height="22" />
+    <text class="sync-txt" x="470" y="416">2. Interview Alert</text>
+
+    <!-- Student: Receive Interview Notice & Attend -->
+    <rect class="node-stu" x="87" y="388" width="300" height="50" filter="url(#shadow)" />
+    <text class="tag-stu" x="237" y="402">STUDENT INTERVIEW</text>
+    <text class="txt-title" x="237" y="416">Step 6: Receive Interview Alert</text>
+    <text class="txt-sub" x="237" y="429">View Indigo alert &amp; attend external interview session</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- LEVEL 4: PLACEMENT OFFER & COMMITMENT                                     -->
+    <!-- ========================================================================= -->
+
+    <!-- Company: Decision Extend Offer? -->
+    <path class="line-blue" d="M 702 438 L 702 468" marker-end="url(#arr-blue)" />
+
+    <polygon class="node-dec" points="702,468 782,494 702,520 622,494" filter="url(#shadow)" />
+    <text class="txt-title" x="702" y="498">Extend Offer?</text>
+
+    <!-- Company: Extend Offer No -> REJECTED -->
+    <path class="line-red" d="M 782 494 L 825 494" marker-end="url(#arr-red)" />
+    <text class="txt-no" x="803" y="486">No</text>
+    <rect class="node-term" x="825" y="480" width="75" height="28" filter="url(#shadow)" />
+    <text class="txt-no" x="862" y="498">REJECTED</text>
+
+    <!-- Company: Extend Offer Yes -> Extend Official Offer -->
+    <path class="line-blue" d="M 702 520 L 702 550" marker-end="url(#arr-blue)" />
+    <text class="txt-yes" x="715" y="538">Yes</text>
+
+    <rect class="node-hr" x="552" y="550" width="300" height="50" filter="url(#shadow)" />
+    <text class="tag-hr" x="702" y="564">COMPANY HR OFFER</text>
+    <text class="txt-title" x="702" y="578">Step 7: Extend Placement Offer</text>
+    <text class="txt-sub" x="702" y="591">Sets status to ACCEPTED on student dashboard</text>
+
+    <!-- TOUCHPOINT 3: Placement Offer Extended (Right to Left) -->
+    <path class="sync-line" d="M 552 575 L 387 575" marker-end="url(#arr-sync)" />
+    <rect class="sync-bg" x="412" y="564" width="116" height="22" />
+    <text class="sync-txt" x="470" y="578">3. Offer Extended</text>
+
+    <!-- Student: Decision Accept Offer? -->
+    <path class="line-green" d="M 237 438 L 237 548" marker-end="url(#arr-green)" />
+
+    <polygon class="node-dec" points="237,548 322,575 237,602 152,575" filter="url(#shadow)" />
+    <text class="txt-title" x="237" y="579">Accept Offer?</text>
+
+    <!-- Student: Accept No -> Declined -->
+    <path class="line" d="M 152 575 L 105 575" marker-end="url(#arr)" />
+    <text class="txt-no" x="128" y="567">No</text>
+    <rect class="node-pub" x="35" y="561" width="70" height="28" filter="url(#shadow)" />
+    <text class="txt-sub" x="70" y="579">Declined</text>
+
+    <!-- Student: Accept Yes -> Confirm Placement -->
+    <path class="line-green" d="M 237 602 L 237 636" marker-end="url(#arr-green)" />
+    <text class="txt-yes" x="250" y="622">Yes</text>
+
+    <rect class="node-stu" x="77" y="636" width="320" height="50" filter="url(#shadow)" />
+    <text class="tag-stu" x="237" y="650">STUDENT COMMITMENT</text>
+    <text class="txt-title" x="237" y="664">Step 8: Confirm Placement (COMMITTED)</text>
+    <text class="txt-sub" x="237" y="677">Locks active working placement into student profile</text>
+
+    <!-- Student: Single Exclusivity Engine -->
+    <path class="line-red" d="M 237 686 L 237 718" marker-end="url(#arr-red)" />
+
+    <rect class="node-sys" x="52" y="718" width="370" height="50" filter="url(#shadow)" />
+    <text class="tag-sys" x="237" y="732">SYSTEM EXCLUSIVITY ENGINE</text>
+    <text class="txt-title" x="237" y="746" style="fill:#dc2626;">Step 9: Auto-Cancel Competing Applications</text>
+    <text class="txt-sub" x="237" y="759" style="fill:#991b1b;">Auto-declines &amp; cancels other offers across all companies</text>
+
+    <!-- Company: Placement Locked Box -->
+    <path class="line-blue" d="M 702 600 L 702 718" marker-end="url(#arr-blue)" />
+
+    <rect class="node-hr" x="552" y="718" width="300" height="50" filter="url(#shadow)" />
+    <text class="tag-hr" x="702" y="732">COMPANY ROSTER</text>
+    <text class="txt-title" x="702" y="746">Confirmed Placement</text>
+    <text class="txt-sub" x="702" y="759">Intern locked into company roster &amp; mentor assigned</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- LEVEL 5: DAILY CWIE LOGBOOK & MENTOR SIGN-OFF                            -->
+    <!-- ========================================================================= -->
+
+    <!-- Student: Daily CWIE Logbook -->
+    <path class="line-green" d="M 237 768 L 237 808" marker-end="url(#arr-green)" />
+
+    <rect class="node-stu" x="67" y="808" width="340" height="50" filter="url(#shadow)" />
+    <text class="tag-stu" x="237" y="822">CWIE LOGBOOK JOURNALING</text>
+    <text class="txt-title" x="237" y="836">Step 10: Submit Daily CWIE Logbook</text>
+    <text class="txt-sub" x="237" y="849">8.0 hrs/day, Modality, deliverables &amp; problem fixes</text>
+
+    <!-- Student: Decision Backdated? -->
+    <path class="line" d="M 237 858 L 237 884" marker-end="url(#arr)" />
+
+    <polygon class="node-dec" points="237,884 322,908 237,932 152,908" filter="url(#shadow)" />
+    <text class="txt-title" x="237" y="912">Late Entry (Backdated)?</text>
+
+    <!-- Student: Backdated Yes -> Audit Flag -->
+    <path class="line" d="M 152 908 L 105 908" marker-end="url(#arr)" />
+    <text class="txt-yes" x="128" y="900">Yes</text>
+    <rect class="node-pub" x="25" y="894" width="80" height="28" filter="url(#shadow)" />
+    <text class="txt-sub" x="65" y="912" style="fill:#d97706; font-weight:700;">Audit Flag</text>
+
+    <!-- Clean Merge: Both branches go cleanly into Daily Entry Logged box -->
+    <path class="line" d="M 65 922 L 65 956 L 120 956" marker-end="url(#arr)" />
+    <path class="line" d="M 237 932 L 237 956" marker-end="url(#arr)" />
+    <text class="txt-no" x="250" y="946">No</text>
+
+    <rect class="node-stu" x="87" y="956" width="300" height="46" filter="url(#shadow)" />
+    <text class="tag-stu" x="237" y="970">DAILY LOG CONFIRMED</text>
+    <text class="txt-title" x="237" y="983">Daily Entry Logged (8.0 hrs)</text>
+    <text class="txt-sub" x="237" y="995">Deliverables, modality &amp; audit flag recorded</text>
+
+    <!-- TOUCHPOINT 4: Daily Logbook Entry Submitted (Left to Right from Box) -->
+    <path class="sync-line" d="M 387 979 L 542 979" marker-end="url(#arr-sync)" />
+    <rect class="sync-bg" x="408" y="968" width="124" height="22" />
+    <text class="sync-txt" x="470" y="983">4. Daily Log Submitted</text>
+
+    <!-- Student: Progress down towards completing term -->
+    <path class="line-green" d="M 237 1002 L 237 1034" marker-end="url(#arr-green)" />
+
+    <rect class="node-stu" x="87" y="1034" width="300" height="46" filter="url(#shadow)" />
+    <text class="tag-stu" x="237" y="1048">ACTIVE INTERNSHIP TERM</text>
+    <text class="txt-title" x="237" y="1061">Accumulate Required Hours</text>
+    <text class="txt-sub" x="237" y="1073">Complete internship duration &amp; hours</text>
+
+    <!-- Company: Inspect Daily Logbook Drawer -->
+    <path class="line-blue" d="M 702 768 L 702 954" marker-end="url(#arr-blue)" />
+
+    <rect class="node-hr" x="542" y="954" width="320" height="50" filter="url(#shadow)" />
+    <text class="tag-hr" x="702" y="968">COMPANY MENTOR INSPECTION</text>
+    <text class="txt-title" x="702" y="982">Step 11: Inspect Logbook Drawer</text>
+    <text class="txt-sub" x="702" y="995">Verifies daily hours, awards 1–5 stars &amp; feedback</text>
+
+    <!-- Mentor Decision: Internship Term Completed? -->
+    <path class="line-blue" d="M 702 1004 L 702 1032" marker-end="url(#arr-blue)" />
+
+    <polygon class="node-dec" points="702,1032 790,1057 702,1082 614,1057" filter="url(#shadow)" />
+    <text class="txt-title" x="702" y="1061">Internship Term Completed?</text>
+
+    <!-- Mentor Hours No -> Loop back on Right Margin -->
+    <path class="line" d="M 790 1057 L 880 1057 L 880 979 L 862 979" marker-end="url(#arr)" />
+    <text class="txt-no" x="835" y="1049">No (In Progress)</text>
+
+    <!-- Mentor Hours Yes -> Submit Rubric -->
+    <path class="line-blue" d="M 702 1082 L 702 1114" marker-end="url(#arr-blue)" />
+    <text class="txt-yes" x="715" y="1101">Yes</text>
+
+    <rect class="node-hr" x="532" y="1114" width="340" height="50" filter="url(#shadow)" />
+    <text class="tag-hr" x="702" y="1128">FINAL EVALUATION</text>
+    <text class="txt-title" x="702" y="1142">Step 12: Submit Performance Rubric</text>
+    <text class="txt-sub" x="702" y="1155">Quality of Work, Punctuality &amp; Teamwork (1–5 ★)</text>
+
+
+    <!-- ========================================================================= -->
+    <!-- LEVEL 6: OFFICIAL CERTIFICATION & END                                     -->
+    <!-- ========================================================================= -->
+
+    <!-- Student: Term complete down to Certificate -->
+    <path class="line-green" d="M 237 1080 L 237 1114" marker-end="url(#arr-green)" />
+
+    <!-- TOUCHPOINT 5: Final Evaluation Completed (Right to Left into Certificate) -->
+    <path class="sync-line" d="M 532 1139 L 397 1139" marker-end="url(#arr-sync)" />
+    <rect class="sync-bg" x="408" y="1128" width="124" height="22" />
+    <text class="sync-txt" x="470" y="1143">5. Rubric Approved</text>
+
+    <!-- Student: Completion Certificate -->
+    <rect class="node-stu" x="67" y="1114" width="330" height="50" filter="url(#shadow)" />
+    <text class="tag-stu" x="232" y="1128">OFFICIAL CERTIFICATION</text>
+    <text class="txt-title" x="232" y="1142">Step 13: Verified CWIE Certificate</text>
+    <text class="txt-sub" x="232" y="1155">Accredited report &amp; certificate for graduation</text>
+
+    <!-- Student: End Node -->
+    <path class="line-green" d="M 232 1164 L 232 1198" marker-end="url(#arr-green)" />
+
+    <rect class="node-start" x="142" y="1198" width="180" height="34" filter="url(#shadow)" />
+    <text class="txt-title" x="232" y="1220">End: Internship Certified</text>
+
+    <!-- Company: End Node -->
+    <path class="line-blue" d="M 702 1164 L 702 1198" marker-end="url(#arr-blue)" />
+
+    <rect class="node-start" x="612" y="1198" width="180" height="34" filter="url(#shadow)" />
+    <text class="txt-title" x="702" y="1220">End: Placement Completed</text>
+
+  </svg>
+</div>
+
+</body>
+</html>

@@ -10,6 +10,7 @@ async function main() {
   // 1. Clean out existing data in reverse foreign key order
   console.log('🗑️  Deleting existing records...');
   await prisma.internshipEvaluation.deleteMany({});
+  await prisma.dailyLog.deleteMany({});
   await prisma.weeklyLog.deleteMany({});
   await prisma.document.deleteMany({});
   await prisma.application.deleteMany({});
@@ -168,35 +169,71 @@ async function main() {
     }
   });
 
-  // 8. Create Sample Week 1 Weekly Log for Alex Rivers
-  console.log('📖 Creating sample Week 1 logbook entry...');
-  await prisma.weeklyLog.create({
-    data: {
-      studentId: studentUser.studentProfile!.id,
-      applicationId: appTechCorp.id,
-      weekNumber: 1,
-      startDate: new Date('2026-08-01T00:00:00Z'),
-      endDate: new Date('2026-08-05T00:00:00Z'),
-      workModality: 'ON_SITE',
-      supervisorName: 'Sarah Jenkins (HR Lead / Engineering Mentor)',
-      plannedTasks: JSON.stringify([
-        'Onboarding and development workstation setup',
-        'Review architecture documentation and database schemas',
-        'Attend sprint kickoff meeting with full-stack team'
-      ]),
-      tasksDone: JSON.stringify([
-        'Completed local Docker environment configuration for PostgreSQL',
-        'Implemented authentication middleware and route guards',
-        'Submitted initial pull request for UI components library'
-      ]),
-      problemsAndSolutions: 'Experienced CORS preflight issues during local API integration. Resolved by updating Express CORS origin headers.',
-      learnings: 'Gained hands-on experience with TypeScript strict typing, Prisma client migrations, and RESTful API design.',
-      hoursWorked: 40.0,
-      mentorApproved: false
+  // 8. Create Sample Daily Logs for Alex Rivers (Week 1: Monday - Friday, 8.0 hrs/day = 40.0 hrs)
+  console.log('📖 Creating sample Daily Logs (Week 1)...');
+  const week1Days = [
+    {
+      date: new Date('2026-08-03T09:00:00Z'),
+      tasks: ['Onboarding session with HR Lead Sarah Jenkins', 'Workstation setup: Installed Node 20, Docker, and VSCode', 'Cloned repository and configured local PostgreSQL database'],
+      problems: 'NPM package installation was slow due to network proxy. Solved by setting registry mirror.',
+      learnings: 'Understood TechCorp team workflow, Git branching conventions, and Slack channels.',
+      hours: 8.0,
+      isBackdated: false
+    },
+    {
+      date: new Date('2026-08-04T09:00:00Z'),
+      tasks: ['Attended daily engineering standup', 'Explored Prisma 7 schema and migration scripts', 'Drafted architecture diagram for intern management service'],
+      problems: 'Encountered duplicate UUID key collision in test mock. Fixed with uuidv4 generator.',
+      learnings: 'Deep-dived into Prisma client query optimization and relations modeling.',
+      hours: 8.0,
+      isBackdated: false
+    },
+    {
+      date: new Date('2026-08-05T09:00:00Z'),
+      tasks: ['Built JWT authentication middleware', 'Added bcrypt password hashing with 10 salt rounds', 'Configured CORS headers for React frontend integration'],
+      problems: null,
+      learnings: 'Mastered Express 5 request-response pipeline and typed request interfaces.',
+      hours: 8.0,
+      isBackdated: false
+    },
+    {
+      date: new Date('2026-08-06T09:00:00Z'),
+      tasks: ['Pair programmed with Senior Dev on S3 upload service', 'Integrated Multer-S3 with automatic local disk fallback', 'Added file size limit validation (10 MB)'],
+      problems: 'Local dev lacked AWS credentials. Implemented local disk storage condition check.',
+      learnings: 'Learned AWS SDK v3 modular client architecture and S3 PutObject commands.',
+      hours: 8.0,
+      isBackdated: true // Sample backdated log
+    },
+    {
+      date: new Date('2026-08-07T09:00:00Z'),
+      tasks: ['Conducted sprint review demonstration with TechCorp mentors', 'Fixed UI responsiveness issues on tablet viewports', 'Documented week 1 deliverables and code PR'],
+      problems: null,
+      learnings: 'Gained confidence presenting technical implementations during sprint demos.',
+      hours: 8.0,
+      isBackdated: false
     }
-  });
+  ];
 
-  console.log('✅ Database reset completed successfully!');
+  for (const day of week1Days) {
+    await prisma.dailyLog.create({
+      data: {
+        studentId: studentUser.studentProfile!.id,
+        applicationId: appTechCorp.id,
+        logDate: day.date,
+        weekNumber: 1,
+        hoursWorked: day.hours,
+        workModality: 'ON_SITE',
+        supervisorName: 'Sarah Jenkins (HR Lead / Engineering Mentor)',
+        tasksDone: JSON.stringify(day.tasks),
+        problemsAndSolutions: day.problems,
+        learnings: day.learnings,
+        isBackdated: day.isBackdated,
+        mentorApproved: false
+      }
+    });
+  }
+
+  console.log('✅ Database reset completed successfully with 5 daily logs!');
   console.log('----------------------------------------------------');
   console.log('🔑 Credentials Summary:');
   console.log('👨‍🎓 Student Account:');

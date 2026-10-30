@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>InternFlow - Access Control & Security Diagram (Exact QikVid Style)</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 30px 40px;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #000000;
+  }
+  #capture-area {
+    background: #ffffff;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .header {
+    margin-bottom: 22px;
+  }
+  .header h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 6px 0;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+<div id="capture-area">
+  <div class="header">
+    <h2>Access Control &amp; Security</h2>
+  </div>
+
+  <svg viewBox="0 0 840 920" width="840" height="920" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Arrow markers -->
+      <marker id="arrow-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb" />
+      </marker>
+      <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669" />
+      </marker>
+
+      <style>
+        .role-company { fill: #ffffff; stroke: #2563eb; stroke-width: 2.2; rx: 8px; ry: 8px; }
+        .role-student { fill: #ffffff; stroke: #059669; stroke-width: 2.2; rx: 8px; ry: 8px; }
+        
+        .action-blue { fill: #ffffff; stroke: #3b82f6; stroke-width: 1.6; rx: 7px; ry: 7px; }
+        .action-green { fill: #ffffff; stroke: #10b981; stroke-width: 1.6; rx: 7px; ry: 7px; }
+
+        .target-blue { fill: #ffffff; stroke: #2563eb; stroke-width: 2.2; rx: 8px; ry: 8px; }
+        .target-green { fill: #ffffff; stroke: #059669; stroke-width: 2.2; rx: 8px; ry: 8px; }
+
+        .text-role { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 15px; font-weight: 700; text-anchor: middle; }
+        .text-action { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: 500; text-anchor: middle; fill: #111827; }
+        .text-target { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13.5px; font-weight: 700; text-anchor: middle; fill: #000000; }
+
+        .line-blue { stroke: #2563eb; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .line-green { stroke: #059669; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      </style>
+    </defs>
+
+    <!-- ================================================================ -->
+    <!-- PART 1: COMPANY HR (TOP SECTION - BLUE)                          -->
+    <!-- Flow: Company HR -> Create -> Company Account -> Branches        -->
+    <!-- ================================================================ -->
+    <g transform="translate(0, 10)">
+      <!-- Role: Company HR -->
+      <rect x="330" y="0" width="180" height="42" class="role-company" />
+      <text x="420" y="26" class="text-role" fill="#2563eb">Company HR</text>
+
+      <!-- Step 1: Create Account flow to left -->
+      <path d="M 330 21 L 160 21 L 160 48" class="line-blue" marker-end="url(#arrow-blue)" />
+      <rect x="100" y="48" width="120" height="36" class="action-blue" />
+      <text x="160" y="71" class="text-action">Create</text>
+
+      <line x1="160" y1="84" x2="160" y2="116" class="line-blue" marker-end="url(#arrow-blue)" />
+      <rect x="70" y="116" width="180" height="42" class="target-blue" />
+      <text x="160" y="142" class="text-target">Company Account</text>
+
+      <!-- Step 2: Hub line extending from Company Account -->
+      <path d="M 250 137 L 340 137" class="line-blue" />
+
+      <!-- Upper Branch: Company's Jobs (Post, Edit) -->
+      <path d="M 340 137 L 340 68 L 650 68" class="line-blue" />
+      <line x1="480" y1="68" x2="480" y2="88" class="line-blue" marker-end="url(#arrow-blue)" />
+      <line x1="650" y1="68" x2="650" y2="88" class="line-blue" marker-end="url(#arrow-blue)" />
+
+      <rect x="420" y="88" width="120" height="36" class="action-blue" />
+      <text x="480" y="111" class="text-action">Post</text>
+
+      <rect x="590" y="88" width="120" height="36" class="action-blue" />
+      <text x="650" y="111" class="text-action">Edit</text>
+
+      <!-- Merge into Company's Jobs -->
+      <path d="M 480 124 L 480 144 L 650 144 L 650 124" class="line-blue" />
+      <line x1="565" y1="144" x2="565" y2="168" class="line-blue" marker-end="url(#arrow-blue)" />
+      <rect x="475" y="168" width="180" height="42" class="target-blue" />
+      <text x="565" y="194" class="text-target">Company's Jobs</text>
+
+      <!-- Lower Branch: Applications & Evaluations -->
+      <path d="M 340 137 L 340 240" class="line-blue" />
+      <path d="M 220 240 L 600 240" class="line-blue" />
+
+      <!-- Sub-branch 1: Applications (View, Offer) -->
+      <path d="M 220 240 L 220 250" class="line-blue" />
+      <path d="M 150 250 L 290 250" class="line-blue" />
+      <line x1="150" y1="250" x2="150" y2="265" class="line-blue" marker-end="url(#arrow-blue)" />
+      <line x1="290" y1="250" x2="290" y2="265" class="line-blue" marker-end="url(#arrow-blue)" />
+
+      <rect x="95" y="265" width="110" height="36" class="action-blue" />
+      <text x="150" y="288" class="text-action">View</text>
+
+      <rect x="235" y="265" width="110" height="36" class="action-blue" />
+      <text x="290" y="288" class="text-action">Offer</text>
+
+      <!-- Merge into Candidate Applications -->
+      <path d="M 150 301 L 150 318 L 290 318 L 290 301" class="line-blue" />
+      <line x1="220" y1="318" x2="220" y2="340" class="line-blue" marker-end="url(#arrow-blue)" />
+      <rect x="115" y="340" width="210" height="42" class="target-blue" />
+      <text x="220" y="366" class="text-target">Candidate Applications</text>
+
+      <!-- Sub-branch 2: Evaluations (Sign, Evaluate) -->
+      <path d="M 600 240 L 600 250" class="line-blue" />
+      <path d="M 530 250 L 670 250" class="line-blue" />
+      <line x1="530" y1="250" x2="530" y2="265" class="line-blue" marker-end="url(#arrow-blue)" />
+      <line x1="670" y1="250" x2="670" y2="265" class="line-blue" marker-end="url(#arrow-blue)" />
+
+      <rect x="475" y="265" width="110" height="36" class="action-blue" />
+      <text x="530" y="288" class="text-action">Sign</text>
+
+      <rect x="615" y="265" width="110" height="36" class="action-blue" />
+      <text x="670" y="288" class="text-action">Evaluate</text>
+
+      <!-- Merge into CWIE Logs & Evaluation -->
+      <path d="M 530 301 L 530 318 L 670 318 L 670 301" class="line-blue" />
+      <line x1="600" y1="318" x2="600" y2="340" class="line-blue" marker-end="url(#arrow-blue)" />
+      <rect x="485" y="340" width="230" height="42" class="target-blue" />
+      <text x="600" y="366" class="text-target">CWIE Logs &amp; Evaluation</text>
+    </g>
+
+    <!-- Subtle Section Divider -->
+    <line x1="30" y1="425" x2="810" y2="425" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="6,6" />
+
+    <!-- ================================================================ -->
+    <!-- PART 2: STUDENT (BOTTOM SECTION - GREEN)                         -->
+    <!-- Flow: Student -> Create -> Student Account -> Branches           -->
+    <!-- ================================================================ -->
+    <g transform="translate(0, 455)">
+      <!-- Role: Student -->
+      <rect x="340" y="0" width="160" height="42" class="role-student" />
+      <text x="420" y="26" class="text-role" fill="#059669">Student</text>
+
+      <!-- Step 1: Create Account flow to left -->
+      <path d="M 340 21 L 160 21 L 160 48" class="line-green" marker-end="url(#arrow-green)" />
+      <rect x="100" y="48" width="120" height="36" class="action-green" />
+      <text x="160" y="71" class="text-action">Create</text>
+
+      <line x1="160" y1="84" x2="160" y2="116" class="line-green" marker-end="url(#arrow-green)" />
+      <rect x="70" y="116" width="180" height="42" class="target-green" />
+      <text x="160" y="142" class="text-target">Student Account</text>
+
+      <!-- Step 2: Hub line extending from Student Account -->
+      <path d="M 250 137 L 340 137" class="line-green" />
+
+      <!-- Upper Branch: Jobs on Platform (Search, View) -->
+      <path d="M 340 137 L 340 68 L 650 68" class="line-green" />
+      <line x1="480" y1="68" x2="480" y2="88" class="line-green" marker-end="url(#arrow-green)" />
+      <line x1="650" y1="68" x2="650" y2="88" class="line-green" marker-end="url(#arrow-green)" />
+
+      <rect x="420" y="88" width="120" height="36" class="action-green" />
+      <text x="480" y="111" class="text-action">Search</text>
+
+      <rect x="590" y="88" width="120" height="36" class="action-green" />
+      <text x="650" y="111" class="text-action">View</text>
+
+      <!-- Merge into Jobs On Platform -->
+      <path d="M 480 124 L 480 144 L 650 144 L 650 124" class="line-green" />
+      <line x1="565" y1="144" x2="565" y2="168" class="line-green" marker-end="url(#arrow-green)" />
+      <rect x="475" y="168" width="180" height="42" class="target-green" />
+      <text x="565" y="194" class="text-target">Jobs On Platform</text>
+
+      <!-- Lower Branch: Student Lifecycle (Applications, Logbook, Certificate) -->
+      <path d="M 340 137 L 340 240" class="line-green" />
+      <path d="M 160 240 L 680 240" class="line-green" />
+
+      <!-- Sub-branch 1: Student's Applications (Upload, Apply) -->
+      <path d="M 160 240 L 160 250" class="line-green" />
+      <path d="M 100 250 L 220 250" class="line-green" />
+      <line x1="100" y1="250" x2="100" y2="265" class="line-green" marker-end="url(#arrow-green)" />
+      <line x1="220" y1="250" x2="220" y2="265" class="line-green" marker-end="url(#arrow-green)" />
+
+      <rect x="50" y="265" width="100" height="36" class="action-green" />
+      <text x="100" y="288" class="text-action">Upload</text>
+
+      <rect x="170" y="265" width="100" height="36" class="action-green" />
+      <text x="220" y="288" class="text-action">Apply</text>
+
+      <!-- Merge into Student's Applications -->
+      <path d="M 100 301 L 100 318 L 220 318 L 220 301" class="line-green" />
+      <line x1="160" y1="318" x2="160" y2="340" class="line-green" marker-end="url(#arrow-green)" />
+      <rect x="65" y="340" width="190" height="42" class="target-green" />
+      <text x="160" y="366" class="text-target">Student's Applications</text>
+
+      <!-- Sub-branch 2: Daily Logbook (Record) -->
+      <line x1="420" y1="240" x2="420" y2="265" class="line-green" marker-end="url(#arrow-green)" />
+      <rect x="360" y="265" width="120" height="36" class="action-green" />
+      <text x="420" y="288" class="text-action">Record</text>
+
+      <line x1="420" y1="301" x2="420" y2="340" class="line-green" marker-end="url(#arrow-green)" />
+      <rect x="330" y="340" width="180" height="42" class="target-green" />
+      <text x="420" y="366" class="text-target">Daily Logbook</text>
+
+      <!-- Sub-branch 3: Certificate (View) -->
+      <line x1="680" y1="240" x2="680" y2="265" class="line-green" marker-end="url(#arrow-green)" />
+      <rect x="620" y="265" width="120" height="36" class="action-green" />
+      <text x="680" y="288" class="text-action">View</text>
+
+      <line x1="680" y1="301" x2="680" y2="340" class="line-green" marker-end="url(#arrow-green)" />
+      <rect x="590" y="340" width="180" height="42" class="target-green" />
+      <text x="680" y="366" class="text-target">Certificate</text>
+    </g>
+  </svg>
+</div>
+
+</body>
+</html>

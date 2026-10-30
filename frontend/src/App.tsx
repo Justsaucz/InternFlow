@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from './components/ui/Toast';
+import { LanguageProvider } from './context/LanguageContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -17,8 +18,9 @@ import Home from './pages/Home';
 
 function App() {
   return (
-    <ToastProvider>
-      <Router>
+    <LanguageProvider>
+      <ToastProvider>
+        <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -52,6 +54,7 @@ function App() {
         </Routes>
       </Router>
     </ToastProvider>
+  </LanguageProvider>
   );
 }
 

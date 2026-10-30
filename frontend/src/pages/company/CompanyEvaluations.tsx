@@ -9,10 +9,21 @@ import {
   RefreshCw,
   ExternalLink,
   Link as LinkIcon,
-  FileText
+  FileText,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Building2,
+  Check
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
-import { parsePinPoints, parseAttachmentLinks } from '../student/StudentLogbook';
+import { useLanguage } from '../../context/LanguageContext';
+import { 
+  parsePinPoints, 
+  parseAttachmentLinks, 
+  type DailyLog, 
+  type GroupedWeek 
+} from '../../utils/logbookUtils';
 import PublicProfileModal from '../../components/modals/PublicProfileModal';
 
 interface StudentInfo {
@@ -24,7 +35,8 @@ interface StudentInfo {
   year: number;
   avatarUrl?: string | null;
   user: { id?: string; name: string; email: string; avatarUrl?: string | null };
-  weeklyLogs: any[];
+  dailyLogs?: DailyLog[];
+  weeklyLogs?: any[];
 }
 
 interface ActiveIntern {
@@ -39,12 +51,14 @@ interface ActiveIntern {
 }
 
 export default function CompanyEvaluations() {
+  const { t, formatDate, language } = useLanguage();
   const [interns, setInterns] = useState<ActiveIntern[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIntern, setSelectedIntern] = useState<ActiveIntern | null>(null);
   const [selectedForLogs, setSelectedForLogs] = useState<ActiveIntern | null>(null);
   const [viewingStudentId, setViewingStudentId] = useState<string | null>(null);
-  const [studentLogs, setStudentLogs] = useState<any[]>([]);
+  const [groupedWeeks, setGroupedWeeks] = useState<GroupedWeek[]>([]);
+  const [expandedWeeks, setExpandedWeeks] = useState<Record<number, boolean>>({});
   const [logsLoading, setLogsLoading] = useState(false);
   const { success, error: showError } = useToast();
 
@@ -55,11 +69,17 @@ export default function CompanyEvaluations() {
   const [feedback, setFeedback] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Weekly Log Sign-off State
+  // Batch Week Sign-off State
+  const [batchWeekNumber, setBatchWeekNumber] = useState<number | null>(null);
+  const [batchRating, setBatchRating] = useState<number>(5);
+  const [batchFeedback, setBatchFeedback] = useState<string>('');
+  const [batchSubmitting, setBatchSubmitting] = useState(false);
+
+  // Single Daily Log Sign-off State
   const [approvingLogId, setApprovingLogId] = useState<string | null>(null);
-  const [logWeeklyRating, setLogWeeklyRating] = useState<number>(5);
-  const [logMentorFeedback, setLogMentorFeedback] = useState<string>('');
-  const [approvingSubmitting, setApprovingSubmitting] = useState(false);
+  const [singleRating, setSingleRating] = useState<number>(5);
+  const [singleFeedback, setSingleFeedback] = useState<string>('');
+  const [singleSubmitting, setSingleSubmitting] = useState(false);
 
   useEffect(() => {
     fetchInterns();
@@ -77,7 +97,7 @@ export default function CompanyEvaluations() {
       }
     } catch (error) {
       console.error(error);
-      showError('Failed to load active interns');
+      showError(t.toasts.loadFailed);
     } finally {
       setLoading(false);
     }
@@ -101,6 +121,8 @@ export default function CompanyEvaluations() {
   const openLogsModal = async (intern: ActiveIntern) => {
     setSelectedForLogs(intern);
     setLogsLoading(true);
+    setBatchWeekNumber(null);
+    setApprovingLogId(null);
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/student/${intern.student.id}`, {
@@ -108,50 +130,106 @@ export default function CompanyEvaluations() {
       });
       if (res.ok) {
         const data = await res.json();
-        setStudentLogs(data.logs || []);
+        const weeks: GroupedWeek[] = data.groupedWeeks || [];
+        setGroupedWeeks(weeks);
+
+        // Auto expand all weeks by default
+        const initExpanded: Record<number, boolean> = {};
+        weeks.forEach((w) => {
+          initExpanded[w.weekNumber] = true;
+        });
+        setExpandedWeeks(initExpanded);
       }
     } catch (error) {
       console.error(error);
-      showError('Failed to fetch student logs');
+      showError('Failed to fetch student daily logs');
     } finally {
       setLogsLoading(false);
     }
   };
 
-  const handleApproveLog = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!approvingLogId) return;
+  const toggleWeekExpansion = (weekNum: number) => {
+    setExpandedWeeks(prev => ({
+      ...prev,
+      [weekNum]: !prev[weekNum]
+    }));
+  };
 
-    setApprovingSubmitting(true);
+  // Batch Sign-off all logs for a given week
+  const handleBatchApproveWeek = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedForLogs || batchWeekNumber === null) return;
+
+    setBatchSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/approve/${approvingLogId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/batch-approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          mentorRating: logWeeklyRating,
-          mentorFeedback: logMentorFeedback
+          studentId: selectedForLogs.student.id,
+          weekNumber: batchWeekNumber,
+          mentorRating: batchRating,
+          mentorFeedback: batchFeedback
         })
       });
 
       if (res.ok) {
-        success('Weekly log sign-off submitted successfully!');
+        success(t.toasts.weekApproved);
+        setBatchWeekNumber(null);
+        setBatchFeedback('');
+        openLogsModal(selectedForLogs);
+        fetchInterns();
+      } else {
+        const err = await res.json();
+        showError(err.error || t.toasts.loadFailed);
+      }
+    } catch (error) {
+      showError(t.toasts.loadFailed);
+    } finally {
+      setBatchSubmitting(false);
+    }
+  };
+
+  // Single Daily Log Approval
+  const handleApproveSingleLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!approvingLogId) return;
+
+    setSingleSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/${approvingLogId}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          mentorRating: singleRating,
+          mentorFeedback: singleFeedback
+        })
+      });
+
+      if (res.ok) {
+        success(t.toasts.dayApproved);
         setApprovingLogId(null);
+        setSingleFeedback('');
         if (selectedForLogs) {
           openLogsModal(selectedForLogs);
         }
         fetchInterns();
       } else {
         const err = await res.json();
-        showError(err.error || 'Failed to sign off weekly log');
+        showError(err.error || t.toasts.loadFailed);
       }
     } catch (error) {
-      showError('Network error while signing off log');
+      showError(t.toasts.loadFailed);
     } finally {
-      setApprovingSubmitting(false);
+      setSingleSubmitting(false);
     }
   };
 
@@ -169,6 +247,7 @@ export default function CompanyEvaluations() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
+          studentId: selectedIntern.student.id,
           applicationId: selectedIntern.applicationId,
           workQualityScore: workQuality,
           punctualityScore: punctuality,
@@ -178,16 +257,16 @@ export default function CompanyEvaluations() {
       });
 
       if (res.ok) {
-        success('Employer rubric evaluation submitted successfully!');
+        success(t.toasts.evalSubmitted);
         setSelectedIntern(null);
         fetchInterns();
       } else {
         const err = await res.json();
-        showError(err.error || 'Failed to submit evaluation');
+        showError(err.error || t.toasts.loadFailed);
       }
     } catch (error) {
       console.error(error);
-      showError('Network error while submitting evaluation');
+      showError(t.toasts.loadFailed);
     } finally {
       setSubmitting(false);
     }
@@ -196,16 +275,25 @@ export default function CompanyEvaluations() {
   const getModalityBadge = (modality: string) => {
     switch (modality) {
       case 'REMOTE':
-        return { label: 'Remote / WFH', icon: Laptop, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+        return { label: t.common.modalities.remote, icon: Laptop, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
       case 'HYBRID':
-        return { label: 'Hybrid', icon: RefreshCw, color: 'bg-purple-50 text-purple-700 border-purple-200' };
+        return { label: t.common.modalities.hybrid, icon: RefreshCw, color: 'bg-purple-50 text-purple-700 border-purple-200' };
       default:
-        return { label: 'On-site', icon: Building, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        return { label: t.common.modalities.onSite, icon: Building, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     }
   };
 
   const isFileAttachment = (url: string, title: string) => {
     return title.startsWith('[File]') || url.includes('/uploads/') || /\.(pdf|png|jpg|jpeg|doc|docx|zip)$/i.test(url);
+  };
+
+  const formatLogDate = (dateStr: string) => {
+    return formatDate(dateStr, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -215,17 +303,17 @@ export default function CompanyEvaluations() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
-              Mentor Supervision
+              {t.evaluations.tag}
             </span>
             <span className="text-xs font-semibold text-slate-500">
-              {interns.length} Active Interns Placed
+              {interns.length} {t.evaluations.activeInternsCount}
             </span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Internship Logbook Review & Rubrics
+            {t.evaluations.title}
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Review weekly planned objectives, deliverables, problem-solving, and submit performance evaluations.
+            {t.evaluations.subtitle}
           </p>
         </div>
       </div>
@@ -241,17 +329,18 @@ export default function CompanyEvaluations() {
             <table className="min-w-full divide-y divide-slate-100 text-left">
               <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 <tr>
-                  <th className="px-6 py-4">Student Candidate</th>
-                  <th className="px-6 py-4">Position Title</th>
-                  <th className="px-6 py-4">Hours Logged & Signed</th>
-                  <th className="px-6 py-4">Company Rubric Status</th>
-                  <th className="px-6 py-4 text-right">Supervision Actions</th>
+                  <th className="px-6 py-4">{t.evaluations.studentCandidate}</th>
+                  <th className="px-6 py-4">{t.evaluations.positionTitle}</th>
+                  <th className="px-6 py-4">{t.evaluations.hoursLoggedAndSigned}</th>
+                  <th className="px-6 py-4">{t.evaluations.rubricStatus}</th>
+                  <th className="px-6 py-4 text-right">{t.evaluations.supervisionActions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
                 {interns.length > 0 ? (
                   interns.map((intern) => {
                     const isEvaluated = !!intern.evaluation;
+                    const logCount = intern.student.dailyLogs?.length || intern.student.weeklyLogs?.length || 0;
 
                     return (
                       <tr key={intern.applicationId} className="hover:bg-slate-50/60 transition-colors">
@@ -286,7 +375,7 @@ export default function CompanyEvaluations() {
                                 {intern.student.user.name}
                               </button>
                               <div className="text-slate-500 text-xs font-semibold">
-                                ID: {intern.student.studentId} • Year {intern.student.year}
+                                ID: {intern.student.studentId} • {t.logbook.academicYear} {intern.student.year}
                               </div>
                               <div className="text-[11px] text-slate-400">
                                 {intern.student.university ? `${intern.student.university} • ` : ''}{intern.student.faculty} ({intern.student.major})
@@ -296,7 +385,6 @@ export default function CompanyEvaluations() {
                         </td>
 
                         {/* Position */}
-                        {/* Position */}
                         <td className="px-6 py-4.5 whitespace-nowrap">
                           <span className="font-bold text-slate-800 text-xs block">
                             {intern.jobTitle}
@@ -304,18 +392,18 @@ export default function CompanyEvaluations() {
                           {intern.status === 'COMMITTED' && (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mt-1 border border-emerald-200">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                              Active Placement
+                              {t.common.status.committed}
                             </span>
                           )}
                           {intern.status === 'CANCEL_REQUESTED' && (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md mt-1 border border-amber-200">
                               <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                              Cancel Requested
+                              {t.common.status.cancelRequested}
                             </span>
                           )}
                           {intern.status === 'ACCEPTED' && (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md mt-1 border border-indigo-200">
-                              Offer Extended
+                              {t.common.status.offerExtended}
                             </span>
                           )}
                         </td>
@@ -324,14 +412,14 @@ export default function CompanyEvaluations() {
                         <td className="px-6 py-4.5 whitespace-nowrap">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-black text-slate-900 text-sm">
-                              {intern.totalHours} hrs
+                              {intern.totalHours} {t.common.hrs}
                             </span>
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                              {intern.approvedHours} hrs approved
+                              {intern.approvedHours} {t.common.hrs} {t.common.status.approved}
                             </span>
                           </div>
                           <span className="text-[11px] text-slate-400 font-medium">
-                            {intern.student.weeklyLogs?.length || 0} weekly {intern.student.weeklyLogs?.length === 1 ? 'entry' : 'entries'} submitted
+                            {logCount} {t.evaluations.entriesSubmitted}
                           </span>
                         </td>
 
@@ -340,11 +428,11 @@ export default function CompanyEvaluations() {
                           {isEvaluated ? (
                             <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              Rubric Submitted
+                              {t.evaluations.rubricSubmitted}
                             </span>
                           ) : (
                             <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-                              Pending Evaluation
+                              {t.evaluations.pendingEvaluation}
                             </span>
                           )}
                         </td>
@@ -352,16 +440,17 @@ export default function CompanyEvaluations() {
                         {/* Actions */}
                         <td className="px-6 py-4.5 whitespace-nowrap text-right space-x-2">
                           <button
+                            id="review-logbook-btn"
                             onClick={() => openLogsModal(intern)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors cursor-pointer"
                           >
-                            Review Logbook ({intern.student.weeklyLogs?.length || 0})
+                            {t.evaluations.reviewLogbook} ({logCount})
                           </button>
                           <button
                             onClick={() => openEvaluationModal(intern)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
                           >
-                            {isEvaluated ? 'Edit Rubric' : 'Evaluate'}
+                            {isEvaluated ? t.evaluations.editRubric : t.evaluations.evaluate}
                           </button>
                         </td>
                       </tr>
@@ -371,8 +460,8 @@ export default function CompanyEvaluations() {
                   <tr>
                     <td colSpan={5} className="px-6 py-16 text-center text-slate-400">
                       <Users className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                      <p className="font-bold text-slate-700">No active interns found.</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Approved applicants will appear here for weekly supervision.</p>
+                      <p className="font-bold text-slate-700">{t.evaluations.noActiveInterns}</p>
+                      <p className="text-xs text-slate-400">{t.evaluations.noActiveInternsDesc}</p>
                     </td>
                   </tr>
                 )}
@@ -382,240 +471,347 @@ export default function CompanyEvaluations() {
         </div>
       )}
 
-      {/* ── Logbook Review Drawer Modal ────────────────────────────────────── */}
+      {/* ── Logbook Review Drawer Modal (Grouped by Week with Batch Sign-off) ── */}
       {selectedForLogs && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
             <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-primary-400">
-                  Weekly Logbook Review & Sign-off
+                  {t.evaluations.drawerTag}
                 </span>
                 <h3 className="text-lg font-extrabold text-white">
                   {selectedForLogs.student.user.name} ({selectedForLogs.student.studentId})
                 </h3>
               </div>
               <button 
-                onClick={() => { setSelectedForLogs(null); setApprovingLogId(null); }}
+                onClick={() => { setSelectedForLogs(null); setBatchWeekNumber(null); setApprovingLogId(null); }}
                 className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-7 space-y-6 max-h-[75vh] overflow-y-auto">
+            <div className="p-7 space-y-6 max-h-[80vh] overflow-y-auto">
               {logsLoading ? (
                 <div className="flex justify-center py-10">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
-              ) : studentLogs.length > 0 ? (
-                <div className="space-y-5">
-                  {studentLogs.map((log) => {
-                    const modalityInfo = getModalityBadge(log.workModality);
-                    const ModalityIcon = modalityInfo.icon;
-                    const plannedItems = parsePinPoints(log.plannedTasks);
-                    const actualItems = parsePinPoints(log.tasksDone);
-                    const linkItems = parseAttachmentLinks(log.attachmentUrl);
+              ) : groupedWeeks.length > 0 ? (
+                <div className="space-y-6">
+                  {groupedWeeks.map((week) => {
+                    const isExpanded = expandedWeeks[week.weekNumber] ?? true;
+                    const isFullyApproved = week.mentorApproved;
 
                     return (
-                      <div key={log.id} className="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
-                        {/* Log Header */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-extrabold text-sm text-slate-900">
-                                Week {log.weekNumber} Report
-                              </span>
-                              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${modalityInfo.color}`}>
-                                <ModalityIcon className="w-3 h-3" />
-                                {modalityInfo.label}
-                              </span>
+                      <div key={week.weekNumber} className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+                        {/* Week Header with Batch Sign-off Button */}
+                        <div className="p-5 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary-600 text-white font-black text-sm flex items-center justify-center">
+                              W{week.weekNumber}
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                              {new Date(log.startDate).toLocaleDateString()} - {new Date(log.endDate).toLocaleDateString()}
-                              {log.supervisorName && (
-                                <span className="text-slate-400"> • Mentor: <strong className="text-slate-700">{log.supervisorName}</strong></span>
-                              )}
-                            </p>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-extrabold text-sm text-slate-900">
+                                  {t.logbook.weekPrefix} {week.weekNumber} ({formatDate(week.startDate, { month: 'short', day: 'numeric' })} - {formatDate(week.endDate, { month: 'short', day: 'numeric', year: 'numeric' })})
+                                </span>
+                                {week.hasBackdated && (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                                    <AlertTriangle className="w-3 h-3 text-amber-600" />
+                                    {t.logbook.hasBackdated}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {week.days.length} {t.evaluations.entriesSubmitted} • {week.totalHours} {t.common.hrs} ({week.approvedHours} {t.common.hrs} {t.common.status.approved})
+                              </p>
+                            </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-primary-600 shadow-2xs">
-                              {log.hoursWorked} Hours
-                            </span>
-                            {log.mentorApproved ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                Approved {log.mentorRating ? `(${log.mentorRating} ★)` : ''}
+                          <div className="flex items-center gap-2.5 flex-wrap self-end sm:self-center">
+                            {isFullyApproved ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-2xs">
+                                <CheckCircle2 className="w-4 h-4" />
+                                {t.evaluations.weekApproved} {week.mentorRating ? `(${week.mentorRating} ★)` : ''}
                               </span>
                             ) : (
                               <button
+                                id="batch-signoff-week-btn"
                                 onClick={() => {
-                                  setApprovingLogId(log.id);
-                                  setLogMentorFeedback(log.mentorFeedback || '');
-                                  setLogWeeklyRating(log.mentorRating || 5);
+                                  setBatchWeekNumber(week.weekNumber);
+                                  setBatchRating(5);
+                                  setBatchFeedback(week.mentorFeedback || (language === 'th' ? 'ผลงานประจำสัปดาห์ครบถ้วนและถูกต้องตามเกณฑ์' : 'Weekly deliverables verified and meet required criteria'));
                                 }}
-                                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
                               >
-                                Sign Off Week
+                                <Check className="w-4 h-4" />
+                                {t.evaluations.batchSignOffWeek} {week.weekNumber}
                               </button>
                             )}
+
+                            <button
+                              type="button"
+                              onClick={() => toggleWeekExpansion(week.weekNumber)}
+                              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+                            >
+                              {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                            </button>
                           </div>
                         </div>
 
-                        {/* Planned vs Actual (Pin Points) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70 space-y-1.5">
-                            <p className="font-bold text-[10px] text-slate-400 uppercase tracking-wider">
-                              🎯 Planned Objectives:
-                            </p>
-                            {plannedItems.length > 0 ? (
-                              <ul className="space-y-1 text-slate-700">
-                                {plannedItems.map((item, idx) => (
-                                  <li key={idx} className="flex items-start gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1 shrink-0"></span>
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p className="text-slate-400 italic">No planned objectives recorded.</p>
-                            )}
-                          </div>
-
-                          <div className="bg-white p-3.5 rounded-xl border border-slate-200/70 space-y-1.5">
-                            <p className="font-bold text-[10px] text-primary-600 uppercase tracking-wider">
-                              ✅ Tasks & Deliverables Completed:
-                            </p>
-                            <ul className="space-y-1 text-slate-700">
-                              {actualItems.map((item, idx) => (
-                                <li key={idx} className="flex items-start gap-1.5">
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                                  <span>{item}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        {/* Problems & Solutions AND Key Learnings (Both Guaranteed Visible) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                          <div className="bg-amber-50/60 border border-amber-100 p-3.5 rounded-xl">
-                            <p className="font-bold text-amber-900 mb-0.5 flex items-center gap-1">
-                              ⚠️ Problems Encountered & Solutions:
-                            </p>
-                            <p className="text-amber-800 whitespace-pre-line leading-relaxed">
-                              {log.problemsAndSolutions || 'No specific blockers reported this week.'}
-                            </p>
-                          </div>
-                          <div className="bg-indigo-50/60 border border-indigo-100 p-3.5 rounded-xl">
-                            <p className="font-bold text-indigo-900 mb-0.5 flex items-center gap-1">
-                              💡 Key Learnings & Technical Growth:
-                            </p>
-                            <p className="text-indigo-800 whitespace-pre-line leading-relaxed">
-                              {log.learnings || 'General internship duties and routine progress.'}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Attached Artifacts & Deliverables (Visible in Company Portal!) */}
-                        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
-                          <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                            <LinkIcon className="w-3 h-3 text-primary-500" />
-                            Attached Artifacts & Deliverables ({linkItems.length})
-                          </p>
-                          {linkItems.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                              {linkItems.map((link, idx) => {
-                                const isFile = isFileAttachment(link.url, link.title);
-                                return (
-                                  <a
-                                    key={idx}
-                                    href={link.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 shadow-2xs transition-all"
-                                  >
-                                    {isFile ? <FileText className="w-3.5 h-3.5 text-indigo-600" /> : <ExternalLink className="w-3.5 h-3.5" />}
-                                    {link.title || 'View Attached Artifact'}
-                                  </a>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <p className="text-slate-400 italic text-[11px]">No attached files or links for this week.</p>
-                          )}
-                        </div>
-
-                        {/* Mentor Feedback status */}
-                        <div className="text-xs pt-1">
-                          <div className="bg-white p-3 rounded-xl border border-slate-200/70">
-                            <p className="font-bold text-slate-600 text-[10px] uppercase">Company Mentor Feedback:</p>
-                            <p className="italic text-slate-700 text-[11px] mt-0.5">
-                              {log.mentorFeedback ? `"${log.mentorFeedback}"` : 'No feedback submitted yet.'}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Inline Sign-off Form */}
-                        {approvingLogId === log.id && (
-                          <form onSubmit={handleApproveLog} className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 space-y-3 mt-2 animate-in fade-in">
+                        {/* Batch Sign-off Inline Form */}
+                        {batchWeekNumber === week.weekNumber && (
+                          <form onSubmit={handleBatchApproveWeek} className="p-5 bg-emerald-50/90 border-b border-emerald-200 space-y-3 animate-in fade-in">
                             <div className="flex justify-between items-center">
-                              <span className="text-xs font-black text-emerald-900">
-                                Sign Off & Rate Week {log.weekNumber}
+                              <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                {t.evaluations.batchSignOffFormTitle} ({t.logbook.weekPrefix} {week.weekNumber})
                               </span>
                               <div className="flex items-center gap-1">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                   <button
                                     key={star}
                                     type="button"
-                                    onClick={() => setLogWeeklyRating(star)}
-                                    className={`p-1 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-                                      logWeeklyRating >= star ? 'text-amber-500' : 'text-slate-300'
+                                    onClick={() => setBatchRating(star)}
+                                    className={`p-1 text-sm font-bold cursor-pointer ${
+                                      batchRating >= star ? 'text-amber-500' : 'text-slate-300'
                                     }`}
                                   >
                                     ★
                                   </button>
                                 ))}
-                                <span className="text-xs font-bold text-emerald-800 ml-1">({logWeeklyRating} / 5)</span>
+                                <span className="text-xs font-bold text-emerald-900 ml-1">({batchRating} / 5)</span>
                               </div>
                             </div>
 
                             <textarea
                               rows={2}
                               required
-                              placeholder="Write weekly mentor feedback, verify hours and performance..."
+                              placeholder={t.evaluations.batchFeedbackPlaceholder}
                               className="w-full border border-emerald-300 bg-white rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500"
-                              value={logMentorFeedback}
-                              onChange={(e) => setLogMentorFeedback(e.target.value)}
+                              value={batchFeedback}
+                              onChange={(e) => setBatchFeedback(e.target.value)}
                             ></textarea>
 
-                            <div className="flex gap-2">
+                            <div className="flex justify-end gap-2">
                               <button
                                 type="button"
-                                onClick={() => setApprovingLogId(null)}
+                                onClick={() => setBatchWeekNumber(null)}
                                 className="px-3 py-1.5 border border-emerald-300 bg-white text-emerald-800 text-xs font-bold rounded-lg cursor-pointer"
                               >
-                                Cancel
+                                {t.common.cancel}
                               </button>
                               <button
                                 type="submit"
-                                disabled={approvingSubmitting}
-                                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer"
+                                disabled={batchSubmitting}
+                                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer disabled:opacity-50"
                               >
-                                {approvingSubmitting ? 'Signing off...' : 'Confirm Sign-off'}
+                                {batchSubmitting ? t.common.saving : `${t.evaluations.confirmBatchSignoffBtn} (${t.logbook.weekPrefix} ${week.weekNumber})`}
                               </button>
                             </div>
                           </form>
+                        )}
+
+                        {/* Week Feedback banner if present */}
+                        {week.mentorFeedback && (
+                          <div className="px-5 py-2.5 bg-emerald-50/50 border-b border-emerald-100 text-xs text-emerald-900 flex items-center justify-between">
+                            <span className="flex items-center gap-1.5 font-bold">
+                              <Building2 className="w-3.5 h-3.5 text-emerald-700" />
+                              {t.logbook.mentorReview} <span className="font-normal italic">"{week.mentorFeedback}"</span>
+                            </span>
+                            {week.mentorRating && (
+                              <span className="font-black text-amber-600">({week.mentorRating} ★)</span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Daily Logs in this week */}
+                        {isExpanded && (
+                          <div className="p-5 space-y-4 bg-slate-50/40">
+                            {week.days.map((log) => {
+                              const modalityInfo = getModalityBadge(log.workModality);
+                              const ModalityIcon = modalityInfo.icon;
+                              const actualItems = parsePinPoints(log.tasksDone);
+                              const linkItems = parseAttachmentLinks(log.attachmentUrl);
+
+                              return (
+                                <div key={log.id} className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+                                  {/* Day Row Header */}
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
+                                        <Calendar className="w-3.5 h-3.5 text-primary-600" />
+                                        {formatLogDate(log.logDate)}
+                                      </span>
+
+                                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${modalityInfo.color}`}>
+                                        <ModalityIcon className="w-3 h-3" />
+                                        {modalityInfo.label}
+                                      </span>
+
+                                      {log.isBackdated && (
+                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                                          ⏱️ {t.logbook.backdatedBadge}
+                                        </span>
+                                      )}
+
+                                      {log.supervisorName && (
+                                        <span className="text-slate-400 text-[11px]">
+                                          • {t.logbook.supervisorNameLabel}: <strong className="text-slate-700">{log.supervisorName}</strong>
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800">
+                                        {log.hoursWorked} {t.common.hours}
+                                      </span>
+
+                                      {log.mentorApproved ? (
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
+                                          <CheckCircle2 className="w-3 h-3" />
+                                          {t.common.status.approved}
+                                        </span>
+                                      ) : (
+                                        <button
+                                          onClick={() => {
+                                            setApprovingLogId(log.id);
+                                            setSingleRating(5);
+                                            setSingleFeedback(log.mentorFeedback || (language === 'th' ? 'รับรองผลการปฏิบัติงานประจำวัน' : 'Approved day deliverables'));
+                                          }}
+                                          className="text-[11px] font-bold px-2.5 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer"
+                                        >
+                                          {t.evaluations.signOffDay}
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Tasks Done */}
+                                  <div className="space-y-1 text-xs">
+                                    <p className="font-bold text-[10px] text-primary-700 uppercase tracking-wider">
+                                      ✅ {t.logbook.actualTasksCompleted}
+                                    </p>
+                                    <ul className="space-y-1 text-slate-700">
+                                      {actualItems.map((item, idx) => (
+                                        <li key={idx} className="flex items-start gap-1.5">
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                                          <span className="leading-relaxed">{item}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+
+                                  {/* Problems & Solutions AND Key Learnings */}
+                                  {(log.problemsAndSolutions || log.learnings) && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+                                      {log.problemsAndSolutions && (
+                                        <div className="bg-amber-50/60 border border-amber-100 p-2.5 rounded-xl">
+                                          <p className="font-bold text-[10px] text-amber-900 mb-0.5 flex items-center gap-1">
+                                            ⚠️ {t.logbook.problemsAndSolutions}
+                                          </p>
+                                          <p className="text-amber-800 whitespace-pre-line leading-relaxed">
+                                            {log.problemsAndSolutions}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {log.learnings && (
+                                        <div className="bg-indigo-50/60 border border-indigo-100 p-2.5 rounded-xl">
+                                          <p className="font-bold text-[10px] text-indigo-900 mb-0.5 flex items-center gap-1">
+                                            💡 {t.logbook.keyLearnings}
+                                          </p>
+                                          <p className="text-indigo-800 whitespace-pre-line leading-relaxed">
+                                            {log.learnings}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Attached Artifacts */}
+                                  {linkItems.length > 0 && (
+                                    <div className="text-xs pt-1">
+                                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1">
+                                        <LinkIcon className="w-3 h-3 text-primary-500" />
+                                        {t.logbook.attachedArtifacts} ({linkItems.length}):
+                                      </p>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {linkItems.map((link, idx) => {
+                                          const isFile = isFileAttachment(link.url, link.title);
+                                          return (
+                                            <a
+                                              key={idx}
+                                              href={link.url}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary-50 hover:bg-primary-100 border border-primary-200 text-xs font-bold text-primary-700 transition-all"
+                                            >
+                                              {isFile ? <FileText className="w-3.5 h-3.5 text-indigo-600" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                                              {link.title || t.logbook.viewArtifact}
+                                            </a>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Single Day Inline Sign-off Form */}
+                                  {approvingLogId === log.id && (
+                                    <form onSubmit={handleApproveSingleLog} className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2 mt-2">
+                                      <div className="flex justify-between items-center text-xs">
+                                        <span className="font-bold text-emerald-900">{t.evaluations.signOffDayTitle} ({formatLogDate(log.logDate)})</span>
+                                        <div className="flex items-center gap-1">
+                                          {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                              key={star}
+                                              type="button"
+                                              onClick={() => setSingleRating(star)}
+                                              className={`text-xs cursor-pointer ${singleRating >= star ? 'text-amber-500' : 'text-slate-300'}`}
+                                            >
+                                              ★
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <input
+                                        type="text"
+                                        required
+                                        placeholder={t.evaluations.singleFeedbackPlaceholder}
+                                        className="w-full border border-emerald-300 bg-white rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500"
+                                        value={singleFeedback}
+                                        onChange={(e) => setSingleFeedback(e.target.value)}
+                                      />
+                                      <div className="flex justify-end gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => setApprovingLogId(null)}
+                                          className="px-2.5 py-1 border border-slate-200 text-xs rounded-lg bg-white"
+                                        >
+                                          {t.common.cancel}
+                                        </button>
+                                        <button
+                                          type="submit"
+                                          disabled={singleSubmitting}
+                                          className="px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-lg"
+                                        >
+                                          {singleSubmitting ? t.common.saving : t.common.confirm}
+                                        </button>
+                                      </div>
+                                    </form>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         )}
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <div className="text-center py-10 text-slate-400 text-xs">
-                  No weekly logs submitted by this student yet.
+                <div className="text-center py-12 text-slate-400 text-xs">
+                  {t.evaluations.noDailyLogsSubmitted}
                 </div>
               )}
             </div>
@@ -630,7 +826,7 @@ export default function CompanyEvaluations() {
             <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-primary-400">
-                  Host Organization Assessment
+                  {t.evaluations.rubricModalTag}
                 </span>
                 <h3 className="text-lg font-extrabold text-white">
                   {selectedIntern.student.user.name}
@@ -649,7 +845,7 @@ export default function CompanyEvaluations() {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Work Quality & Technical Competence (1-5)
+                    {t.evaluations.workQualityLabel}
                   </label>
                   <span className="text-xs font-black text-primary-600">{workQuality} / 5</span>
                 </div>
@@ -667,7 +863,7 @@ export default function CompanyEvaluations() {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Punctuality & Reliability (1-5)
+                    {t.evaluations.punctualityLabel}
                   </label>
                   <span className="text-xs font-black text-primary-600">{punctuality} / 5</span>
                 </div>
@@ -685,7 +881,7 @@ export default function CompanyEvaluations() {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Teamwork & Communication (1-5)
+                    {t.evaluations.teamworkLabel}
                   </label>
                   <span className="text-xs font-black text-primary-600">{teamwork} / 5</span>
                 </div>
@@ -702,12 +898,12 @@ export default function CompanyEvaluations() {
               {/* Qualitative Feedback */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Mentor Performance Remarks & Recommendation
+                  {t.evaluations.mentorRemarksLabel}
                 </label>
                 <textarea
                   rows={3}
                   required
-                  placeholder="Provide detailed feedback on project deliverables, problem-solving, and general attitude..."
+                  placeholder={t.evaluations.mentorRemarksPlaceholder}
                   className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-500"
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
@@ -721,14 +917,14 @@ export default function CompanyEvaluations() {
                   onClick={() => setSelectedIntern(null)}
                   className="flex-1 py-3 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
                   className="flex-1 py-3 bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs rounded-xl hover:from-primary-700 hover:to-indigo-700 shadow-md shadow-primary-500/20 disabled:opacity-50 cursor-pointer"
                 >
-                  {submitting ? 'Submitting...' : 'Submit Evaluation'}
+                  {submitting ? t.common.saving : t.evaluations.submitEvaluationBtn}
                 </button>
               </div>
             </form>
@@ -746,3 +942,4 @@ export default function CompanyEvaluations() {
     </div>
   );
 }
+

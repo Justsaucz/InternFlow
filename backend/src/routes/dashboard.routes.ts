@@ -33,7 +33,7 @@ router.get('/stats', authenticate, async (req: AuthRequest, res: Response): Prom
       const [totalApplied, underReview, offers, recent] = await Promise.all([
         prisma.application.count({ where: { studentId: student.id } }),
         prisma.application.count({
-          where: { studentId: student.id, status: { in: ['PENDING', 'REVIEWING'] } }
+          where: { studentId: student.id, status: { in: ['PENDING', 'REVIEWING', 'INTERVIEW_SCHEDULED'] } }
         }),
         prisma.application.count({
           where: { studentId: student.id, status: { in: ['ACCEPTED', 'COMMITTED', 'CANCEL_REQUESTED'] } }

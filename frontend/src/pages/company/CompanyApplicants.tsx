@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle, XCircle, Eye, Building, Mail, Briefcase, Calendar, FileText, ExternalLink, Clock, AlertTriangle, UserCheck } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Building, Mail, Briefcase, Calendar, FileText, ExternalLink, Clock, AlertTriangle, UserCheck, Video } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import PublicProfileModal from '../../components/modals/PublicProfileModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Application {
   id: string;
@@ -23,21 +24,23 @@ interface Application {
   };
 }
 
-const statusConfig: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'Pending Review', color: 'bg-yellow-100 text-yellow-800' },
-  REVIEWING: { label: 'Under Review', color: 'bg-blue-100 text-blue-800' },
-  ACCEPTED: { label: 'Offer Extended', color: 'bg-amber-100 text-amber-800' },
-  COMMITTED: { label: 'Active Intern', color: 'bg-emerald-100 text-emerald-800' },
-  CANCEL_REQUESTED: { label: 'Cancellation Requested', color: 'bg-rose-100 text-rose-800' },
-  CANCELLED: { label: 'Cancelled / Released', color: 'bg-gray-100 text-gray-700' },
-  REJECTED: { label: 'Rejected', color: 'bg-red-100 text-red-800' },
-};
+const getStatusConfig = (isThai: boolean): Record<string, { label: string; color: string }> => ({
+  PENDING: { label: isThai ? 'รอการตรวจสอบ' : 'Pending Review', color: 'bg-yellow-100 text-yellow-800' },
+  REVIEWING: { label: isThai ? 'กำลังพิจารณา' : 'Under Review', color: 'bg-blue-100 text-blue-800' },
+  INTERVIEW_SCHEDULED: { label: isThai ? 'นัดสัมภาษณ์แล้ว' : 'Interview Scheduled', color: 'bg-indigo-100 text-indigo-800' },
+  ACCEPTED: { label: isThai ? 'ส่งข้อเสนอแล้ว' : 'Offer Extended', color: 'bg-amber-100 text-amber-800' },
+  COMMITTED: { label: isThai ? 'นักศึกษาในสังกัด' : 'Active Intern', color: 'bg-emerald-100 text-emerald-800' },
+  CANCEL_REQUESTED: { label: isThai ? 'ขอยกเลิกการฝึกงาน' : 'Cancellation Requested', color: 'bg-rose-100 text-rose-800' },
+  CANCELLED: { label: isThai ? 'ยกเลิก / ปลดประจำการ' : 'Cancelled / Released', color: 'bg-gray-100 text-gray-700' },
+  REJECTED: { label: isThai ? 'ปฏิเสธแล้ว' : 'Rejected', color: 'bg-red-100 text-red-800' },
+});
 
 export default function CompanyApplicants() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewingStudentId, setViewingStudentId] = useState<string | null>(null);
   const { success, error: showError } = useToast();
+  const { language } = useLanguage();
 
   useEffect(() => {
     fetchApplications();
@@ -73,8 +76,14 @@ export default function CompanyApplicants() {
       });
       const data = await res.json();
       if (res.ok) {
-        const label = status === 'ACCEPTED' ? 'accepted' : status === 'REJECTED' ? 'rejected' : 'updated';
-        success(`Application ${label} successfully!`);
+        const label = status === 'ACCEPTED' 
+          ? (language === 'th' ? 'ส่งข้อเสนอฝึกงานแล้ว' : 'offered') 
+          : status === 'REJECTED' 
+          ? (language === 'th' ? 'ปฏิเสธใบสมัครแล้ว' : 'rejected') 
+          : status === 'INTERVIEW_SCHEDULED'
+          ? (language === 'th' ? 'นัดหมายสัมภาษณ์เรียบร้อยแล้ว' : 'interview scheduled')
+          : (language === 'th' ? 'อัปเดตสถานะแล้ว' : 'updated');
+        success(language === 'th' ? `ดำเนินการสำเร็จ: ${label}` : `Application ${label} successfully!`);
         fetchApplications();
       } else {
         showError(data.error || 'Failed to update application status.');
@@ -109,11 +118,17 @@ export default function CompanyApplicants() {
     }
   };
 
+  const statusMap = getStatusConfig(language === 'th');
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Applicants & Active Interns</h2>
-        <p className="text-gray-500 mt-1">Review candidate applications, extend internship offers, and manage intern placements.</p>
+        <h2 className="text-2xl font-bold text-slate-900 font-heading">
+          {language === 'th' ? 'ผู้สมัครและนักศึกษาฝึกงานในความดูแล' : 'Applicants & Active Interns'}
+        </h2>
+        <p className="text-slate-500 mt-1 text-sm">
+          {language === 'th' ? 'ตรวจสอบประวัติผู้สมัคร นัดหมายสัมภาษณ์ ส่งข้อเสนอฝึกงาน และติดตามนักศึกษาที่ยืนยันสิทธิ์' : 'Review candidate applications, schedule interviews, extend internship offers, and manage intern placements.'}
+        </p>
       </div>
 
       {loading ? (
@@ -123,7 +138,7 @@ export default function CompanyApplicants() {
       ) : applications.length > 0 ? (
         <div className="grid grid-cols-1 gap-4">
           {applications.map((app) => {
-            const status = statusConfig[app.status] || { label: app.status, color: 'bg-gray-100 text-gray-800' };
+            const status = statusMap[app.status] || { label: app.status, color: 'bg-gray-100 text-gray-800' };
 
             return (
               <div key={app.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -232,27 +247,56 @@ export default function CompanyApplicants() {
                   <div className="flex items-center gap-2 flex-wrap self-start">
                     {app.status === 'PENDING' && (
                       <button onClick={() => updateStatus(app.id, 'REVIEWING')} className="px-3 py-1.5 border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer">
-                        <Eye className="w-3.5 h-3.5 mr-1" /> Review
+                        <Eye className="w-3.5 h-3.5 mr-1" /> {language === 'th' ? 'เริ่มตรวจสอบ' : 'Review'}
                       </button>
                     )}
                     {(app.status === 'PENDING' || app.status === 'REVIEWING') && (
                       <>
+                        <button 
+                          onClick={() => updateStatus(app.id, 'INTERVIEW_SCHEDULED')} 
+                          className="px-3 py-1.5 border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer shadow-xs"
+                          title={language === 'th' ? 'นัดหมายสัมภาษณ์นักศึกษา' : 'Schedule Interview'}
+                        >
+                          <Video className="w-3.5 h-3.5 mr-1 text-indigo-600" /> {language === 'th' ? 'นัดสัมภาษณ์' : 'Schedule Interview'}
+                        </button>
                         <button onClick={() => updateStatus(app.id, 'ACCEPTED')} className="px-3 py-1.5 border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer">
-                          <CheckCircle className="w-3.5 h-3.5 mr-1" /> Extend Offer
+                          <CheckCircle className="w-3.5 h-3.5 mr-1" /> {language === 'th' ? 'ให้ข้อเสนอ' : 'Extend Offer'}
                         </button>
                         <button onClick={() => updateStatus(app.id, 'REJECTED')} className="px-3 py-1.5 border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer">
-                          <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
+                          <XCircle className="w-3.5 h-3.5 mr-1" /> {language === 'th' ? 'ปฏิเสธ' : 'Reject'}
                         </button>
                       </>
                     )}
+                    {app.status === 'INTERVIEW_SCHEDULED' && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200">
+                          <Video className="w-3.5 h-3.5 text-indigo-600" />
+                          {language === 'th' ? 'อยู่ในขั้นตอนสัมภาษณ์' : 'Interview in Progress'}
+                        </span>
+                        <button 
+                          onClick={() => updateStatus(app.id, 'ACCEPTED')} 
+                          className="px-3 py-1.5 border border-emerald-300 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer shadow-xs"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+                          {language === 'th' ? 'ผ่านสัมภาษณ์ / ให้ข้อเสนอ' : 'Pass & Extend Offer'}
+                        </button>
+                        <button 
+                          onClick={() => updateStatus(app.id, 'REJECTED')} 
+                          className="px-3 py-1.5 border border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer"
+                        >
+                          <XCircle className="w-3.5 h-3.5 mr-1" />
+                          {language === 'th' ? 'ไม่ผ่านสัมภาษณ์' : 'Reject'}
+                        </button>
+                      </div>
+                    )}
                     {app.status === 'ACCEPTED' && (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200">
-                        <Clock className="w-3.5 h-3.5" /> Offer Extended (Awaiting Student)
+                        <Clock className="w-3.5 h-3.5" /> {language === 'th' ? 'ส่งข้อเสนอแล้ว (รอนักศึกษายืนยัน)' : 'Offer Extended (Awaiting Student)'}
                       </span>
                     )}
                     {app.status === 'COMMITTED' && (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">
-                        <UserCheck className="w-3.5 h-3.5" /> Active Intern (Confirmed)
+                        <UserCheck className="w-3.5 h-3.5" /> {language === 'th' ? 'นักศึกษาเข้าฝึกงานแล้ว (ยืนยันสิทธิ์)' : 'Active Intern (Confirmed)'}
                       </span>
                     )}
                     {app.status === 'CANCEL_REQUESTED' && (
@@ -276,6 +320,11 @@ export default function CompanyApplicants() {
                     {app.status === 'CANCELLED' && (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200">
                         <XCircle className="w-3.5 h-3.5" /> Placement Cancelled
+                      </span>
+                    )}
+                    {app.status === 'REJECTED' && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200">
+                        <XCircle className="w-3.5 h-3.5" /> {language === 'th' ? 'ปฏิเสธแล้ว' : 'Rejected'}
                       </span>
                     )}
                   </div>

@@ -11,6 +11,7 @@ import {
   ExternalLink,
   BookOpen
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface StudentData {
   id: string;
@@ -74,6 +75,7 @@ export default function PublicProfileModal({
   profileId,
   onSelectJob
 }: PublicProfileModalProps) {
+  const { language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [studentData, setStudentData] = useState<StudentData | null>(null);
@@ -181,20 +183,22 @@ export default function PublicProfileModal({
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-extrabold text-slate-900">{studentData.name}</h3>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-primary-50 text-primary-700 border border-primary-200">
-                          Student Intern
+                        <h3 className="text-xl font-extrabold text-slate-900 font-heading">{studentData.name}</h3>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {language === 'th' ? 'นักศึกษาฝึกงาน' : 'Student Intern'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 font-medium">
-                        <GraduationCap className="w-3.5 h-3.5 text-primary-500" />
-                        {studentData.university ? `${studentData.university} • ` : ''}Year {studentData.year} • {studentData.faculty || 'Student'}
+                        <GraduationCap className="w-3.5 h-3.5 text-emerald-600" />
+                        {studentData.university ? `${studentData.university} • ` : ''}{language === 'th' ? `ชั้นปีที่ ${studentData.year}` : `Year ${studentData.year}`} • {studentData.faculty || 'Student'}
                       </p>
                     </div>
 
                     {studentData.gpa && (
                       <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-right">
-                        <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Cumulative GPA</span>
+                        <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">
+                          {language === 'th' ? 'เกรดเฉลี่ยสะสม' : 'Cumulative GPA'}
+                        </span>
                         <span className="text-sm font-black text-amber-800">{Number(studentData.gpa).toFixed(2)}</span>
                       </div>
                     )}
@@ -207,20 +211,28 @@ export default function PublicProfileModal({
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {studentData.university && (
                       <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 col-span-2 sm:col-span-3">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">University</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          {language === 'th' ? 'สถาบันการศึกษา' : 'University'}
+                        </span>
                         <p className="text-xs font-extrabold text-slate-800 mt-0.5">{studentData.university}</p>
                       </div>
                     )}
                     <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Faculty</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {language === 'th' ? 'คณะ' : 'Faculty'}
+                      </span>
                       <p className="text-xs font-extrabold text-slate-800 mt-0.5">{studentData.faculty || 'Engineering'}</p>
                     </div>
                     <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Major</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {language === 'th' ? 'สาขาวิชา' : 'Major'}
+                      </span>
                       <p className="text-xs font-extrabold text-slate-800 mt-0.5">{studentData.major || 'Computer Engineering'}</p>
                     </div>
                     <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 col-span-2 sm:col-span-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Contact</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {language === 'th' ? 'ช่องทางติดต่อ' : 'Contact'}
+                      </span>
                       <p className="text-xs font-bold text-slate-800 mt-0.5 truncate">{studentData.email}</p>
                     </div>
                   </div>
@@ -229,8 +241,8 @@ export default function PublicProfileModal({
                   {studentData.bio && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                        <BookOpen className="w-3.5 h-3.5 text-primary-600" />
-                        About & Career Goals
+                        <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
+                        {language === 'th' ? 'เกี่ยวกับตัวฉันและเป้าหมายอาชีพ' : 'About & Career Goals'}
                       </h4>
                       <p className="text-xs text-slate-600 leading-relaxed bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
                         {studentData.bio}
@@ -243,13 +255,13 @@ export default function PublicProfileModal({
                     <div className="space-y-2">
                       <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                        Skills & Competencies
+                        {language === 'th' ? 'ทักษะและความเชี่ยวชาญ' : 'Skills & Competencies'}
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
                         {studentData.skills.map((skill, index) => (
                           <span
                             key={index}
-                            className="px-2.5 py-1 rounded-xl bg-primary-50 text-primary-700 font-bold text-xs border border-primary-100"
+                            className="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-100"
                           >
                             {skill}
                           </span>
@@ -265,7 +277,7 @@ export default function PublicProfileModal({
             {profileType === 'company' && companyData && (
               <div>
                 {/* Header Banner */}
-                <div className="h-36 bg-gradient-to-r from-slate-900 via-primary-950 to-indigo-950 relative">
+                <div className="h-36 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 relative">
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent opacity-60"></div>
                   
                   {/* Logo */}
@@ -291,13 +303,13 @@ export default function PublicProfileModal({
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-extrabold text-slate-900">{companyData.companyName}</h3>
+                        <h3 className="text-xl font-extrabold text-slate-900 font-heading">{companyData.companyName}</h3>
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Corporate Employer
+                          {language === 'th' ? 'สถานประกอบการ' : 'Corporate Employer'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 font-medium">
-                        <Building2 className="w-3.5 h-3.5 text-primary-500" />
+                        <Building2 className="w-3.5 h-3.5 text-emerald-600" />
                         {companyData.industry || 'Technology'} • {companyData.address || 'Bangkok, Thailand'}
                       </p>
                     </div>
@@ -309,8 +321,8 @@ export default function PublicProfileModal({
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
                       >
-                        <Globe className="w-3.5 h-3.5 text-primary-600" />
-                        Visit Website
+                        <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                        {language === 'th' ? 'เว็บไซต์ทางการ' : 'Visit Website'}
                         <ExternalLink className="w-3 h-3 text-slate-400" />
                       </a>
                     )}
@@ -322,15 +334,21 @@ export default function PublicProfileModal({
                   {/* Contact Channels Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">HR Representative</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {language === 'th' ? 'ผู้แทนฝ่ายบุคคล' : 'HR Representative'}
+                      </span>
                       <p className="text-xs font-extrabold text-slate-800 mt-0.5">{companyData.hrRepresentative || 'HR Department'}</p>
                     </div>
                     <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email Contact</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {language === 'th' ? 'อีเมลติดต่อ' : 'Email Contact'}
+                      </span>
                       <p className="text-xs font-bold text-slate-800 mt-0.5 truncate">{companyData.contactEmail || 'N/A'}</p>
                     </div>
                     <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {language === 'th' ? 'เบอร์โทรศัพท์' : 'Phone'}
+                      </span>
                       <p className="text-xs font-bold text-slate-800 mt-0.5">{companyData.contactPhone || 'N/A'}</p>
                     </div>
                   </div>
@@ -338,7 +356,9 @@ export default function PublicProfileModal({
                   {/* Company Description */}
                   {companyData.description && (
                     <div className="space-y-2">
-                      <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Company Overview</h4>
+                      <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                        {language === 'th' ? 'ภาพรวมและวัฒนธรรมองค์กร' : 'Company Overview'}
+                      </h4>
                       <p className="text-xs text-slate-600 leading-relaxed bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
                         {companyData.description}
                       </p>
@@ -349,8 +369,8 @@ export default function PublicProfileModal({
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                        <Briefcase className="w-3.5 h-3.5 text-primary-600" />
-                        Active Openings ({companyData.activeJobs?.length || 0})
+                        <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
+                        {language === 'th' ? `ตำแหน่งงานที่เปิดรับ (${companyData.activeJobs?.length || 0})` : `Active Openings (${companyData.activeJobs?.length || 0})`}
                       </h4>
                     </div>
 
@@ -359,13 +379,13 @@ export default function PublicProfileModal({
                         {companyData.activeJobs.map((job) => (
                           <div 
                             key={job.id} 
-                            className="p-4 rounded-2xl border border-slate-100 bg-white hover:border-primary-200 hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                            className="p-4 rounded-2xl border border-slate-100 bg-white hover:border-emerald-200 hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                           >
                             <div>
                               <div className="flex items-center gap-2">
-                                <h5 className="font-extrabold text-slate-900 text-sm">{job.title}</h5>
+                                <h5 className="font-extrabold text-slate-900 text-sm font-heading">{job.title}</h5>
                                 <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">
-                                  {job.isRemote ? 'Remote' : 'On-site'}
+                                  {job.isRemote ? (language === 'th' ? 'ทำงานทางไกล' : 'Remote') : (language === 'th' ? 'ที่สำนักงาน' : 'On-site')}
                                 </span>
                               </div>
                               <div className="flex flex-wrap gap-2.5 mt-1 text-[11px] text-slate-500 font-medium">
@@ -388,23 +408,23 @@ export default function PublicProfileModal({
                                   onClose();
                                   onSelectJob(job.id);
                                 }}
-                                className="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-xs shadow-sm transition-colors cursor-pointer shrink-0"
+                                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm transition-colors cursor-pointer shrink-0"
                               >
-                                Apply Now
+                                {language === 'th' ? 'สมัครตอนนี้' : 'Apply Now'}
                               </button>
                             )}
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-400 italic py-2">No active internship openings right now.</p>
+                      <p className="text-xs text-slate-400 italic py-2">
+                        {language === 'th' ? 'ยังไม่มีตำแหน่งงานเปิดรับสมัครในขณะนี้' : 'No active internship openings right now.'}
+                      </p>
                     )}
                   </div>
                 </div>
               </div>
             )}
-
-
           </div>
         )}
       </div>

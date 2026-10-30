@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>InternFlow - Entity-Relationship (ER) Diagram</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
+  }
+  #canvas-container {
+    background: #ffffff;
+    width: 1220px;
+    margin: 0 auto;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-container">
+  <svg viewBox="0 0 1220 950" width="1220" height="950" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Crow's foot (Many) marker -->
+      <marker id="crow-end" viewBox="0 0 16 16" refX="15" refY="8" markerWidth="12" markerHeight="12" orient="auto">
+        <path d="M 2 2 L 14 8 L 2 14 M 14 1 L 14 15" fill="none" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </marker>
+      <marker id="crow-start" viewBox="0 0 16 16" refX="1" refY="8" markerWidth="12" markerHeight="12" orient="auto">
+        <path d="M 14 2 L 2 8 L 14 14 M 2 1 L 2 15" fill="none" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </marker>
+
+      <!-- One-only (1) bar marker -->
+      <marker id="one-end" viewBox="0 0 14 16" refX="10" refY="8" markerWidth="10" markerHeight="12" orient="auto">
+        <path d="M 5 2 L 5 14 M 9 2 L 9 14" fill="none" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" />
+      </marker>
+      <marker id="one-start" viewBox="0 0 14 16" refX="4" refY="8" markerWidth="10" markerHeight="12" orient="auto">
+        <path d="M 5 2 L 5 14 M 9 2 L 9 14" fill="none" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" />
+      </marker>
+
+      <filter id="card-shadow" x="-2%" y="-1%" width="104%" height="104%" filterUnits="userSpaceOnUse">
+        <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.06" />
+      </filter>
+    </defs>
+
+    <style>
+      .tbl-bg { fill: #ffffff; stroke: #334155; stroke-width: 1.5; }
+      .tbl-hdr-bg { fill: #e2e8f0; stroke: #334155; stroke-width: 1.5; }
+      .tbl-hdr-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 13.5px; font-weight: 700; fill: #0f172a; text-anchor: middle; }
+      .col-pk { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: 700; fill: #0f172a; }
+      .col-fk { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: 700; fill: #475569; }
+      .col-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11.5px; font-weight: 500; fill: #0f172a; }
+      .col-type { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: 400; fill: #475569; text-anchor: end; }
+      .rel-line { fill: none; stroke: #334155; stroke-width: 1.6; stroke-linejoin: round; }
+    </style>
+
+    <!-- ================= RELATIONSHIP LINES (0 CROSSINGS) ================= -->
+    
+    <!-- 1. Users (470..750, y=30..195) to StudentProfiles (40..320, y=90..325) -->
+    <!-- Center-Top to Left-Top: Horizontal line -->
+    <path class="rel-line" d="M 470 120 L 320 120" marker-start="url(#one-start)" marker-end="url(#one-end)" />
+
+    <!-- 2. Users (470..750, y=30..195) to CompanyProfiles (900..1180, y=50..285) -->
+    <!-- Center-Top to Right-Top: Horizontal line -->
+    <path class="rel-line" d="M 750 120 L 900 120" marker-start="url(#one-start)" marker-end="url(#one-end)" />
+
+    <!-- 3. Users (470..750) down to Documents (470..750, y=235..385) -->
+    <path class="rel-line" d="M 610 195 L 610 235" marker-start="url(#one-start)" marker-end="url(#crow-end)" />
+
+    <!-- 4. Documents (470..750, y=235..385) down to Applications (470..750, y=425..645) -->
+    <path class="rel-line" d="M 610 385 L 610 425" marker-start="url(#one-start)" marker-end="url(#crow-end)" />
+
+    <!-- 5. StudentProfiles (40..320) down to DailyLogs (40..340, y=520..830) -->
+    <path class="rel-line" d="M 170 325 L 170 520" marker-start="url(#one-start)" marker-end="url(#crow-end)" />
+
+    <!-- 6. StudentProfiles (40..320) to Applications (470..750) -->
+    <!-- Out from StudentProfiles right, step down into Applications left -->
+    <path class="rel-line" d="M 320 260 L 400 260 L 400 480 L 470 480" marker-start="url(#one-start)" marker-end="url(#crow-end)" />
+
+    <!-- 7. Applications (470..750) to DailyLogs (40..340) -->
+    <!-- Out from Applications left, into DailyLogs right -->
+    <path class="rel-line" d="M 470 590 L 340 590" marker-start="url(#one-start)" marker-end="url(#crow-end)" />
+
+    <!-- 8. CompanyProfiles (900..1180) straight down to JobPosts (900..1180, y=330..575) -->
+    <path class="rel-line" d="M 1040 285 L 1040 330" marker-start="url(#one-start)" marker-end="url(#crow-end)" />
+
+    <!-- 9. JobPosts (900..1180) straight left to Applications (470..750) -->
+    <path class="rel-line" d="M 900 490 L 750 490" marker-start="url(#one-start)" marker-end="url(#crow-end)" />
+
+    <!-- 10. JobPosts (900..1180) down to InternshipEvaluations (900..1180, y=630..885) -->
+    <path class="rel-line" d="M 1040 575 L 1040 630" marker-start="url(#one-start)" marker-end="url(#crow-end)" />
+
+    <!-- 11. Applications (470..750) right to InternshipEvaluations (900..1180) -->
+    <!-- Out from Applications right, step down into InternshipEvaluations left -->
+    <path class="rel-line" d="M 750 590 L 820 590 L 820 730 L 900 730" marker-start="url(#one-start)" marker-end="url(#one-end)" />
+
+
+    <!-- ================= TABLE 1: Users (Center Top) ================= -->
+    <g transform="translate(470, 30)" filter="url(#card-shadow)">
+      <rect class="tbl-bg" x="0" y="0" width="280" height="165" rx="2" />
+      <rect class="tbl-hdr-bg" x="0" y="0" width="280" height="25" rx="2" />
+      <line x1="0" y1="25" x2="280" y2="25" stroke="#334155" stroke-width="1.5" />
+      <text class="tbl-hdr-text" x="140" y="17">Users</text>
+      
+      <g transform="translate(10, 42)">
+        <text class="col-pk" x="0" y="0">PK</text>
+        <text class="col-name" x="26" y="0">id</text>
+        <text class="col-type" x="260" y="0">String (UUID)</text>
+
+        <text class="col-name" x="26" y="17">email</text>
+        <text class="col-type" x="260" y="17">String (Unique)</text>
+
+        <text class="col-name" x="26" y="34">password</text>
+        <text class="col-type" x="260" y="34">String (bcrypt)</text>
+
+        <text class="col-name" x="26" y="51">name</text>
+        <text class="col-type" x="260" y="51">String</text>
+
+        <text class="col-name" x="26" y="68">role</text>
+        <text class="col-type" x="260" y="68">Role (Enum)</text>
+
+        <text class="col-name" x="26" y="85">avatarUrl</text>
+        <text class="col-type" x="260" y="85">String?</text>
+
+        <text class="col-name" x="26" y="102">createdAt</text>
+        <text class="col-type" x="260" y="102">DateTime</text>
+
+        <text class="col-name" x="26" y="119">updatedAt</text>
+        <text class="col-type" x="260" y="119">DateTime</text>
+      </g>
+    </g>
+
+
+    <!-- ================= TABLE 2: Documents (Center Middle-Top) ================= -->
+    <g transform="translate(470, 235)" filter="url(#card-shadow)">
+      <rect class="tbl-bg" x="0" y="0" width="280" height="150" rx="2" />
+      <rect class="tbl-hdr-bg" x="0" y="0" width="280" height="25" rx="2" />
+      <line x1="0" y1="25" x2="280" y2="25" stroke="#334155" stroke-width="1.5" />
+      <text class="tbl-hdr-text" x="140" y="17">Documents</text>
+
+      <g transform="translate(10, 42)">
+        <text class="col-pk" x="0" y="0">PK</text>
+        <text class="col-name" x="26" y="0">id</text>
+        <text class="col-type" x="260" y="0">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="17">FK</text>
+        <text class="col-name" x="26" y="17">userId</text>
+        <text class="col-type" x="260" y="17">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="34">FK</text>
+        <text class="col-name" x="26" y="34">applicationId</text>
+        <text class="col-type" x="260" y="34">String (UUID)?</text>
+
+        <text class="col-name" x="26" y="51">title</text>
+        <text class="col-type" x="260" y="51">String</text>
+
+        <text class="col-name" x="26" y="68">fileUrl</text>
+        <text class="col-type" x="260" y="68">String (S3 URL)</text>
+
+        <text class="col-name" x="26" y="85">type</text>
+        <text class="col-type" x="260" y="85">String (CV/Report)</text>
+
+        <text class="col-name" x="26" y="102">createdAt</text>
+        <text class="col-type" x="260" y="102">DateTime</text>
+      </g>
+    </g>
+
+
+    <!-- ================= TABLE 3: StudentProfiles (Left Top) ================= -->
+    <g transform="translate(40, 90)" filter="url(#card-shadow)">
+      <rect class="tbl-bg" x="0" y="0" width="280" height="235" rx="2" />
+      <rect class="tbl-hdr-bg" x="0" y="0" width="280" height="25" rx="2" />
+      <line x1="0" y1="25" x2="280" y2="25" stroke="#334155" stroke-width="1.5" />
+      <text class="tbl-hdr-text" x="140" y="17">StudentProfiles</text>
+
+      <g transform="translate(10, 42)">
+        <text class="col-pk" x="0" y="0">PK</text>
+        <text class="col-name" x="26" y="0">id</text>
+        <text class="col-type" x="260" y="0">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="17">FK</text>
+        <text class="col-name" x="26" y="17">userId</text>
+        <text class="col-type" x="260" y="17">String (1:1 Unique)</text>
+
+        <text class="col-name" x="26" y="34">studentId</text>
+        <text class="col-type" x="260" y="34">String</text>
+
+        <text class="col-name" x="26" y="51">university</text>
+        <text class="col-type" x="260" y="51">String</text>
+
+        <text class="col-name" x="26" y="68">faculty</text>
+        <text class="col-type" x="260" y="68">String</text>
+
+        <text class="col-name" x="26" y="85">major</text>
+        <text class="col-type" x="260" y="85">String</text>
+
+        <text class="col-name" x="26" y="102">year</text>
+        <text class="col-type" x="260" y="102">Int</text>
+
+        <text class="col-name" x="26" y="119">gpa</text>
+        <text class="col-type" x="260" y="119">Float</text>
+
+        <text class="col-name" x="26" y="136">skills</text>
+        <text class="col-type" x="260" y="136">String[]</text>
+
+        <text class="col-name" x="26" y="153">bio</text>
+        <text class="col-type" x="260" y="153">String?</text>
+
+        <text class="col-name" x="26" y="170">avatarUrl</text>
+        <text class="col-type" x="260" y="170">String?</text>
+      </g>
+    </g>
+
+
+    <!-- ================= TABLE 4: CompanyProfiles (Right Top) ================= -->
+    <g transform="translate(900, 50)" filter="url(#card-shadow)">
+      <rect class="tbl-bg" x="0" y="0" width="280" height="235" rx="2" />
+      <rect class="tbl-hdr-bg" x="0" y="0" width="280" height="25" rx="2" />
+      <line x1="0" y1="25" x2="280" y2="25" stroke="#334155" stroke-width="1.5" />
+      <text class="tbl-hdr-text" x="140" y="17">CompanyProfiles</text>
+
+      <g transform="translate(10, 42)">
+        <text class="col-pk" x="0" y="0">PK</text>
+        <text class="col-name" x="26" y="0">id</text>
+        <text class="col-type" x="260" y="0">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="17">FK</text>
+        <text class="col-name" x="26" y="17">userId</text>
+        <text class="col-type" x="260" y="17">String (1:1 Unique)</text>
+
+        <text class="col-name" x="26" y="34">companyName</text>
+        <text class="col-type" x="260" y="34">String</text>
+
+        <text class="col-name" x="26" y="51">industry</text>
+        <text class="col-type" x="260" y="51">String</text>
+
+        <text class="col-name" x="26" y="68">website</text>
+        <text class="col-type" x="260" y="68">String?</text>
+
+        <text class="col-name" x="26" y="85">logoUrl</text>
+        <text class="col-type" x="260" y="85">String?</text>
+
+        <text class="col-name" x="26" y="102">address</text>
+        <text class="col-type" x="260" y="102">String?</text>
+
+        <text class="col-name" x="26" y="119">contactEmail</text>
+        <text class="col-type" x="260" y="119">String?</text>
+
+        <text class="col-name" x="26" y="136">contactPhone</text>
+        <text class="col-type" x="260" y="136">String?</text>
+
+        <text class="col-name" x="26" y="153">description</text>
+        <text class="col-type" x="260" y="153">String?</text>
+      </g>
+    </g>
+
+
+    <!-- ================= TABLE 5: Applications (Center Middle) ================= -->
+    <g transform="translate(470, 425)" filter="url(#card-shadow)">
+      <rect class="tbl-bg" x="0" y="0" width="280" height="200" rx="2" />
+      <rect class="tbl-hdr-bg" x="0" y="0" width="280" height="25" rx="2" />
+      <line x1="0" y1="25" x2="280" y2="25" stroke="#334155" stroke-width="1.5" />
+      <text class="tbl-hdr-text" x="140" y="17">Applications</text>
+
+      <g transform="translate(10, 42)">
+        <text class="col-pk" x="0" y="0">PK</text>
+        <text class="col-name" x="26" y="0">id</text>
+        <text class="col-type" x="260" y="0">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="17">FK</text>
+        <text class="col-name" x="26" y="17">jobPostId</text>
+        <text class="col-type" x="260" y="17">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="34">FK</text>
+        <text class="col-name" x="26" y="34">studentId</text>
+        <text class="col-type" x="260" y="34">String (UUID)</text>
+
+        <text class="col-name" x="26" y="51">status</text>
+        <text class="col-type" x="260" y="51">AppStatus (Enum)</text>
+
+        <text class="col-name" x="26" y="68">coverLetter</text>
+        <text class="col-type" x="260" y="68">String?</text>
+
+        <text class="col-name" x="26" y="85">cancellationReason</text>
+        <text class="col-type" x="260" y="85">String?</text>
+
+        <text class="col-name" x="26" y="102">createdAt</text>
+        <text class="col-type" x="260" y="102">DateTime</text>
+
+        <text class="col-name" x="26" y="119">updatedAt</text>
+        <text class="col-type" x="260" y="119">DateTime</text>
+
+        <text class="col-fk" x="0" y="142" style="font-size:10px; fill:#059669;">UQ</text>
+        <text class="col-name" x="26" y="142" style="font-size:10px; fill:#059669;">[studentId, jobPostId]</text>
+        <text class="col-type" x="260" y="142" style="font-size:10px; fill:#059669;">Unique Constraint</text>
+      </g>
+    </g>
+
+
+    <!-- ================= TABLE 6: JobPosts (Right Middle) ================= -->
+    <g transform="translate(900, 330)" filter="url(#card-shadow)">
+      <rect class="tbl-bg" x="0" y="0" width="280" height="245" rx="2" />
+      <rect class="tbl-hdr-bg" x="0" y="0" width="280" height="25" rx="2" />
+      <line x1="0" y1="25" x2="280" y2="25" stroke="#334155" stroke-width="1.5" />
+      <text class="tbl-hdr-text" x="140" y="17">JobPosts</text>
+
+      <g transform="translate(10, 42)">
+        <text class="col-pk" x="0" y="0">PK</text>
+        <text class="col-name" x="26" y="0">id</text>
+        <text class="col-type" x="260" y="0">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="17">FK</text>
+        <text class="col-name" x="26" y="17">companyProfileId</text>
+        <text class="col-type" x="260" y="17">String (UUID)</text>
+
+        <text class="col-name" x="26" y="34">title</text>
+        <text class="col-type" x="260" y="34">String</text>
+
+        <text class="col-name" x="26" y="51">description</text>
+        <text class="col-type" x="260" y="51">String</text>
+
+        <text class="col-name" x="26" y="68">requirements</text>
+        <text class="col-type" x="260" y="68">String</text>
+
+        <text class="col-name" x="26" y="85">location</text>
+        <text class="col-type" x="260" y="85">String</text>
+
+        <text class="col-name" x="26" y="102">isRemote</text>
+        <text class="col-type" x="260" y="102">Boolean</text>
+
+        <text class="col-name" x="26" y="119">positions</text>
+        <text class="col-type" x="260" y="119">Int</text>
+
+        <text class="col-name" x="26" y="136">allowance</text>
+        <text class="col-type" x="260" y="136">String?</text>
+
+        <text class="col-name" x="26" y="153">workingHours</text>
+        <text class="col-type" x="260" y="153">String?</text>
+
+        <text class="col-name" x="26" y="170">isActive</text>
+        <text class="col-type" x="260" y="170">Boolean</text>
+
+        <text class="col-name" x="26" y="187">createdAt</text>
+        <text class="col-type" x="260" y="187">DateTime</text>
+      </g>
+    </g>
+
+
+    <!-- ================= TABLE 7: DailyLogs (Left Bottom) ================= -->
+    <g transform="translate(40, 520)" filter="url(#card-shadow)">
+      <rect class="tbl-bg" x="0" y="0" width="300" height="315" rx="2" />
+      <rect class="tbl-hdr-bg" x="0" y="0" width="300" height="25" rx="2" />
+      <line x1="0" y1="25" x2="300" y2="25" stroke="#334155" stroke-width="1.5" />
+      <text class="tbl-hdr-text" x="150" y="17">DailyLogs</text>
+
+      <g transform="translate(10, 42)">
+        <text class="col-pk" x="0" y="0">PK</text>
+        <text class="col-name" x="26" y="0">id</text>
+        <text class="col-type" x="280" y="0">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="17">FK</text>
+        <text class="col-name" x="26" y="17">studentId</text>
+        <text class="col-type" x="280" y="17">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="34">FK</text>
+        <text class="col-name" x="26" y="34">applicationId</text>
+        <text class="col-type" x="280" y="34">String (UUID)?</text>
+
+        <text class="col-name" x="26" y="51">logDate</text>
+        <text class="col-type" x="280" y="51">DateTime</text>
+
+        <text class="col-name" x="26" y="68">weekNumber</text>
+        <text class="col-type" x="280" y="68">Int</text>
+
+        <text class="col-name" x="26" y="85">hoursWorked</text>
+        <text class="col-type" x="280" y="85">Float (default 8.0)</text>
+
+        <text class="col-name" x="26" y="102">workModality</text>
+        <text class="col-type" x="280" y="102">String (ON_SITE)</text>
+
+        <text class="col-name" x="26" y="119">supervisorName</text>
+        <text class="col-type" x="280" y="119">String?</text>
+
+        <text class="col-name" x="26" y="136">tasksDone</text>
+        <text class="col-type" x="280" y="136">String (JSON array)</text>
+
+        <text class="col-name" x="26" y="153">problemsAndSolutions</text>
+        <text class="col-type" x="280" y="153">String?</text>
+
+        <text class="col-name" x="26" y="170">learnings</text>
+        <text class="col-type" x="280" y="170">String</text>
+
+        <text class="col-name" x="26" y="187">isBackdated</text>
+        <text class="col-type" x="280" y="187">Boolean</text>
+
+        <text class="col-name" x="26" y="204">mentorApproved</text>
+        <text class="col-type" x="280" y="204">Boolean</text>
+
+        <text class="col-name" x="26" y="221">mentorRating</text>
+        <text class="col-type" x="280" y="221">Int (1-5 Stars)?</text>
+
+        <text class="col-name" x="26" y="238">mentorFeedback</text>
+        <text class="col-type" x="280" y="238">String?</text>
+
+        <text class="col-fk" x="0" y="259" style="font-size:10px; fill:#059669;">UQ</text>
+        <text class="col-name" x="26" y="259" style="font-size:10px; fill:#059669;">[studentId, logDate]</text>
+        <text class="col-type" x="280" y="259" style="font-size:10px; fill:#059669;">Unique Constraint</text>
+      </g>
+    </g>
+
+
+    <!-- ================= TABLE 8: InternshipEvaluations (Right Bottom) ================= -->
+    <g transform="translate(900, 630)" filter="url(#card-shadow)">
+      <rect class="tbl-bg" x="0" y="0" width="280" height="240" rx="2" />
+      <rect class="tbl-hdr-bg" x="0" y="0" width="280" height="25" rx="2" />
+      <line x1="0" y1="25" x2="280" y2="25" stroke="#334155" stroke-width="1.5" />
+      <text class="tbl-hdr-text" x="140" y="17">InternshipEvaluations</text>
+
+      <g transform="translate(10, 42)">
+        <text class="col-pk" x="0" y="0">PK</text>
+        <text class="col-name" x="26" y="0">id</text>
+        <text class="col-type" x="260" y="0">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="17">FK</text>
+        <text class="col-name" x="26" y="17">studentId</text>
+        <text class="col-type" x="260" y="17">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="34">FK</text>
+        <text class="col-name" x="26" y="34">companyId</text>
+        <text class="col-type" x="260" y="34">String (UUID)</text>
+
+        <text class="col-fk" x="0" y="51">FK</text>
+        <text class="col-name" x="26" y="51">applicationId</text>
+        <text class="col-type" x="260" y="51">String (1:1 Unique)</text>
+
+        <text class="col-name" x="26" y="68">workQualityScore</text>
+        <text class="col-type" x="260" y="68">Int (1-5)</text>
+
+        <text class="col-name" x="26" y="85">punctualityScore</text>
+        <text class="col-type" x="260" y="85">Int (1-5)</text>
+
+        <text class="col-name" x="26" y="102">teamworkScore</text>
+        <text class="col-type" x="260" y="102">Int (1-5)</text>
+
+        <text class="col-name" x="26" y="119">feedback</text>
+        <text class="col-type" x="260" y="119">String</text>
+
+        <text class="col-name" x="26" y="136">status</text>
+        <text class="col-type" x="260" y="136">EvalStatus (Enum)</text>
+
+        <text class="col-name" x="26" y="153">createdAt</text>
+        <text class="col-type" x="260" y="153">DateTime</text>
+
+        <text class="col-name" x="26" y="170">updatedAt</text>
+        <text class="col-type" x="260" y="170">DateTime</text>
+      </g>
+    </g>
+
+  </svg>
+</div>
+
+</body>
+</html>

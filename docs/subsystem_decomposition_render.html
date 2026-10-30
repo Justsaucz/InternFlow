@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>InternFlow - Subsystem Decomposition</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 30px;
+    background: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #capture-area {
+    background: #ffffff;
+    padding: 36px 44px;
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+    max-width: 1250px;
+    width: 100%;
+  }
+  .title-block {
+    text-align: center;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 16px;
+  }
+  .title-block h1 {
+    margin: 0 0 6px 0;
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.4px;
+  }
+  .title-block p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+  }
+  .mermaid {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .mermaid svg {
+    max-width: 100% !important;
+    height: auto !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  }
+  .node foreignObject {
+    overflow: visible !important;
+  }
+  .label {
+    line-height: 1.4 !important;
+  }
+</style>
+</head>
+<body>
+
+<div id="capture-area">
+  <div class="title-block">
+    <h1>InternFlow — Subsystem Decomposition Diagram</h1>
+    <p>DES424 Software Architecture: Cohesive Subsystems Decomposed Across a 4-Tier Layered Architecture</p>
+  </div>
+  <div class="mermaid">
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontSize': '13px', 'fontFamily': 'Segoe UI, -apple-system, sans-serif', 'clusterBkg': '#f8fafc', 'clusterBorder': '#cbd5e1', 'lineColor': '#475569', 'nodeSpacing': 35, 'rankSpacing': 45}}}%%
+graph TD
+    classDef pres fill:#eff6ff,stroke:#2563eb,stroke-width:1.8px,color:#1e3a8a,font-weight:600;
+    classDef api fill:#f0fdf4,stroke:#16a34a,stroke-width:1.8px,color:#065f46,font-weight:600;
+    classDef domain fill:#faf5ff,stroke:#9333ea,stroke-width:1.8px,color:#581c87,font-weight:600;
+    classDef data fill:#fffbeb,stroke:#d97706,stroke-width:1.8px,color:#78350f,font-weight:600;
+
+    subgraph L1["Layer 1: Presentation Layer (React 19 Frontend SPA — Client Subsystems)"]
+        UI_Auth["Authentication & Profile Subsystem"]:::pres
+        UI_Jobs["Job Discovery & Posting Subsystem"]:::pres
+        UI_Log["CWIE Daily Logbook Subsystem"]:::pres
+        UI_Eval["Review & Evaluation Subsystem"]:::pres
+        UI_App["Application Tracking Subsystem"]:::pres
+    end
+
+    subgraph L2["Layer 2: API Gateway & Controller Layer (Express.js 5 REST Endpoints)"]
+        API_Auth["Auth Controller<br/>(/api/auth)"]:::api
+        API_Jobs["Jobs Controller<br/>(/api/jobs)"]:::api
+        API_Log["Logbook Controller<br/>(/api/logbook)"]:::api
+        API_Eval["Evaluation Controller<br/>(/api/evaluations)"]:::api
+        API_App["Application Controller<br/>(/api/applications)"]:::api
+        API_Upload["File Upload Controller<br/>(/api/upload)"]:::api
+    end
+
+    subgraph L3["Layer 3: Domain & Business Logic Layer (Services & Business Rules Engines)"]
+        DOM_Auth["Identity & RBAC Guard Service"]:::domain
+        DOM_Job["Job Validation & Access Service"]:::domain
+        DOM_Log["Backdated Detection & Hours Engine"]:::domain
+        DOM_Eval["Rubric Scoring & Certificate Engine"]:::domain
+        DOM_Commit["Single-Placement Exclusivity Engine"]:::domain
+        DOM_File["S3 Document Streaming Service"]:::domain
+    end
+
+    subgraph L4["Layer 4: Data Access & Persistence Layer (Prisma 7 ORM & Storage Engines)"]
+        ORM["Prisma 7 ORM Query Engine"]:::data
+        DB_Rel[("Amazon RDS PostgreSQL 16<br/>(Relational Database)")]:::data
+        S3_Obj[("Amazon S3 Object Bucket<br/>(PDF Resumes & Artifacts)")]:::data
+    end
+
+    %% Completely planar 1-to-1 vertical links with 0 crossings
+    UI_Auth --> API_Auth
+    UI_Jobs --> API_Jobs
+    UI_Log --> API_Log
+    UI_Eval --> API_Eval
+    UI_App --> API_App
+    UI_App -. Upload Attachment .-> API_Upload
+
+    API_Auth --> DOM_Auth
+    API_Jobs --> DOM_Job
+    API_Log --> DOM_Log
+    API_Eval --> DOM_Eval
+    API_App --> DOM_Commit
+    API_Upload --> DOM_File
+
+    DOM_Auth --> ORM
+    DOM_Job --> ORM
+    DOM_Log --> ORM
+    DOM_Eval --> ORM
+    DOM_Commit --> ORM
+    ORM --> DB_Rel
+
+    DOM_File --> S3_Obj
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true });
+</script>
+</body>
+</html>

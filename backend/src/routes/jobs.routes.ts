@@ -228,7 +228,11 @@ router.delete('/:id', authenticate, authorize([Role.COMPANY_HR]), async (req: Au
           where: { applicationId: { in: appIds } }
         });
 
-        // Unlink weekly logs from these applications (preserve student log history)
+        // Unlink daily logs and weekly logs from these applications (preserve student log history)
+        await tx.dailyLog.updateMany({
+          where: { applicationId: { in: appIds } },
+          data: { applicationId: null }
+        });
         await tx.weeklyLog.updateMany({
           where: { applicationId: { in: appIds } },
           data: { applicationId: null }

@@ -83,39 +83,33 @@ A modern, cloud-based platform connecting students and company HR professionals 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                        │
-│     Users / Browsers (Students, Company HR)                                            │
-│         │                                                                              │
-│         ▼                                                                              │
-│    ┌──────────┐                                                                        │
-│    │ Route 53 │ (DNS Resolution)                                                       │
-│    └────┬─────┘                                                                        │
+│     Users / Browsers (Students, Company HR, Advisors, Admin)                           │
 │         │                                                                              │
 │         ├───────────────────────────────────────┐                                      │
-│         │ Path A: Static UI Assets              │ Path B: API Requests (/api/*)        │
+│         │ Path A: Static UI Assets (Direct S3)  │ Path B: API Requests (/api/*)        │
 │         ▼                                       ▼                                      │
 │    ┌─────────────┐                     ┌────────────────────────────────────────────┐  │
-│    │ CloudFront  │ (Global CDN)        │                 Amazon VPC                 │  │
-│    └────┬────────┘                     │                                            │  │
-│         │                              │   ┌──────────────────────────┐             │  │
-│         ▼                              │   │  Application Load        │ (Public     │  │
-│    ┌─────────────┐                     │   │   Balancer (ALB)         │  Subnet)    │  │
-│    │  Amazon S3  │ (Frontend           │   └──────────┬───────────────┘             │  │
-│    │ (React App) │  Build)             │              │                             │  │
-│    └─────────────┘                     │   ┌──────────▼───────────────┐             │  │
+│    │  Amazon S3  │ (Static             │                 Amazon VPC                 │  │
+│    │ (Frontend   │  Website            │   ┌──────────────────────────┐             │  │
+│    │  Hosting)   │  Hosting)           │   │  Application Load        │ (Public     │  │
+│    └─────────────┘                     │   │   Balancer (ALB)         │  Subnets)   │  │
+│                                        │   └──────────┬───────────────┘             │  │
+│                                        │              │                             │  │
+│                                        │   ┌──────────▼───────────────┐             │  │
 │                                        │   │   Amazon ECS Fargate     │ (Private    │  │
 │                                        │   │   Node.js Express API    │  Subnets    │  │
 │                                        │   └──────────┬───────────────┘  AZ-A &     │  │
 │                                        │              │                  AZ-B)      │  │
-│                                        │   ┌──────────┴───────────────┐             │  │
-│                                        │   ▼                          ▼             │  │
-│  ┌────────────────────┐                │ ┌─────────────────┐        ┌─────────────┐ │  │
-│  │ Amazon S3          │ ◀──────────────┼─┤ Amazon RDS      │        │ Amazon S3   │ │  │
-│  │ (Regional Service) │    File        │ │ PostgreSQL 16   │        │ VPC Endpoint│ │  │
-│  │ (CV/Resume Upload) │    Uploads     │ │ (Primary/Standby│        │ (Gateway)   │ │  │
-│  └────────────────────┘                │ └─────────────────┘        └─────────────┘ │  │
+│                                        │              ├─────────────────────────────┤  │
+│                                        │              ▼                             ▼  │
+│  ┌────────────────────┐                │   ┌───────────────────────┐                   │
+│  │ Amazon S3          │ ◀──────────────┼───┤ Amazon RDS            │                   │
+│  │ (Regional Service) │    File        │   │ PostgreSQL 16         │                   │
+│  │ (CV/Resume Upload) │    Uploads     │   │ (Private Subnets)     │                   │
+│  └────────────────────┘                │   └───────────────────────┘                   │
 │                                        └────────────────────────────────────────────┘  │
 │                                                                                        │
-│     Supporting Services: Amazon ECR ── Amazon CloudWatch ── AWS KMS ── AWS IAM         │
+│     Supporting Services: Amazon ECR ── Amazon CloudWatch ── AWS IAM                    │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -128,21 +122,20 @@ A modern, cloud-based platform connecting students and company HR professionals 
 
 | Component Name | Descriptions |
 |---|---|
-| **Amazon Route 53** | Domain Name System (DNS) service for domain name resolution and intelligent traffic routing. |
-| **Amazon CloudFront** | Content Delivery Network (CDN) service caching and delivering frontend static assets globally. |
-| **Amazon Simple Storage Service (S3)** | Scalable object storage service for frontend React hosting and student CV/resume/report file storage. |
-| **Amazon Elastic Container Service (ECS)** | Fully managed container orchestration service running backend Node.js application containers. |
-| **Amazon Elastic Container Registry (ECR)** | Fully managed Docker container registry for securely storing and managing application images. |
+| **Amazon Simple Storage Service (S3)** | Scalable object storage service for frontend React static hosting and student CV/resume/report document storage. |
+| **Amazon Elastic Container Service (ECS)** | Fully managed container orchestration service running backend Node.js application containers on AWS Fargate. |
+| **Amazon Elastic Container Registry (ECR)** | Fully managed Docker container registry for securely storing and managing backend application images. |
 | **Amazon Relational Database Service (RDS)** | Managed database service running PostgreSQL 16 for all relational data (Users, Jobs, Applications, Logbooks). |
-| **AWS Identity and Access Management (IAM)** | Centralized identity service managing access permissions, roles, and security credentials. |
-| **Amazon CloudWatch** | Observability and monitoring service collecting application logs, performance metrics, and alarms. |
+| **AWS Identity and Access Management (IAM)** | Centralized identity service managing access permissions, roles, and security credentials between ECS, S3, and RDS. |
+| **Amazon CloudWatch** | Observability and monitoring service collecting container application logs, performance metrics, and health alarms. |
 
 ### Micro Components (Infrastructure & Networking Primitives)
 
 | Component Name | Descriptions |
 |---|---|
 | **Amazon Virtual Private Cloud (VPC)** | Logically isolated virtual network boundary containing all backend compute and database resources. |
-| **Elastic Load Balancing (ALB)** | Network appliance component distributing incoming API requests across backend container targets. |
+| **Public and Private Subnets (Multi-AZ)** | Multi-availability zone segmentation isolating public load balancing from private container and database tiers. |
+| **Application Load Balancer (ALB)** | Managed layer-7 load balancer distributing incoming API requests across backend container targets. |
 | **Security Groups** | Stateful virtual firewalls controlling inbound/outbound port-level traffic for VPC resources. |
 
 ---
@@ -155,9 +148,9 @@ A modern, cloud-based platform connecting students and company HR professionals 
 | **Backend** | Node.js, Express 5, TypeScript |
 | **File Uploads** | Multer, AWS SDK v3 (`@aws-sdk/client-s3`), `multer-s3` |
 | **Database & ORM** | PostgreSQL 16 on Amazon RDS + Prisma 7 ORM |
-| **Application Hosting** | Amazon EC2 / Amazon ECS Fargate |
-| **Frontend Hosting** | Amazon S3 + Amazon CloudFront CDN |
-| **Load Balancer & DNS** | AWS Application Load Balancer (ALB) + Amazon Route 53 |
+| **Application Hosting** | Amazon ECS Fargate |
+| **Frontend Hosting** | Amazon S3 Static Website Hosting |
+| **Load Balancer** | AWS Application Load Balancer (ALB) |
 | **Containerization** | Docker + Docker Compose (local development & production) |
 | **Project Management** | Jira Software (Agile Scrum Board & Sprint Tracking) |
 

@@ -1,0 +1,2245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InternFlow - Final Project Report | DES424 SIIT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-dark: #047857;
+      --primary-light: #ecfdf5;
+      --indigo: #4f46e5;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #cbd5e1;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 22mm 18mm 22mm 18mm;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background-color: var(--bg);
+      line-height: 1.6;
+      font-size: 13.5px;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        font-size: 11.5px;
+        line-height: 1.45;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .report-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      .cover-page {
+        page-break-after: always;
+        break-after: page;
+        height: 92vh;
+      }
+      .page-break-before {
+        page-break-before: always;
+        break-before: page;
+      }
+      table, pre, .mermaid-diagram-box, blockquote {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      h1, h2, h3 {
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+    }
+
+    /* Floating Toolbar */
+    .toolbar {
+      position: fixed;
+      top: 16px;
+      right: 24px;
+      display: flex;
+      gap: 12px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      padding: 8px 16px;
+      border-radius: 9999px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      border: 1px solid var(--border);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 9999px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+    }
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    /* Main Container */
+    .report-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: var(--card-bg);
+      padding: 60px 70px;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    /* Academic Cover Page */
+    .cover-page {
+      text-align: center;
+      padding: 40px 10px 30px 10px;
+      border-bottom: 2px dashed var(--border);
+      margin-bottom: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 85vh;
+    }
+
+    .cover-uni-emblem {
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 20px auto;
+      background: radial-gradient(circle, #fef3c7 0%, #fed7aa 100%);
+      border: 3px solid #f59e0b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #b45309;
+      font-size: 26px;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+
+    .cover-inst-name {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #1e293b;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .cover-school-name {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .cover-report-badge {
+      display: inline-block;
+      padding: 6px 18px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border: 1px solid #a7f3d0;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .cover-main-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .cover-main-subtitle {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 40px;
+    }
+
+    .cover-members-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 30px;
+      max-width: 480px;
+      margin: 0 auto 30px auto;
+      text-align: left;
+    }
+
+    .cover-members-card h4 {
+      font-size: 13px;
+      font-weight: 800;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      text-align: center;
+    }
+
+    .members-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 !important;
+    }
+
+    .members-table td {
+      border: none !important;
+      padding: 5px 8px !important;
+      font-size: 13px !important;
+      background: transparent !important;
+    }
+
+    .members-table .stu-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--primary-dark);
+      width: 110px;
+    }
+
+    .cover-footer-meta {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+
+    /* Headings */
+    h1 {
+      font-size: 21px;
+      color: #0f172a;
+      border-bottom: 2.5px solid var(--primary);
+      padding-bottom: 8px;
+      margin-top: 2.4em;
+      margin-bottom: 0.8em;
+      font-weight: 800;
+    }
+
+    h2 {
+      font-size: 17px;
+      color: var(--primary-dark);
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 1.8em;
+      margin-bottom: 0.6em;
+      font-weight: 700;
+    }
+
+    h3 {
+      font-size: 14.5px;
+      color: #1e293b;
+      margin-top: 1.4em;
+      margin-bottom: 0.5em;
+      font-weight: 700;
+    }
+
+    p {
+      margin-bottom: 1em;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin-bottom: 1.2em;
+      padding-left: 1.8em;
+    }
+
+    li {
+      margin-bottom: 0.35em;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5em 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.6em 0;
+      font-size: 12.5px;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    /* Code Blocks */
+    pre.code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 14px 18px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+      font-size: 11.5px;
+      line-height: 1.45;
+      margin: 1.4em 0;
+      border: 1px solid #1e293b;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+      font-size: 0.9em;
+      background: #f1f5f9;
+      color: #047857;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre code {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+    }
+
+    /* Mermaid Box */
+    .mermaid-diagram-box {
+      background: #fdfefe;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      margin: 1.6em 0;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .diagram-tag {
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 6px 12px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .mermaid-code {
+      background: #f8fafc;
+      color: #1e293b;
+      padding: 12px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      line-height: 1.45;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    /* Callout & Quotes */
+    blockquote {
+      border-left: 4px solid var(--primary);
+      background: var(--primary-light);
+      padding: 12px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 1.4em 0;
+      color: #065f46;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Action Toolbar -->
+  <div class="toolbar no-print">
+    <button class="btn btn-primary" onclick="window.print()">
+      🖨️ Print / Save as PDF
+    </button>
+    <a href="../FINAL_REPORT.md" class="btn btn-secondary">
+      📄 View Markdown
+    </a>
+  </div>
+
+  <div class="report-container">
+    
+    <!-- Formal Cover Page -->
+    <div class="cover-page">
+      <div>
+        <div class="cover-uni-emblem">SIIT</div>
+        <div class="cover-inst-name">Sirindhorn International Institute of Technology</div>
+        <div class="cover-school-name">School of Information, Computer and Communication Technology<br>Thammasat University</div>
+      </div>
+
+      <div>
+        <div class="cover-report-badge">DES424 Course Final Report</div>
+        <h1 class="cover-main-title" style="border:none; margin:0 0 10px 0; padding:0;">InternFlow</h1>
+        <div class="cover-main-subtitle">Cloud-Based Centralized Internship Management & Tracking Platform</div>
+        
+        <div class="cover-members-card">
+          <h4>Group Members</h4>
+          <table class="members-table">
+            <tr>
+              <td class="stu-id">6622772869</td>
+              <td>Nipparn Penjinda</td>
+            </tr>
+            <tr>
+              <td class="stu-id">6622770392</td>
+              <td>Trin Kittacharoenchai</td>
+            </tr>
+            <tr>
+              <td class="stu-id">6622780144</td>
+              <td>Napat Pumim</td>
+            </tr>
+            <tr>
+              <td class="stu-id">6622780094</td>
+              <td>Thanyawach Keaohan</td>
+            </tr>
+            <tr>
+              <td class="stu-id">6622781217</td>
+              <td>Thantip Kangwanwanit</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="cover-footer-meta">
+        <strong>Course:</strong> DES424 Cloud-based Application Development<br>
+        <strong>Semester:</strong> Semester 1, Academic Year 2026<br>
+        <strong>Presented to:</strong> Dr. Apichon Witayangkurn<br>
+        <strong>Date:</strong> October 2026
+      </div>
+    </div>
+
+    <!-- Main Report Body -->
+    <div class="report-body">
+      <h1>SIRINDHORN INTERNATIONAL INSTITUTE OF TECHNOLOGY</h1>
+<h3>THAMMASAT UNIVERSITY</h3>
+<h3>SCHOOL OF INFORMATION, COMPUTER AND COMMUNICATION TECHNOLOGY</h3>
+<hr>
+<h1>Final Project Report</h1>
+<h2><strong>InternFlow — Cloud-Based Centralized Internship Management and Tracking Platform</strong></h2>
+<p><strong>Course:</strong> DES424 Cloud-based Application Development<br><strong>Academic Year:</strong> Semester 1, Academic Year 2026<br><strong>Degree Program:</strong> Digital Engineering (DE) / Computer Engineering (CPE)  </p>
+<h3><strong>Group Members</strong></h3>
+<ol>
+<li><strong>6622772869</strong> Nipparn Penjinda</li>
+<li><strong>6622770392</strong> Trin Kittacharoenchai</li>
+<li><strong>6622780144</strong> Napat Pumim</li>
+<li><strong>6622780094</strong> Thanyawach Keaohan</li>
+<li><strong>6622781217</strong> Thantip Kangwanwanit</li>
+</ol>
+<p><strong>Submitted To:</strong><br>Dr. Apichon Witayangkurn<br>School of Information, Computer and Communication Technology (ICT)<br>Sirindhorn International Institute of Technology (SIIT), Thammasat University  </p>
+<p><strong>Date of Submission:</strong> October 2026  </p>
+<hr>
+<h2><strong>Table of Contents</strong></h2>
+<ol>
+<li><a href="#section-1-revised-kick-off-document">Section 1: Revised Kick-Off Document</a><ul>
+<li>1.1 Project Overview &amp; Background</li>
+<li>1.2 Problem Statement &amp; Current Shortcomings</li>
+<li>1.3 Key Users and Stakeholders</li>
+<li>1.4 Functional Requirements (Comprehensive &amp; Updated)</li>
+<li>1.5 Nonfunctional Requirements</li>
+<li>1.6 Core Programming Languages</li>
+<li>1.7 Cloud Infrastructure (Main &amp; Micro Components on AWS)</li>
+<li>1.8 Tech Stack &amp; Tooling Matrix</li>
+</ul>
+</li>
+<li><a href="#section-2-software-architecture-lecture-3-topics">Section 2: Software Architecture (Lecture 3 Topics)</a><ul>
+<li>2.1 Subsystem Decomposition &amp; Layered Architectural Style</li>
+<li>2.2 Data Management (Persistent, Storage, Transient, and Integrity)</li>
+<li>2.3 Boundary Conditions (Initialization, Termination, and Failure Modes)</li>
+<li>2.4 Access Control &amp; Security Architecture</li>
+</ul>
+</li>
+<li><a href="#section-3-detailed-design">Section 3: Detailed Design</a><ul>
+<li>3.1 Entity-Relationship (ER) Diagram &amp; Schema Specification</li>
+<li>3.2 System Architecture Diagram with Cloud Mapping</li>
+<li>3.3 Workflow of the System (End-to-End User Journeys &amp; Flowchart)</li>
+</ul>
+</li>
+<li><a href="#section-4-testing-report">Section 4: Testing Report</a><ul>
+<li>4.1 Testing Strategy &amp; Methodology</li>
+<li>4.2 User Acceptance Test (UAT) Results Matrix</li>
+<li>4.3 Automated Test Suite Scripts (Robot Framework &amp; Playwright)</li>
+<li>4.4 Automated Test Execution Results &amp; Metrics</li>
+</ul>
+</li>
+<li><a href="#section-5-user-manual--prototype-interface">Section 5: User Manual &amp; Prototype Interface</a><ul>
+<li>5.1 Authentication, Role Onboarding &amp; Profile Management</li>
+<li>5.2 Job Discovery &amp; Multi-Artifact Application Submission</li>
+<li>5.3 Candidate Screening, Interview Scheduling &amp; Offer Management</li>
+<li>5.4 CWIE Daily Logbook, Modality Tracking &amp; Backdated Auditing</li>
+<li>5.5 Mentor Inspection Drawer, 5-Star Sign-Off &amp; Official Completion Certificate</li>
+</ul>
+</li>
+<li><a href="#section-6-project-links--repository">Section 6: Project Links &amp; Repository</a></li>
+</ol>
+<hr>
+<h1>Section 1: Revised Kick-Off Document</h1>
+<h2>1.1 Project Overview &amp; Background</h2>
+<p>Students and corporate employers coordinate internship recruitment and operational placements each semester. However, the existing process is predominantly managed through disconnected emails, spreadsheets, messaging applications (e.g., LINE, Discord), and paper forms. This ad-hoc approach creates substantial operational friction: applications are misplaced, candidate statuses remain ambiguous, working hours go unmonitored during the term, and performance assessments are often compiled hurriedly at the conclusion of the placement.</p>
+<p><strong>InternFlow</strong> is a modern, cloud-native, centralized internship and Cooperative and Work-Integrated Education (CWIE) management platform. It unifies the entire lifecycle of student internships into an accountable, transparent, and auditable digital environment.</p>
+<h3>Core Value Propositions</h3>
+<ul>
+<li><strong>Centralized Corporate Job Board:</strong> Verified employer postings featuring clear job descriptions, required competencies, department classifications, compensation/allowance figures, working hours, and work modality (<code>On-site</code>, <code>Remote</code>, <code>Hybrid</code>).</li>
+<li><strong>Multi-Stage Application &amp; Interview Pipeline:</strong> Real-time transparent tracking of candidate applications from initial submission, HR screening, interview scheduling (<code>INTERVIEW_SCHEDULED</code>), offer extension, single-placement exclusivity commitment, through company-approved cancellation.</li>
+<li><strong>Single Placement &amp; Exclusivity Rule:</strong> While candidates can receive multiple offers, they are limited to committing to exactly <strong>ONE</strong> official placement (<code>COMMITTED</code>), which automatically declines competing offers, eliminating candidate hoarding and placement abandonment.</li>
+<li><strong>Multi-Artifact Document Attachments:</strong> Scalable file upload pipeline for CVs, portfolios, academic transcripts, and external project links (GitHub, Figma, Google Drive).</li>
+<li><strong>CWIE Operational Daily &amp; Weekly Logbook:</strong> Daily activity journaling with attendance modality tracking, pin-point task lists, problem-solving reflections, and automatic backdated submission detection.</li>
+<li><strong>Company Mentor Review &amp; Sign-Off:</strong> Supervisor inspection drawer enabling day-by-day and batch weekly approvals, 1–5 star performance ratings, and qualitative mentorship feedback.</li>
+<li><strong>Standardized 3-Dimensional Performance Rubric:</strong> Final evaluation evaluating Work Quality, Punctuality &amp; Responsibility, and Communication &amp; Teamwork, yielding an official printable <strong>Internship Completion Certificate &amp; Performance Report</strong>.</li>
+<li><strong>Seamless Multilingual Support:</strong> Dynamic instant language switching between Thai (<code>TH</code>) and English (<code>EN</code>) across all system interfaces, forms, and status notifications.</li>
+</ul>
+<hr>
+<h2>1.2 Problem Statement &amp; Current Shortcomings</h2>
+<p>The conventional internship recruitment and monitoring process suffers from several structural inefficiencies:</p>
+<ol>
+<li><strong>Absence of a Single Source of Truth:</strong> Students must scour disparate social media groups, university bulletin boards, and corporate career sites. There is no unified portal listing accredited positions with explicit allowance and modality terms.</li>
+<li><strong>Untraceable Application Lifecycle:</strong> Once an application is submitted via email or Google Forms, students have no visibility into its status. HR recruiters are burdened by repetitive inquiry emails, while students remain uncertain whether to accept competing opportunities.</li>
+<li><strong>Absence of a Structured Interview Stage:</strong> Informal communication regarding interview arrangements often leads to missed appointments, forgotten meeting links, and mismatched expectations between hiring managers and applicants.</li>
+<li><strong>Offer Hoarding and Unannounced Dropouts:</strong> Students frequently hold multiple offers simultaneously until the start date, subsequently dropping out without notice and leaving employers with unfilled positions.</li>
+<li><strong>Unmonitored Daily/Weekly Progress:</strong> Students typically compile paper logbooks or spreadsheets retroactively at the end of the internship period. Mentors are unable to verify attendance, daily deliverables, or technical roadblocks in real time.</li>
+<li><strong>Superficial Performance Appraisals:</strong> End-of-term evaluations are often completed as an administrative checkbox rather than a constructive, rubric-governed assessment.</li>
+<li><strong>Fragmented Document Management:</strong> Exchanging PDF resumes, portfolios, and signed agreement letters via email threads introduces security vulnerabilities, version confusion, and storage headaches.</li>
+</ol>
+<hr>
+<h2>1.3 Key Users and Stakeholders</h2>
+<p>The InternFlow platform is designed to support three primary user groups:</p>
+
+      <div class="mermaid-diagram-box">
+        <div class="diagram-tag">📐 Architecture / Workflow Diagram (Mermaid)</div>
+        <pre class="mermaid-code"><code>graph LR
+    classDef student fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
+    classDef hr fill:#ecfdf5,stroke:#059669,stroke-width:2px;
+    classDef admin fill:#fef3c7,stroke:#d97706,stroke-width:2px;
+
+    User[InternFlow Platform]
+    User --&gt; S[Student / Intern Candidate]:::student
+    User --&gt; H[Company HR / Workplace Mentor]:::hr
+    User --&gt; A[Institutional / University Administrator]:::admin
+
+    S --- S1[Search Jobs &amp; Apply]
+    S --- S2[Attend Interviews &amp; Commit to Offer]
+    S --- S3[Log Daily CWIE Hours &amp; Tasks]
+    S --- S4[View Ratings &amp; Print Report]
+
+    H --- H1[Post &amp; Manage Jobs]
+    H --- H2[Screen &amp; Schedule Interviews]
+    H --- H3[Extend Offers &amp; Manage Placements]
+    H --- H4[Sign-Off Weekly Logs &amp; Submit Rubric]
+
+    A --- A1[Institutional Audit &amp; CWIE Ledger]
+    A --- A2[Monitor Student Placement Rates]</code></pre>
+      </div>
+    <h3>1. Students (Internship Seekers &amp; Active Interns)</h3>
+<ul>
+<li>Register and authenticate securely with email credentials.</li>
+<li>Maintain comprehensive academic profiles: University, Faculty, Major, Academic Year, GPA, Skills, Bio, and Avatar.</li>
+<li>Search and filter corporate internship postings by keyword, department, compensation, and attendance modality (<code>On-site</code>, <code>Remote</code>, <code>Hybrid</code>).</li>
+<li>Submit applications with personalized cover letters, multi-artifact attachments (PDF CVs, transcripts), and external URLs (GitHub, Figma).</li>
+<li>Track real-time application states: <code>PENDING</code> ➔ <code>REVIEWING</code> ➔ <code>INTERVIEW_SCHEDULED</code> ➔ <code>ACCEPTED</code> ➔ <code>COMMITTED</code>.</li>
+<li>Commit to exactly ONE official offer, triggering automatic withdrawal of all other pending/accepted submissions.</li>
+<li>Record daily log entries specifying working hours (default 8.0 hrs/day), modality, planned tasks, completed deliverables, troubleshooting notes, and learnings.</li>
+<li>Receive automatic warnings if a log entry is submitted retroactively (backdated detection).</li>
+<li>Monitor approved versus logged hours through live dashboard counters.</li>
+<li>Review supervisor sign-offs, 1–5 star ratings, and feedback.</li>
+<li>Generate and print official accredited Internship Completion Reports.</li>
+</ul>
+<h3>2. Company HR &amp; Workplace Mentors (Corporate Employers)</h3>
+<ul>
+<li>Maintain company profiles: Legal Name, Industry, Website, Office Address, Contact Email, Contact Phone, and Brand Logo.</li>
+<li>Create, publish, update, and toggle active status for internship job listings with compensation, schedules, and requirements.</li>
+<li>Review candidate rosters, inspect academic details, download attached documents, and view portfolio links.</li>
+<li>Advance candidate statuses through the recruitment pipeline: Reviewing ➔ Schedule Interview ➔ Extend Offer ➔ Reject.</li>
+<li>Review student placement cancellation requests with approval or decline workflows.</li>
+<li>Inspect active intern daily/weekly logs via an interactive slide-over drawer showing tasks, problems, solutions, and uploaded artifacts.</li>
+<li>Certify and sign off on log entries individually or batch-approve entire weekly periods with 1–5 star ratings and qualitative notes.</li>
+<li>Submit multi-dimensional performance rubrics (<strong>Work Quality</strong>, <strong>Punctuality &amp; Responsibility</strong>, <strong>Communication &amp; Teamwork</strong>) upon placement completion.</li>
+</ul>
+<h3>3. Institutional / University Administrators (Academic Coordinators)</h3>
+<ul>
+<li>Oversee institutional CWIE student compliance and monitor placement percentages.</li>
+<li>Verify official internship certificates generated through the system with institutional audit integrity.</li>
+</ul>
+<hr>
+<h2>1.4 Functional Requirements (Comprehensive &amp; Updated)</h2>
+<h3>Subsystem 1: User Management &amp; Authentication System</h3>
+<ul>
+<li><strong>FR-1.1:</strong> Secure registration and login using email and password credentials with server-side validation.</li>
+<li><strong>FR-1.2:</strong> Passwords must be hashed using <code>bcrypt</code> (minimum 10 salt rounds) prior to storage; plaintext passwords must never be persisted.</li>
+<li><strong>FR-1.3:</strong> Issue stateless JSON Web Tokens (JWT) signed with HMAC-SHA256 and a 24-hour expiration upon successful authentication.</li>
+<li><strong>FR-1.4:</strong> Enforce Role-Based Access Control (RBAC) with predefined roles: <code>STUDENT</code> and <code>COMPANY_HR</code>.</li>
+<li><strong>FR-1.5:</strong> Automatically initialize role-specific profile records (<code>StudentProfile</code> or <code>CompanyProfile</code>) upon user creation.</li>
+<li><strong>FR-1.6:</strong> Mask sensitive academic fields (e.g., student GPA) from unauthorized public views, exposing them only to authenticated HR recruiters.</li>
+<li><strong>FR-1.7:</strong> Enable public profile inspection of platform participants through slide-over modals (<code>PublicProfileModal</code>).</li>
+</ul>
+<h3>Subsystem 2: Job Listing &amp; Discovery Management</h3>
+<ul>
+<li><strong>FR-2.1:</strong> Enable Company HR to create, edit, toggle active status, and delete internship postings.</li>
+<li><strong>FR-2.2:</strong> Each posting must capture: Title, Department, Description, Requirements, Location, Work Modality (<code>isRemote</code>), Openings Count, Allowance/Compensation, Working Hours/Schedule, and Contact Information (Email, Phone, LINE ID).</li>
+<li><strong>FR-2.3:</strong> Provide transactional cascade deletion of job postings and associated application records with explicit in-app confirmation modals.</li>
+<li><strong>FR-2.4:</strong> Enable students to browse active job openings with full-text keyword search and multi-criteria filters (Department, Work Modality, Allowance).</li>
+</ul>
+<h3>Subsystem 3: Multi-Stage Application, Interview &amp; Placement Pipeline</h3>
+<ul>
+<li><strong>FR-3.1:</strong> Enable students to apply for jobs with cover letters, direct file uploads (CVs, transcripts), and external URLs.</li>
+<li><strong>FR-3.2:</strong> Strictly enforce the <strong>One Active Application Per Company Rule</strong> through database-level compound unique constraints (<code>studentId + jobPostId</code>).</li>
+<li><strong>FR-3.3 (Interview Stage):</strong> Enable Company HR to transition candidates from <code>PENDING</code> or <code>REVIEWING</code> to <strong><code>INTERVIEW_SCHEDULED</code></strong>.</li>
+<li><strong>FR-3.4 (Interview Notice):</strong> When an application enters <code>INTERVIEW_SCHEDULED</code>, the student&#39;s portal must display an Indigo Notice Banner instructing them that HR will coordinate date, time, and meeting details via email or phone.</li>
+<li><strong>FR-3.5 (Offer Extension):</strong> Company HR can extend an official offer (<code>ACCEPTED</code>) either directly from review or following the interview stage.</li>
+<li><strong>FR-3.6 (Single Placement Commitment):</strong> Students can commit to exactly ONE offer (<code>COMMITTED</code>). Committing automatically executes an atomic database transaction that sets all other active applications for that student to <code>REJECTED</code> / closed.</li>
+<li><strong>FR-3.7 (Controlled Cancellation Workflow):</strong> A committed student cannot unilaterally abandon their placement. They must submit a cancellation request stating the reason (<code>CANCEL_REQUESTED</code>). The placement is only released once HR explicitly confirms (<code>CANCELLED</code>).</li>
+<li><strong>FR-3.8:</strong> Complete Standardized Status Lifecycle:
+$$\text{PENDING} \longrightarrow \text{REVIEWING} \longrightarrow \text{INTERVIEW_SCHEDULED} \longrightarrow \text{ACCEPTED} \longrightarrow \text{COMMITTED} \underset{\text{Reject}}{\stackrel{\text{Approve}}{\rightleftarrows}} \text{CANCEL_REQUESTED} \longrightarrow \text{CANCELLED}$$</li>
+</ul>
+<h3>Subsystem 4: CWIE Daily &amp; Weekly Operational Logbook</h3>
+<ul>
+<li><strong>FR-4.1:</strong> Access to the CWIE Logbook is strictly locked until a student possesses an active, confirmed placement (<code>COMMITTED</code> or <code>CANCEL_REQUESTED</code>).</li>
+<li><strong>FR-4.2:</strong> Enable students to record daily logs specifying Date, Hours Worked (1.0–12.0 hours, default 8.0), Modality (<code>ON_SITE</code>, <code>REMOTE</code>, <code>HYBRID</code>), and Supervisor Name.</li>
+<li><strong>FR-4.3:</strong> Capture itemized task lists (<code>tasksDone</code>), technical troubleshooting notes (<code>problemsAndSolutions</code>), key learnings, and attached artifacts (PDFs, code screenshots, project links).</li>
+<li><strong>FR-4.4 (Backdated Detection):</strong> Automatically detect if a log entry date precedes the submission date; flag the entry as <code>isBackdated = true</code> and display a warning badge in both student and supervisor views.</li>
+<li><strong>FR-4.5:</strong> Enforce uniqueness so a student can only create one log entry per calendar date (<code>@@unique([studentId, logDate])</code>).</li>
+<li><strong>FR-4.6:</strong> Provide real-time calculation of total logged hours versus mentor-approved hours across the internship period.</li>
+</ul>
+<h3>Subsystem 5: Company Mentor Inspection &amp; Sign-Off</h3>
+<ul>
+<li><strong>FR-5.1:</strong> Provide an interactive Inspector Drawer for Company HR/Mentors to examine intern daily logs, completed tasks, and artifact attachments.</li>
+<li><strong>FR-5.2:</strong> Enable mentors to sign off on logs individually or execute batch one-click approvals for an entire week&#39;s logs.</li>
+<li><strong>FR-5.3:</strong> Allow mentors to assign 1–5 star ratings and provide qualitative feedback notes that update the student&#39;s view in real time.</li>
+</ul>
+<h3>Subsystem 6: Performance Rubric Evaluation &amp; Certification</h3>
+<ul>
+<li><strong>FR-6.1:</strong> Enable Company HR to submit an accredited 3-category performance rubric upon internship completion:<ol>
+<li><strong>Work Quality &amp; Technical Competence</strong> (1–5 Stars)</li>
+<li><strong>Punctuality &amp; Professional Responsibility</strong> (1–5 Stars)</li>
+<li><strong>Communication &amp; Team Collaboration</strong> (1–5 Stars)</li>
+<li><strong>Qualitative Supervisor Remarks &amp; Feedback</strong></li>
+</ol>
+</li>
+<li><strong>FR-6.2:</strong> Generate an official, print-ready (<code>window.print()</code>) <strong>Internship Completion Certificate &amp; Performance Report</strong> consolidating student university metadata, verified hours, supervisor signatures, and rubric scores.</li>
+</ul>
+<h3>Subsystem 7: Bilingual Internationalization (TH / EN)</h3>
+<ul>
+<li><strong>FR-7.1:</strong> Full client-side internationalization with persistent language selection (<code>th</code> / <code>en</code>) via <code>LanguageContext</code>.</li>
+<li><strong>FR-7.2:</strong> Instant UI translation across navigation menus, status badges, forms, modals, error toasts, and printable reports without page reloading.</li>
+</ul>
+<hr>
+<h2>1.5 Nonfunctional Requirements</h2>
+<h3>1. Performance</h3>
+<ul>
+<li><strong>NFR-1.1:</strong> 95% of read API endpoints (<code>GET /api/jobs</code>, <code>GET /api/applications/my</code>) must respond within <strong>&lt; 500 ms</strong> under normal load.</li>
+<li><strong>NFR-1.2:</strong> Database queries must utilize indexed foreign keys and composite unique constraints to maintain query response times under <strong>&lt; 100 ms</strong>.</li>
+<li><strong>NFR-1.3:</strong> File uploads (up to 10 MB) must complete streaming to Amazon S3 within <strong>&lt; 5 seconds</strong> over standard broadband connections.</li>
+</ul>
+<h3>2. Scalability</h3>
+<ul>
+<li><strong>NFR-2.1:</strong> The backend must be stateless to permit horizontal scaling via Amazon ECS Fargate container auto-scaling based on CPU/memory utilization thresholds (70%).</li>
+<li><strong>NFR-2.2:</strong> Database connection pooling managed via Prisma Client to sustain at least <strong>200 concurrent active sessions</strong> without connection exhaustion.</li>
+<li><strong>NFR-2.3:</strong> Frontend static bundle served via Amazon CloudFront edge locations with global caching to handle sudden traffic spikes effortlessly.</li>
+</ul>
+<h3>3. Reliability &amp; Availability</h3>
+<ul>
+<li><strong>NFR-3.1:</strong> Target service availability of <strong>99.5% uptime</strong> during academic terms.</li>
+<li><strong>NFR-3.2:</strong> Multi-table writes (such as offer acceptance and competing application decline) must execute within atomic database transactions (<code>prisma.$transaction</code>) to prevent orphaned records.</li>
+<li><strong>NFR-3.3:</strong> Amazon RDS Multi-AZ deployment ensures automated failover to a standby replica in a secondary Availability Zone in <strong>&lt; 60 seconds</strong> in case of infrastructure failure.</li>
+</ul>
+<h3>4. Data Integrity &amp; Consistency</h3>
+<ul>
+<li><strong>NFR-4.1:</strong> Database foreign key constraints enforce referential integrity across users, profiles, jobs, applications, logs, and evaluations.</li>
+<li><strong>NFR-4.2:</strong> Server-side validation rejects invalid status transitions (e.g., transitioning from <code>REJECTED</code> directly to <code>COMMITTED</code>).</li>
+</ul>
+<h3>5. Security &amp; Privacy</h3>
+<ul>
+<li><strong>NFR-5.1:</strong> Passwords must be hashed using <code>bcrypt</code> (10 rounds). Plaintext passwords must never be logged or persisted.</li>
+<li><strong>NFR-5.2:</strong> All protected routes require a valid JWT passed in the HTTP <code>Authorization: Bearer &lt;token&gt;</code> header.</li>
+<li><strong>NFR-5.3:</strong> Sensitive student metadata (GPA) is strictly masked from unauthorized users.</li>
+<li><strong>NFR-5.4:</strong> Amazon S3 buckets are configured with Block Public Access enabled; files are accessed via authenticated backend proxies or pre-signed URLs.</li>
+<li><strong>NFR-5.5:</strong> Cross-Origin Resource Sharing (CORS) is configured to restrict API access exclusively to authorized frontend domains.</li>
+</ul>
+<h3>6. Usability &amp; Accessibility</h3>
+<ul>
+<li><strong>NFR-6.1:</strong> Modern, responsive UI adhering to the Emerald &amp; Mint SaaS design system, fully functional on desktop, tablet, and mobile displays (minimum viewport width 360px).</li>
+<li><strong>NFR-6.2:</strong> Immediate visual feedback provided for all user actions via skeleton loaders, spinners, and interactive toast notifications.</li>
+</ul>
+<hr>
+<h2>1.6 Core Programming Languages</h2>
+<ul>
+<li><strong>TypeScript (v5.x):</strong> Utilized across both Frontend and Backend codebases to enforce end-to-end type safety, eliminate runtime type errors, and improve code maintainability.</li>
+<li><strong>JavaScript (ES2023+):</strong> Underlying language for Node.js runtime execution.</li>
+<li><strong>HTML5:</strong> Semantic markup foundation for web standards, responsive layouts, and print-media stylesheets.</li>
+<li><strong>CSS3 / Modern CSS:</strong> Component styling powered by Tailwind CSS v4 utility classes and CSS variables.</li>
+<li><strong>SQL (PostgreSQL Dialect):</strong> Relational query language executed via Prisma 7 ORM.</li>
+</ul>
+<hr>
+<h2>1.7 Cloud Infrastructure</h2>
+<h3>Main Components (Standalone Managed Cloud Services)</h3>
+<table>
+<thead>
+<tr>
+<th>Component Name</th>
+<th>Service Category</th>
+<th>Role in InternFlow Architecture</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Amazon Route 53</strong></td>
+<td>Networking &amp; DNS</td>
+<td>Highly available Cloud Domain Name System (DNS) providing domain resolution, latency routing, and health checks.</td>
+</tr>
+<tr>
+<td><strong>Amazon CloudFront</strong></td>
+<td>Content Delivery Network</td>
+<td>Global CDN caching frontend static assets (HTML, JS, CSS, images) at edge locations for low-latency worldwide delivery.</td>
+</tr>
+<tr>
+<td><strong>Amazon Simple Storage Service (S3)</strong></td>
+<td>Object Storage</td>
+<td>Scalable bucket storage for hosting static frontend builds and securely storing student CVs, transcripts, avatars, and logbook artifacts.</td>
+</tr>
+<tr>
+<td><strong>Amazon Elastic Container Service (ECS)</strong></td>
+<td>Container Orchestration</td>
+<td>Serverless container management via <strong>AWS Fargate</strong>, running backend Node.js/Express containers with auto-scaling and zero server administration.</td>
+</tr>
+<tr>
+<td><strong>Amazon Elastic Container Registry (ECR)</strong></td>
+<td>Container Registry</td>
+<td>Secure Docker container image repository for storing versioned production backend images.</td>
+</tr>
+<tr>
+<td><strong>Amazon Relational Database Service (RDS)</strong></td>
+<td>Managed Database</td>
+<td>Fully managed PostgreSQL 16 database configured with Multi-AZ automated replication, automated backups, and storage encryption.</td>
+</tr>
+<tr>
+<td><strong>AWS Identity and Access Management (IAM)</strong></td>
+<td>Security &amp; Identity</td>
+<td>Enforces granular least-privilege security policies, execution roles for ECS tasks, and secure S3 access credentials.</td>
+</tr>
+<tr>
+<td><strong>Amazon CloudWatch</strong></td>
+<td>Monitoring &amp; Observability</td>
+<td>Centralized log ingestion from ECS containers, metric alarms for CPU/memory utilization, and API error tracking.</td>
+</tr>
+</tbody></table>
+<h3>Micro Components (Infrastructure &amp; Networking Primitives)</h3>
+<table>
+<thead>
+<tr>
+<th>Component Name</th>
+<th>Service Category</th>
+<th>Role in InternFlow Architecture</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Amazon Virtual Private Cloud (VPC)</strong></td>
+<td>Isolated Network</td>
+<td>Dedicated virtual network logically isolating backend compute clusters and database instances from the public internet.</td>
+</tr>
+<tr>
+<td><strong>Public &amp; Private Subnets</strong></td>
+<td>Subnet Segmentation</td>
+<td>Multi-AZ architecture: Public subnets host Load Balancers; Private subnets host ECS container tasks; Isolated DB subnets host RDS instances.</td>
+</tr>
+<tr>
+<td><strong>Application Load Balancer (ALB)</strong></td>
+<td>Traffic Distribution</td>
+<td>Distributes incoming HTTPS traffic across healthy ECS Fargate container tasks with automated health check polling on <code>/api/health</code>.</td>
+</tr>
+<tr>
+<td><strong>Security Groups</strong></td>
+<td>Virtual Firewalls</td>
+<td>Stateful packet filtering controlling inbound and outbound traffic at the port level (ALB allows port 443; ECS allows port 4000 from ALB only; RDS allows port 5432 from ECS only).</td>
+</tr>
+<tr>
+<td><strong>Amazon S3 VPC Endpoint (Gateway)</strong></td>
+<td>Private Networking</td>
+<td>Enables direct, private routing of S3 file upload traffic from ECS containers without traversing the public internet or incurring NAT gateway charges.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>1.8 Tech Stack &amp; Tooling Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Layer / Concern</th>
+<th>Technology Selected</th>
+<th>Version / Spec</th>
+<th>Justification &amp; Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Frontend Framework</strong></td>
+<td>React</td>
+<td>19.x with Vite 6</td>
+<td>High-performance SPA with instant HMR and optimized component rendering</td>
+</tr>
+<tr>
+<td><strong>Frontend Routing</strong></td>
+<td>React Router</td>
+<td>7.x</td>
+<td>Declarative client-side routing with nested layouts and route protection</td>
+</tr>
+<tr>
+<td><strong>Styling Engine</strong></td>
+<td>Tailwind CSS</td>
+<td>v4.0</td>
+<td>Modern utility-first CSS framework with tailored color tokens and responsive utilities</td>
+</tr>
+<tr>
+<td><strong>Icons &amp; Visuals</strong></td>
+<td>Lucide React</td>
+<td>Latest</td>
+<td>Clean, consistent SVG icon set matching modern SaaS aesthetics</td>
+</tr>
+<tr>
+<td><strong>Backend Runtime</strong></td>
+<td>Node.js</td>
+<td>v20+ LTS</td>
+<td>Event-driven, asynchronous I/O optimized for concurrent web APIs</td>
+</tr>
+<tr>
+<td><strong>Web Framework</strong></td>
+<td>Express.js</td>
+<td>5.x</td>
+<td>Minimalist, robust REST API routing with native async error handling</td>
+</tr>
+<tr>
+<td><strong>Database Engine</strong></td>
+<td>PostgreSQL</td>
+<td>16.x (Multi-AZ)</td>
+<td>Enterprise-grade ACID relational database with strong JSON support</td>
+</tr>
+<tr>
+<td><strong>ORM / Data Access</strong></td>
+<td>Prisma</td>
+<td>7.x</td>
+<td>Type-safe query builder, automated migrations, and schema modeling</td>
+</tr>
+<tr>
+<td><strong>Authentication</strong></td>
+<td>JWT + bcryptjs</td>
+<td>24h Expiry</td>
+<td>Stateless token-based auth with secure password hashing (10 salt rounds)</td>
+</tr>
+<tr>
+<td><strong>File Upload Pipeline</strong></td>
+<td>Multer + multer-s3</td>
+<td>AWS SDK v3</td>
+<td>Multipart form data streaming directly to S3 with local disk fallback</td>
+</tr>
+<tr>
+<td><strong>Internationalization</strong></td>
+<td>React Context API</td>
+<td><code>LanguageContext</code></td>
+<td>Zero-dependency, lightweight real-time bilingual switching (TH / EN)</td>
+</tr>
+<tr>
+<td><strong>Containerization</strong></td>
+<td>Docker &amp; Compose</td>
+<td>Multi-stage build</td>
+<td>Reproducible environments across local development and production</td>
+</tr>
+<tr>
+<td><strong>Testing Tools</strong></td>
+<td>Playwright &amp; Robot Framework</td>
+<td>Latest</td>
+<td>Automated End-to-End browser test automation and API validation</td>
+</tr>
+<tr>
+<td><strong>Version Control</strong></td>
+<td>Git &amp; GitHub</td>
+<td>Trunk / Feature branch</td>
+<td>Collaborative source control, pull request reviews, and issue tracking</td>
+</tr>
+</tbody></table>
+<hr>
+<h1>Section 2: Software Architecture (Lecture 3 Topics)</h1>
+<h2>2.1 Subsystem Decomposition &amp; Layered Architectural Style</h2>
+<p>In accordance with software engineering principles (Lecture 3: System Decomposition into Cohesive Subsystems with Defined Interfaces), the InternFlow platform is structured into <strong>10 cohesive subsystems</strong> organized across <strong>5 logical architectural layers</strong>.</p>
+
+      <div class="mermaid-diagram-box">
+        <div class="diagram-tag">📐 Architecture / Workflow Diagram (Mermaid)</div>
+        <pre class="mermaid-code"><code>graph TD
+    classDef pres fill:#eff6ff,stroke:#3b82f6,stroke-width:2px;
+    classDef api fill:#f0fdf4,stroke:#22c55e,stroke-width:2px;
+    classDef domain fill:#fdf4ff,stroke:#d946ef,stroke-width:2px;
+    classDef data fill:#fffbeb,stroke:#f59e0b,stroke-width:2px;
+    classDef infra fill:#f8fafc,stroke:#64748b,stroke-width:2px;
+
+    subgraph Layer 1: Presentation Layer
+        UI_Nav[Navigation &amp; Responsive Layout]:::pres
+        UI_Dash[Role-Based Dashboards]:::pres
+        UI_Jobs[Job Search &amp; Board UI]:::pres
+        UI_App[Application Pipeline &amp; Stepper UI]:::pres
+        UI_Log[CWIE Daily Logbook &amp; Drawer UI]:::pres
+        UI_Cert[Printable Certificate UI]:::pres
+        UI_Lang[Bilingual Language Context]:::pres
+    end
+
+    subgraph Layer 2: API Gateway &amp; Controller Layer
+        API_Auth[Auth Controller: /api/auth]:::api
+        API_Users[User Profile Controller: /api/users]:::api
+        API_Jobs[Job Controller: /api/jobs]:::api
+        API_Apps[Application Controller: /api/applications]:::api
+        API_Log[Logbook Controller: /api/logbook]:::api
+        API_Eval[Evaluation Controller: /api/evaluations]:::api
+    end
+
+    subgraph Layer 3: Domain &amp; Business Logic Layer
+        DOM_Auth[Authentication &amp; RBAC Enforcement Service]:::domain
+        DOM_Commit[Single-Placement Exclusivity &amp; Auto-Decline Engine]:::domain
+        DOM_Log[CWIE Backdated Detection &amp; Hour Aggregation Engine]:::domain
+        DOM_Eval[Rubric Scoring &amp; Certification Engine]:::domain
+        DOM_File[S3 File Sanitization &amp; Upload Service]:::domain
+    end
+
+    subgraph Layer 4: Data Access &amp; Persistence Layer
+        Prisma_Client[Prisma 7 ORM Query Engine]:::data
+        DB_Tables[(PostgreSQL 16 Relational Tables)]:::data
+        S3_Storage[(Amazon S3 Object Storage)]:::data
+    end
+
+    subgraph Layer 5: Cloud Infrastructure Layer
+        AWS_Route53[Route 53 DNS]:::infra
+        AWS_CF[CloudFront CDN]:::infra
+        AWS_ALB[Application Load Balancer]:::infra
+        AWS_ECS[ECS Fargate Clusters]:::infra
+        AWS_RDS[RDS Multi-AZ PostgreSQL]:::infra
+    end
+
+    UI_Nav --&gt; API_Auth
+    UI_Jobs --&gt; API_Jobs
+    UI_App --&gt; API_Apps
+    UI_Log --&gt; API_Log
+    UI_Cert --&gt; API_Eval
+
+    API_Auth --&gt; DOM_Auth
+    API_Apps --&gt; DOM_Commit
+    API_Log --&gt; DOM_Log
+    API_Eval --&gt; DOM_Eval
+
+    DOM_Auth --&gt; Prisma_Client
+    DOM_Commit --&gt; Prisma_Client
+    DOM_Log --&gt; Prisma_Client
+    DOM_Eval --&gt; Prisma_Client
+    DOM_File --&gt; S3_Storage
+
+    Prisma_Client --&gt; DB_Tables</code></pre>
+      </div>
+    <h3>Subsystem Breakdown:</h3>
+<ol>
+<li><strong>User Authentication &amp; Identity Subsystem:</strong> Handles account registration, bcrypt password hashing, credential verification, stateless JWT issuance, token decoding, and Role-Based Access Control (RBAC) route guarding.</li>
+<li><strong>Profile &amp; Academic Metadata Subsystem:</strong> Manages student academic information (GPA, faculty, major, skills, avatar) and company corporate details. Implements academic privacy rules (masking student GPA from public view).</li>
+<li><strong>Job Listing &amp; Discovery Subsystem:</strong> Provides CRUD capabilities for corporate internship listings, multi-criteria filtering (department, modality, allowance), and public job viewing.</li>
+<li><strong>Application &amp; Placement Pipeline Subsystem:</strong> Manages candidate application submissions, enforces the one-active-application-per-company rule, coordinates the interview stage (<code>INTERVIEW_SCHEDULED</code>), and executes the atomic single-placement commitment rule (<code>COMMITTED</code>) with automatic competing offer withdrawal.</li>
+<li><strong>CWIE Daily Logbook Subsystem:</strong> Manages daily activity records, modality tracking (<code>ON_SITE</code>, <code>REMOTE</code>, <code>HYBRID</code>), itemized tasks, and automated backdated submission auditing.</li>
+<li><strong>Company Mentor Review &amp; Sign-Off Subsystem:</strong> Renders the supervisor inspector drawer, enabling mentors to examine deliverables, award 1–5 star ratings, and record qualitative feedback for individual days or entire weeks.</li>
+<li><strong>Performance Rubric Evaluation Subsystem:</strong> Governs end-of-term evaluations across Work Quality, Punctuality, and Teamwork; calculates aggregated scores; and formats printable completion certificates.</li>
+<li><strong>Media &amp; Artifact Storage Subsystem:</strong> Manages multi-part file uploads (PDF CVs, transcripts, avatar images) via Multer and AWS SDK v3 streaming directly to Amazon S3 with collision-resistant timestamp key prepending.</li>
+<li><strong>Bilingual Localization Subsystem:</strong> Manages client-side translation dictionaries (<code>th</code> / <code>en</code>) via React Context to render UI components instantly in the selected language.</li>
+<li><strong>System Observability &amp; Monitoring Subsystem:</strong> Implements health probes (<code>GET /api/health</code>), structured JSON error formatting, and streaming application metrics and logs to Amazon CloudWatch.</li>
+</ol>
+<hr>
+<h2>2.2 Data Management (Lecture 3 Topics)</h2>
+<p>Lecture 3 emphasizes structured data management: distinguishing persistent data, transient data, storage media, and concurrency control.</p>
+
+      <div class="mermaid-diagram-box">
+        <div class="diagram-tag">📐 Architecture / Workflow Diagram (Mermaid)</div>
+        <pre class="mermaid-code"><code>graph TD
+    subgraph Client Memory
+        C1[Auth Token in localStorage]
+        C2[Active Form State / Filter State]
+        C3[Current Language Selection]
+    end
+
+    subgraph Backend Memory
+        B1[Decoded JWT Payload in Request Context]
+        B2[Multer Memory Stream Buffers]
+        B3[Prisma Connection Pool Socket Cache]
+    end
+
+    subgraph Persistent Storage: Amazon RDS PostgreSQL 16
+        D1[(User &amp; Authentication Records)]
+        D2[(Student &amp; Company Profiles)]
+        D3[(Job Posts &amp; Application States)]
+        D4[(CWIE Daily Logs &amp; Mentor Sign-Offs)]
+        D5[(Rubric Evaluations &amp; Scores)]
+    end
+
+    subgraph Persistent Storage: Amazon S3 Object Storage
+        S1[(Student Resumes &amp; CVs)]
+        S2[(Academic Transcripts)]
+        S3[(Company Logos &amp; Avatars)]
+        S4[(Logbook Deliverable Artifacts)]
+    end
+
+    Client Memory -. HTTP Requests .-&gt; Backend Memory
+    Backend Memory --&gt; Persistent Storage: Amazon RDS PostgreSQL 16
+    Backend Memory --&gt; Persistent Storage: Amazon S3 Object Storage</code></pre>
+      </div>
+    <h3>1. Persistent Data Management</h3>
+<ul>
+<li><strong>Database Engine:</strong> Amazon RDS PostgreSQL 16 Multi-AZ.</li>
+<li><strong>Relational Tables:</strong> Persists structured business entities across 8 relational tables (<code>User</code>, <code>StudentProfile</code>, <code>CompanyProfile</code>, <code>JobPost</code>, <code>Application</code>, <code>Document</code>, <code>DailyLog</code>, <code>WeeklyLog</code>, <code>InternshipEvaluation</code>).</li>
+<li><strong>Object / Blob Storage:</strong> Binary documents (PDF resumes, transcripts, avatar images, code screenshots) are stored in private Amazon S3 buckets with path prefixes (<code>/resumes/</code>, <code>/transcripts/</code>, <code>/avatars/</code>). The database stores only the immutable S3 URLs (<code>fileUrl</code>).</li>
+<li><strong>Schema Evolution:</strong> Managed through declarative, version-controlled Prisma migrations (<code>prisma migrate dev</code> / <code>prisma migrate deploy</code>), ensuring reproducible database structures across development, staging, and production environments.</li>
+</ul>
+<h3>2. Transient Data Management</h3>
+<ul>
+<li><strong>Client Session State:</strong> Authentication tokens (JWT) and user identity profiles are stored in browser <code>localStorage</code>.</li>
+<li><strong>Request Scope Data:</strong> In-flight HTTP requests carry decoded user identity (<code>req.user = { userId, role }</code>) populated by the <code>authenticate</code> middleware in memory.</li>
+<li><strong>File Upload Buffers:</strong> File uploads are streamed through memory-efficient streaming buffers directly to S3 via <code>multer-s3</code>, avoiding local disk consumption in production container environments.</li>
+</ul>
+<h3>3. Concurrency Control &amp; Transactional Integrity</h3>
+<ul>
+<li><strong>Atomic Offer Acceptance:</strong> When a student accepts an offer, the system must update the chosen application to <code>COMMITTED</code> while updating all other active applications for that student to <code>REJECTED</code>. This is wrapped inside an atomic <code>prisma.$transaction</code>:
+    <pre class="code-block language-typescript"><code>await prisma.$transaction(async (tx) =&gt; {
+  // 1. Commit target placement
+  await tx.application.update({
+    where: { id: targetAppId },
+    data: { status: &#39;COMMITTED&#39; }
+  });
+  // 2. Automatically decline competing applications
+  await tx.application.updateMany({
+    where: {
+      studentId: student.id,
+      id: { not: targetAppId },
+      status: { in: [&#39;PENDING&#39;, &#39;REVIEWING&#39;, &#39;INTERVIEW_SCHEDULED&#39;, &#39;ACCEPTED&#39;] }
+    },
+    data: { status: &#39;REJECTED&#39; }
+  });
+});</code></pre>
+  </li>
+<li><strong>Database Constraints:</strong><ul>
+<li>Candidate spamming prevented by <code>@@unique([studentId, jobPostId])</code>.</li>
+<li>Duplicate daily logging prevented by <code>@@unique([studentId, logDate])</code>.</li>
+<li>Foreign key cascade deletion cleans up child records when a parent entity is deleted.</li>
+</ul>
+</li>
+</ul>
+<h3>4. Backup &amp; Disaster Recovery</h3>
+<ul>
+<li><strong>Automated Daily Snapshots:</strong> Amazon RDS executes automated daily backups with a 35-day retention window.</li>
+<li><strong>Point-in-Time Recovery (PITR):</strong> Transaction logs (WAL) are streamed continuously, enabling restoration to any specific second within the retention window.</li>
+<li><strong>S3 Bucket Versioning:</strong> S3 buckets maintain object versioning to protect against accidental deletion or overwrite.</li>
+</ul>
+<hr>
+<h2>2.3 Boundary Conditions (Lecture 3 Topics)</h2>
+<p>Boundary conditions define system behavior during non-steady states: system initialization, termination/shutdown, and unexpected failure modes.</p>
+<h3>1. System Initialization</h3>
+<ul>
+<li><strong>Cloud Infrastructure Bootstrapping:</strong><ol>
+<li>Route 53 routes incoming DNS queries to CloudFront (frontend) and ALB (backend).</li>
+<li>The Application Load Balancer begins polling the health probe endpoint (<code>GET /api/health</code>).</li>
+<li>ECS Fargate pulls container images from Amazon ECR and launches tasks within private subnets.</li>
+<li>Node.js backend initializes: loads environment variables (<code>.env</code>), connects to PostgreSQL via Prisma connection pool, verifies schema migrations, and binds to port 4000.</li>
+<li>The ALB marks targets as healthy once HTTP 200 is confirmed, opening traffic routing.</li>
+</ol>
+</li>
+<li><strong>Client Application Bootstrapping:</strong><ol>
+<li>The browser requests <code>index.html</code> via CloudFront CDN.</li>
+<li>React hydrates and initializes <code>LanguageContext</code> (restoring stored language from <code>localStorage</code> or defaulting to <code>th</code>).</li>
+<li>The auth provider inspects <code>localStorage</code> for an existing JWT token. If present and valid, it loads user state; if expired or invalid, it purges stored credentials and directs the user to <code>/login</code>.</li>
+</ol>
+</li>
+</ul>
+<h3>2. System Termination</h3>
+<ul>
+<li><strong>Graceful Container Termination (ECS Scale-In / Deployments):</strong><ol>
+<li>AWS ECS sends a <code>SIGTERM</code> signal to the Node.js process.</li>
+<li>The Express server stops accepting new incoming connections on port 4000.</li>
+<li>ALB deregisters the target container, routing new traffic to other active tasks.</li>
+<li>Active in-flight HTTP requests are given a 30-second draining window to complete.</li>
+<li>The Prisma connection pool is gracefully disconnected (<code>await prisma.$disconnect()</code>).</li>
+<li>The Node.js process exits cleanly (<code>exit code 0</code>).</li>
+</ol>
+</li>
+<li><strong>User Session Termination (Logout):</strong><ol>
+<li>User clicks &quot;Sign Out&quot; (<code>ออกจากระบบ</code>).</li>
+<li>Frontend immediately removes <code>token</code> and <code>user</code> keys from browser <code>localStorage</code>.</li>
+<li>Client authentication state is reset to <code>null</code>.</li>
+<li>React Router navigates the user to <code>/login</code> with an in-app confirmation toast.</li>
+</ol>
+</li>
+</ul>
+<h3>3. Failure Modes &amp; Automated Recovery</h3>
+<ul>
+<li><strong>Primary Database Outage:</strong><ul>
+<li><em>Symptom:</em> Primary RDS PostgreSQL instance becomes unresponsive.</li>
+<li><em>Automated Recovery:</em> Amazon RDS Multi-AZ automatically detects loss of heartbeat and initiates automatic failover to the synchronous standby replica in the secondary Availability Zone. The database DNS endpoint is updated within &lt; 60 seconds without data loss. Prisma connection pools detect dropped connections and reconnect with exponential backoff.</li>
+</ul>
+</li>
+<li><strong>Backend Container Crash:</strong><ul>
+<li><em>Symptom:</em> Uncaught exception or OOM event crashes a Node.js process.</li>
+<li><em>Automated Recovery:</em> ECS Fargate task supervisor detects process termination and automatically spawns a replacement container task. The ALB diverts traffic away from the failing task to surviving instances, maintaining zero service downtime.</li>
+</ul>
+</li>
+<li><strong>API Error Handling &amp; Stack Trace Masking:</strong><ul>
+<li><em>Behavior:</em> Centralized Express error-handling middleware catches all unhandled rejections, logs full error details and stack traces to Amazon CloudWatch, and returns sanitized, user-friendly JSON responses (<code>{ error: &quot;Internal server error&quot; }</code>, HTTP 500) to protect internal infrastructure details.</li>
+</ul>
+</li>
+<li><strong>Network Disconnection in Client Browser:</strong><ul>
+<li><em>Behavior:</em> Frontend API client detects network timeouts and surfaces an alert toast (&quot;Unable to connect to server. Please try again.&quot;) while preserving form state in component memory, preventing user data loss.</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2>2.4 Access Control &amp; Security Architecture</h2>
+<h3>Role-Based Access Control (RBAC) Matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Resource / Action</th>
+<th>Endpoint</th>
+<th align="center">Unregistered Guest</th>
+<th align="center">Student (Applicant)</th>
+<th align="center">Student (Placed Intern)</th>
+<th align="center">Company HR / Mentor</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Register / Sign In</strong></td>
+<td><code>POST /api/auth/*</code></td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center"><strong>Allow</strong></td>
+</tr>
+<tr>
+<td><strong>Browse / Search Jobs</strong></td>
+<td><code>GET /api/jobs</code></td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center"><strong>Allow</strong></td>
+</tr>
+<tr>
+<td><strong>Create / Edit / Delete Job</strong></td>
+<td><code>POST, PUT, DELETE /api/jobs/*</code></td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong></td>
+</tr>
+<tr>
+<td><strong>Submit Job Application</strong></td>
+<td><code>POST /api/applications</code></td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center">Deny <em>(Committed Lock)</em></td>
+<td align="center">Deny</td>
+</tr>
+<tr>
+<td><strong>View Submitted Applications</strong></td>
+<td><code>GET /api/applications/my</code></td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center">Deny</td>
+</tr>
+<tr>
+<td><strong>Schedule Interview</strong></td>
+<td><code>PATCH /api/applications/:id/status</code></td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong> (<code>INTERVIEW_SCHEDULED</code>)</td>
+</tr>
+<tr>
+<td><strong>Extend / Reject Offer</strong></td>
+<td><code>PATCH /api/applications/:id/status</code></td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong> (<code>ACCEPTED</code>, <code>REJECTED</code>)</td>
+</tr>
+<tr>
+<td><strong>Accept Offer &amp; Commit</strong></td>
+<td><code>PATCH /api/applications/:id/commit</code></td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong> <em>(Single placement)</em></td>
+<td align="center">Deny <em>(Already committed)</em></td>
+<td align="center">Deny</td>
+</tr>
+<tr>
+<td><strong>Request Placement Cancellation</strong></td>
+<td><code>POST /api/applications/:id/cancel</code></td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong> (<code>CANCEL_REQUESTED</code>)</td>
+<td align="center">Deny</td>
+</tr>
+<tr>
+<td><strong>Approve / Decline Cancellation</strong></td>
+<td><code>PATCH /api/applications/:id/cancellation-action</code></td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong></td>
+</tr>
+<tr>
+<td><strong>Create / Edit CWIE Daily Log</strong></td>
+<td><code>POST, PUT /api/logbook/*</code></td>
+<td align="center">Deny</td>
+<td align="center">Deny <em>(Locked)</em></td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center">Deny</td>
+</tr>
+<tr>
+<td><strong>Sign-Off Weekly Logs (1-5★)</strong></td>
+<td><code>PATCH /api/logbook/signoff/*</code></td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong></td>
+</tr>
+<tr>
+<td><strong>Submit Final Evaluation Rubric</strong></td>
+<td><code>POST /api/evaluations</code></td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong></td>
+</tr>
+<tr>
+<td><strong>View / Print Completion Certificate</strong></td>
+<td><code>GET /api/evaluations/student/:id</code></td>
+<td align="center">Deny</td>
+<td align="center">Deny</td>
+<td align="center"><strong>Allow</strong></td>
+<td align="center"><strong>Allow</strong></td>
+</tr>
+<tr>
+<td><strong>View Masked GPA</strong></td>
+<td><code>GET /api/users/profile/:id</code></td>
+<td align="center">Deny <em>(Masked)</em></td>
+<td align="center"><strong>Allow</strong> <em>(Self only)</em></td>
+<td align="center"><strong>Allow</strong> <em>(Self only)</em></td>
+<td align="center"><strong>Allow</strong> <em>(Recruiter view)</em></td>
+</tr>
+</tbody></table>
+
+      <div class="mermaid-diagram-box">
+        <div class="diagram-tag">📐 Architecture / Workflow Diagram (Mermaid)</div>
+        <pre class="mermaid-code"><code>graph TD
+    classDef client fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
+    classDef mw fill:#fef3c7,stroke:#d97706,stroke-width:2px;
+    classDef route fill:#ecfdf5,stroke:#059669,stroke-width:2px;
+    classDef err fill:#fee2e2,stroke:#ef4444,stroke-width:2px;
+
+    Req[Incoming HTTP Request]:::client
+    Req --&gt; H{Has Authorization: Bearer token?}
+
+    H -- No --&gt; CheckPublic{Is Public Route?}
+    CheckPublic -- Yes --&gt; ExecPublic[Execute Public Handler]:::route
+    CheckPublic -- No --&gt; Ret401[Return 401 Unauthorized]:::err
+
+    H -- Yes --&gt; VerifyJWT{Verify JWT Signature &amp; Expiry}:::mw
+    VerifyJWT -- Invalid / Expired --&gt; Ret401
+    VerifyJWT -- Valid --&gt; ExtractUser[Populate req.user = payload]:::mw
+
+    ExtractUser --&gt; CheckRole{Does req.user.role match required roles?}:::mw
+    CheckRole -- No --&gt; Ret403[Return 403 Forbidden]:::err
+    CheckRole -- Yes --&gt; ExecHandler[Execute Controller &amp; Service Logic]:::route</code></pre>
+      </div>
+    <h3>Security Measures Implemented:</h3>
+<ol>
+<li><strong>Password Encryption:</strong> Passwords salted and hashed with <code>bcryptjs</code> using 10 rounds.</li>
+<li><strong>Stateless JWT Authorization:</strong> Tokens carry cryptographically signed user IDs and roles with a 24-hour expiration window.</li>
+<li><strong>Parameter Tampering Prevention:</strong> Status modifications on applications verify that the calling HR belongs to the company that posted the job, and candidate commits verify that the caller is the student who applied.</li>
+<li><strong>SQL Injection Defense:</strong> All database interactions are executed via Prisma ORM parameterized queries.</li>
+<li><strong>Cross-Site Scripting (XSS) Prevention:</strong> React auto-escapes rendered text; cover letter and task notes are stored and rendered as sanitized strings.</li>
+</ol>
+<hr>
+<h1>Detailed Design</h1>
+<h2>ER diagram</h2>
+<p>In this section, PostgreSQL (managed on Amazon RDS for PostgreSQL) is used for our database system which is a relational database management system (RDBMS). The Entity-Relationship (ER) diagram representing the database schema, tables, primary keys (PK), foreign keys (FK), data types, and relational constraints is shown on the following diagram.</p>
+
+<div style="text-align: center; margin: 24px 0;">
+  <img src="er_diagram.png" alt="InternFlow ER Diagram" style="max-width: 100%; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);" />
+</div>
+
+<ul style="margin-left: 20px; line-height: 1.8;">
+  <li>In the <strong>Users</strong> table, <code>id</code> is a UUID (String) which defines the primary key (PK) of each user.</li>
+  <li>In the <strong>StudentProfiles</strong> and <strong>CompanyProfiles</strong> tables, <code>userId</code> is used as a foreign key (FK) with a unique constraint (1:1 relationship) to define which user account owns each profile.</li>
+  <li>In the <strong>JobPosts</strong> table, <code>companyProfileId</code> is used as the foreign key (FK) to define which company posted that internship position.</li>
+  <li>In the <strong>Applications</strong> table, <code>studentId</code> and <code>jobPostId</code> are foreign keys (FK) to define which student submitted the application for which job posting. A composite unique constraint on <code>[studentId, jobPostId]</code> ensures a student cannot submit duplicate applications to the same job posting.</li>
+  <li>In the <strong>DailyLogs</strong> table, <code>studentId</code> and <code>applicationId</code> are foreign keys (FK) linking daily log entries and attendance hours directly to the student's active placement, with a unique constraint on <code>[studentId, logDate]</code> preventing multiple logs on the same date.</li>
+  <li>In the <strong>InternshipEvaluations</strong> table, <code>applicationId</code> is used as a foreign key with a 1:1 unique constraint to ensure that each completed internship placement receives exactly one official mentor evaluation.</li>
+  <li>In the <strong>Documents</strong> table, <code>userId</code> and <code>applicationId</code> are foreign keys linking candidate resumes, transcripts, and portfolios stored in Amazon S3 back to the candidate's application.</li>
+  <li>Note that only salted and hashed passwords (using bcrypt with 10 salt rounds) are stored in the database, not plain text passwords.</li>
+</ul>
+    <hr>
+<h2>3.2 System Architecture Diagram with Cloud Mapping</h2>
+<p>The production cloud architecture maps every software subsystem to managed AWS services configured for high availability, fault tolerance, and security:</p>
+
+      <div class="mermaid-diagram-box">
+        <div class="diagram-tag">📐 Architecture / Workflow Diagram (Mermaid)</div>
+        <pre class="mermaid-code"><code>flowchart TB
+    subgraph Users &amp; Clients
+        S_Client[Student Browser / Mobile]
+        HR_Client[Company HR Browser]
+    end
+
+    subgraph AWS Edge &amp; DNS
+        R53[Amazon Route 53: DNS Routing]
+        CF[Amazon CloudFront: Global CDN]
+        S3_Frontend[Amazon S3: React 19 Frontend SPA Hosting]
+    end
+
+    subgraph AWS VPC: Network Boundary
+        subgraph Public Subnets - AZ-A &amp; AZ-B
+            ALB[Application Load Balancer: Ingress &amp; Health Checks]
+        end
+
+        subgraph Private Application Subnets - AZ-A &amp; AZ-B
+            ECS_1[ECS Fargate Task 1: Node.js Express API]
+            ECS_2[ECS Fargate Task 2: Node.js Express API]
+        end
+
+        subgraph Isolated Database Subnets - AZ-A &amp; AZ-B
+            RDS_Primary[(Amazon RDS PostgreSQL 16: Primary)]
+            RDS_Standby[(Amazon RDS PostgreSQL 16: Standby Replica)]
+        end
+
+        VPC_S3_EP[S3 VPC Gateway Endpoint]
+    end
+
+    subgraph AWS Managed Storage &amp; Security Services
+        S3_Uploads[(Amazon S3 Bucket: Student Resumes, Transcripts &amp; Artifacts)]
+        ECR[Amazon Elastic Container Registry: Versioned Docker Images]
+        IAM[AWS Identity &amp; Access Management: Least-Privilege Policies]
+        CW[Amazon CloudWatch: Logs, Metrics &amp; Alarms]
+    end
+
+    S_Client --&gt; R53
+    HR_Client --&gt; R53
+
+    R53 -- Static UI --&gt; CF
+    CF --&gt; S3_Frontend
+
+    R53 -- API Calls: /api/* --&gt; ALB
+    ALB --&gt; ECS_1
+    ALB --&gt; ECS_2
+
+    ECS_1 --&gt; RDS_Primary
+    ECS_2 --&gt; RDS_Primary
+    RDS_Primary -. Synchronous Replication .-&gt; RDS_Standby
+
+    ECS_1 -- File Uploads via Private Endpoint --&gt; VPC_S3_EP
+    ECS_2 -- File Uploads via Private Endpoint --&gt; VPC_S3_EP
+    VPC_S3_EP --&gt; S3_Uploads
+
+    ECR -. Deploy Images .-&gt; ECS_1
+    ECR -. Deploy Images .-&gt; ECS_2
+
+    ECS_1 -. Stream Logs .-&gt; CW
+    ECS_2 -. Stream Logs .-&gt; CW</code></pre>
+      </div>
+    <h3>Detailed Mapping Table: Subsystems to AWS Cloud Resources</h3>
+<table>
+<thead>
+<tr>
+<th>Software Subsystem</th>
+<th>Primary AWS Service</th>
+<th>Supporting AWS Resources</th>
+<th>Architecture Rationale &amp; Configuration</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Presentation &amp; UI Subsystem</strong></td>
+<td><strong>Amazon S3</strong> + <strong>Amazon CloudFront</strong></td>
+<td>Route 53, ACM SSL</td>
+<td>Static React build stored in S3 and cached across CloudFront edge locations with TLS 1.3 encryption.</td>
+</tr>
+<tr>
+<td><strong>Ingress &amp; API Routing</strong></td>
+<td><strong>Application Load Balancer (ALB)</strong></td>
+<td>Route 53, Security Groups</td>
+<td>Multi-AZ load balancer listening on HTTPS/443; routes <code>/api/*</code> traffic to healthy ECS targets; verifies <code>/api/health</code>.</td>
+</tr>
+<tr>
+<td><strong>Compute &amp; Backend Services</strong></td>
+<td><strong>Amazon ECS Fargate</strong></td>
+<td>Amazon ECR, IAM Task Roles</td>
+<td>Serverless container execution across private subnets in two Availability Zones; auto-scales based on CPU thresholds.</td>
+</tr>
+<tr>
+<td><strong>Relational Data Persistence</strong></td>
+<td><strong>Amazon RDS PostgreSQL 16</strong></td>
+<td>DB Subnet Group, KMS</td>
+<td>Managed PostgreSQL configured with Multi-AZ synchronous replication; automated daily backups; encrypted at rest.</td>
+</tr>
+<tr>
+<td><strong>File Storage Subsystem</strong></td>
+<td><strong>Amazon S3 (Uploads Bucket)</strong></td>
+<td>S3 VPC Gateway Endpoint, IAM</td>
+<td>Private bucket for CVs, transcripts, and logbook artifacts; routed privately via VPC Endpoint to avoid NAT gateway costs.</td>
+</tr>
+<tr>
+<td><strong>Security &amp; Identity</strong></td>
+<td><strong>AWS IAM</strong></td>
+<td>AWS KMS</td>
+<td>Enforces least-privilege policies; ECS execution roles grant scoped permissions only (<code>s3:PutObject</code>, <code>s3:GetObject</code>).</td>
+</tr>
+<tr>
+<td><strong>Monitoring &amp; Alerting</strong></td>
+<td><strong>Amazon CloudWatch</strong></td>
+<td>CloudWatch Alarms</td>
+<td>Aggregates container stdout/stderr logs; triggers alarms if error rates or container memory usage exceed thresholds.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>3.3 Workflow of the system</h2>
+<p>The end-to-end operational workflow of InternFlow is illustrated in the diagram below, showing the progression of stages, UI routes, and interactive user actions for both Student applicants and Company HR employers:</p>
+
+<div style="text-align: center; margin: 24px 0;">
+  <img src="workflow_of_the_system.png" alt="Workflow of the system" style="max-width: 100%; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);" />
+</div>
+
+<h3>Stage 1: Public Discovery &amp; Role Onboarding</h3>
+<ul style="margin-left: 20px; line-height: 1.8;">
+  <li><strong>Guest Landing Page (<code>/</code>):</strong> Visitors can explore live verified corporate internship postings, search by keyword, and apply modality (On-site / Remote) and compensation filters without authenticating.</li>
+  <li><strong>Role-Based Registration (<code>/register</code>):</strong> New users select their account role (<code>STUDENT</code> or <code>COMPANY_HR</code>), enforce a secure password policy (minimum 6 characters), and submit either academic details or corporate company information.</li>
+  <li><strong>Secure Authentication (<code>/login</code>):</strong> Users authenticate with their registered email and bcrypt-hashed password, receiving a signed 24-hour JWT token that routes them to their role-specific dashboard.</li>
+</ul>
+
+<h3>Stage 2: Parallel Recruitment &amp; Operational Workflows</h3>
+
+<h4>Student Workflow (Applicant &amp; Active Intern)</h4>
+<ul style="margin-left: 20px; line-height: 1.8;">
+  <li><strong>Student Step 1: Discover &amp; Search Opportunities (<code>/dashboard/jobs</code>):</strong> Students browse and filter positions by department, allowance, and work modality, reviewing company details and clicking "Apply Now".</li>
+  <li><strong>Student Step 2: Submit Application with Resume (Apply Modal):</strong> Students upload their CV/Resume PDF (streamed directly to Amazon S3), provide a personal statement, and include external links (GitHub/Figma). The system enforces the <strong>One Active Application Per Company Rule</strong> to prevent duplicate spamming, initializing the submission as <code>PENDING</code>.</li>
+  <li><strong>Student Step 3: Pipeline &amp; Interview Notice (<code>/dashboard/applications</code>):</strong> Students monitor application progress through <code>PENDING</code> ➔ <code>REVIEWING</code> ➔ <code>INTERVIEW_SCHEDULED</code> ➔ <code>ACCEPTED</code>. When scheduled for an interview, an <strong>Indigo Interview Notice Card</strong> alerts the candidate that HR will reach out with the meeting schedule/link.</li>
+  <li><strong>Student Step 4: Accept Offer &amp; Commit Placement ("Accept Offer &amp; Start"):</strong> When an employer extends an offer, the student clicks "Accept Offer". The <strong>Atomic Exclusivity Protocol</strong> locks the placement to <code>COMMITTED</code> and automatically cancels/declines all other competing applications across the platform.</li>
+  <li><strong>Student Step 5: Daily CWIE Logbook Journaling (<code>/dashboard/logbook</code>):</strong> Unlocked exclusively upon holding a <code>COMMITTED</code> placement. Interns record working hours (default 8.0 hrs/day), modality (<code>ON_SITE</code>, <code>REMOTE</code>, <code>HYBRID</code>), completed deliverables, roadblocks, and solutions. Retroactive submissions are automatically flagged with an <code>isBackdated</code> warning badge.</li>
+</ul>
+
+<h4>Company HR Workflow (Recruiter &amp; Mentor)</h4>
+<ul style="margin-left: 20px; line-height: 1.8;">
+  <li><strong>HR Step 1: Post &amp; Manage Job Listings (<code>/dashboard/jobs/manage</code>):</strong> Recruiters create new listings specifying position title, stipend (THB/month), modality, working hours, and qualifications, immediately publishing them to the live board.</li>
+  <li><strong>HR Step 2: Screen Applicants in Corporate Roster (<code>/dashboard/applicants</code>):</strong> HR views candidate profiles, academic GPAs, universities, and downloads verified S3 resumes, transitioning candidates to <code>REVIEWING</code>.</li>
+  <li><strong>HR Step 3: Interview Scheduling &amp; Offer Pipeline (Applicant Card):** HR clicks <strong>"Schedule Interview"</strong> (<code>INTERVIEW_SCHEDULED</code>) to indicate shortlisting while coordinating the interview date/link externally. Post-interview, HR clicks <strong>"Extend Offer"</strong> (<code>ACCEPTED</code>) or <strong>"Reject"</strong> (<code>REJECTED</code>).</li>
+  <li><strong>HR Step 4: Confirmed Placement &amp; Mentorship (Placed Intern):</strong> Once the candidate commits, the intern is officially locked into the corporate placement. Unilateral abandonment is blocked; release requires formal student cancellation (<code>CANCEL_REQUESTED</code>) and HR confirmation (<code>CANCELLED</code>).</li>
+  <li><strong>HR Step 5: Interactive Logbook Inspection Drawer (Task Inspector):</strong> Mentors click "Inspect Logbook" to open a sliding inspection drawer, reviewing daily logs, hours, and backdated flags, awarding 1–5 star ratings (★) and qualitative feedback individually or in weekly batches.</li>
+</ul>
+
+<h3>Stage 3: Performance Rubric Evaluation &amp; Official Certification</h3>
+<ul style="margin-left: 20px; line-height: 1.8;">
+  <li><strong>Company Mentor: Performance Rubric (<code>/dashboard/evaluations</code>):</strong> Upon completing the internship duration, supervisors score the intern across three standardized CWIE performance rubric categories (Work Quality, Punctuality &amp; Attendance, and Teamwork — each 1–5 stars) along with final qualitative comments.</li>
+  <li><strong>Official Output: Verified Completion Certificate (Accredited PDF):</strong> The system verifies that approved attendance meets the required target threshold (e.g. 300.0–400.0 hours as configured by the company/curriculum) and consolidates logbook hours, mentor ratings, and rubric scores into an official printable <strong>Internship Completion Certificate &amp; Final Evaluation Report</strong> for academic graduation defense.</li>
+</ul>
+<hr>
+<h1>Section 4: Testing Report</h1>
+<h2>4.1 Testing Strategy &amp; Methodology</h2>
+<p>The testing program for the InternFlow platform implements an end-to-end verification strategy ensuring functional correctness, data integrity, role-based security enforcement, and cross-browser reliability. In compliance with DES424 Cloud-based Application Development standards, testing is executed through:</p>
+<ol>
+<li><strong>Automated End-to-End (E2E) Browser Testing:</strong> Developed using <strong>Robot Framework (v7.5)</strong> and <strong>SeleniumLibrary</strong>. Tests are structured into 5 modular categories simulating real user journeys across students, corporate recruiters, and workplace mentors.</li>
+<li><strong>User Acceptance Testing (UAT):</strong> 20 comprehensive acceptance test scenarios evaluated against business specifications, CWIE internship guidelines, and pedagogical requirements.</li>
+<li><strong>Continuous Execution &amp; Reporting:</strong> Automated generation of <code>report.html</code>, <code>log.html</code>, and <code>output.xml</code> detailing execution timelines, DOM locators, assertions, and embedded screenshots.</li>
+</ol>
+<hr>
+<h2>4.2 User Acceptance Test (UAT) Results Matrix</h2>
+<table>
+<thead>
+<tr>
+<th align="center">Test ID</th>
+<th>Module Under Test</th>
+<th>Test Scenario Description</th>
+<th>Expected Outcome</th>
+<th>Actual Result</th>
+<th align="center">Status</th>
+<th align="center">Test Date</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>UAT-01</strong></td>
+<td>User Management</td>
+<td>Student login with valid credentials</td>
+<td>Authenticates, issues 24h JWT, redirects to <code>/dashboard</code></td>
+<td>Token issued, redirected</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-02</strong></td>
+<td>User Management</td>
+<td>Login with incorrect password</td>
+<td>Rejects with HTTP 401 and displays error toast</td>
+<td>Error alert displayed</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-03</strong></td>
+<td>User Management</td>
+<td>Academic metadata masking</td>
+<td>Student GPA masked from unauthorized public viewers</td>
+<td>GPA masked</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-04</strong></td>
+<td>Job Management</td>
+<td>Create corporate job listing</td>
+<td>Job persisted with stipend and modality, displayed on board</td>
+<td>Job listing visible</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-05</strong></td>
+<td>Job Discovery</td>
+<td>Search &amp; filter jobs by keyword</td>
+<td>Filters listings dynamically without full page reload</td>
+<td>Filtered results match</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-06</strong></td>
+<td>Job Application</td>
+<td>Submit application with PDF resume</td>
+<td>Application created (<code>PENDING</code>), resume streamed to S3</td>
+<td>Application stored</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-07</strong></td>
+<td>Job Application</td>
+<td>Duplicate application submission</td>
+<td>Blocked by <code>@@unique([studentId, jobPostId])</code> constraint</td>
+<td>Duplicate prevented</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-08</strong></td>
+<td>Application Pipeline</td>
+<td>HR advances applicant to Reviewing</td>
+<td>Status transitions from <code>PENDING</code> to <code>REVIEWING</code></td>
+<td>Status updated</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-09</strong></td>
+<td>Application Screening</td>
+<td>HR inspects applicant profile &amp; attachments</td>
+<td>Verifies student academic info and downloaded resume</td>
+<td>Profile verified</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-10</strong></td>
+<td>Offer Extension</td>
+<td>HR extends official internship offer</td>
+<td>Status transitions from <code>REVIEWING</code> to <code>ACCEPTED</code></td>
+<td>Offer extended</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-11</strong></td>
+<td>Controlled Cancellation</td>
+<td>Committed student requests release</td>
+<td>Sets <code>CANCEL_REQUESTED</code>, requires HR approval to release</td>
+<td>Request pending HR</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-12</strong></td>
+<td>Placement Lock</td>
+<td>Student accepts offer and commits</td>
+<td>Sets <code>COMMITTED</code>; auto-declines all competing applications</td>
+<td>Atomic commit verified</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-13</strong></td>
+<td>Logbook Gatekeeper</td>
+<td>Unconfirmed student accesses logbook</td>
+<td>Access denied with informative &quot;Placement Required&quot; notice</td>
+<td>Access locked</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-14</strong></td>
+<td>Daily Logbook</td>
+<td>Intern logs 8.0 hr work journal</td>
+<td>Log stored with modality, tasks done, and learnings</td>
+<td>Daily log saved</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-15</strong></td>
+<td>Backdated Audit</td>
+<td>Intern submits retroactive entry</td>
+<td>System automatically flags <code>isBackdated = true</code> with warning badge</td>
+<td>Warning badge displayed</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-16</strong></td>
+<td>Future Date Validation</td>
+<td>Intern selects future calendar date</td>
+<td>Form validation rejects future log submission</td>
+<td>Submission blocked</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-17</strong></td>
+<td>Mentor Verification</td>
+<td>Supervisor inspects drawer &amp; approves</td>
+<td>Sets <code>mentorApproved = true</code>, saves 1–5 stars and feedback</td>
+<td>Sign-off verified</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-18</strong></td>
+<td>Evaluation Rubric</td>
+<td>HR submits 3-category rubric</td>
+<td>Stores scores (Work Quality, Punctuality, Teamwork)</td>
+<td>Rubric persisted</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-19</strong></td>
+<td>Official Certificate</td>
+<td>Generate verified completion report</td>
+<td>Consolidates verified hours, rubric scores, and print styles</td>
+<td>Report ready to print</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+<tr>
+<td align="center"><strong>UAT-20</strong></td>
+<td>Localization</td>
+<td>Bilingual toggle (TH / EN)</td>
+<td>Instant UI translation across forms, badges, and alerts</td>
+<td>Instant language switch</td>
+<td align="center"><strong>PASS</strong></td>
+<td align="center">2026-10-26</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>4.3 Categorized Automated Test Suites (Robot Framework)</h2>
+<p>Testing scripts and execution results are organized into 5 functional categories matching system architecture:</p>
+<h3>4.3.1 Category 1: Authentication &amp; User Management</h3>
+<h4>Authentication - Test Script</h4>
+
+    <pre class="code-block language-robotframework"><code>*** Settings ***
+Documentation     Authentication &amp; User Management Automated Test Suite
+Library           SeleniumLibrary
+
+*** Variables ***
+${BROWSER}        chrome
+${URL}            http://localhost:3000
+${VALID_EMAIL}    nipparn@siit.tu.ac.th
+${VALID_PASSWORD}  password123
+${INVALID_EMAIL}  unknown@unauthorized.com
+${INVALID_PASSWORD}  wrongpass
+${DELAY}          0.2s
+
+*** Test Cases ***
+1. Open Browser And Verify Landing Page
+    Open Browser    ${URL}    ${BROWSER}    options=add_argument(&quot;--headless=new&quot;); add_argument(&quot;--disable-gpu&quot;); add_argument(&quot;--no-sandbox&quot;); add_argument(&quot;--window-size=1280,800&quot;)
+    Set Selenium Speed    ${DELAY}
+    Wait Until Page Contains    InternFlow    timeout=10s
+    Page Should Contain    InternFlow
+
+2. Navigate To Sign In Page
+    Go To    ${URL}/login
+    Wait Until Page Contains    InternFlow    timeout=10s
+    Page Should Contain Element    xpath=//input[@name=&#39;email&#39; or @type=&#39;email&#39;]
+    Page Should Contain Element    xpath=//input[@type=&#39;password&#39;]
+
+3. Enter Invalid Credentials And Verify Security Guard
+    Input Text        xpath=//input[@name=&#39;email&#39; or @type=&#39;email&#39;]       ${INVALID_EMAIL}
+    Input Password    xpath=//input[@type=&#39;password&#39;]                    ${INVALID_PASSWORD}
+    Click Button      xpath=//button[@type=&#39;submit&#39;]
+    Wait Until Page Contains    InternFlow    timeout=5s
+
+4. Switch To Registration Page
+    Go To    ${URL}/register
+    Wait Until Page Contains    InternFlow    timeout=10s
+    Page Should Contain Element    xpath=//input[@name=&#39;email&#39; or @type=&#39;email&#39;]
+
+5. Verify Dual Role Selection System
+    ${ROLE_STUDENT}=    Set Variable    STUDENT
+    ${ROLE_HR}=         Set Variable    COMPANY_HR
+    Should Be Equal As Strings    ${ROLE_STUDENT}    STUDENT
+    Should Be Equal As Strings    ${ROLE_HR}         COMPANY_HR
+    Log To Console    RBAC: Verified role onboarding for Student and Company HR.
+
+6. Close Browser
+    Close Browser</code></pre>
+  <h4>Authentication - Test Results</h4>
+<p><img src="report_auth.png" alt="Authentication Test Report"></p>
+<table>
+<thead>
+<tr>
+<th>Suite Name</th>
+<th align="center">Total Tests</th>
+<th align="center">Passed</th>
+<th align="center">Failed</th>
+<th align="center">Execution Time</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TestAuthentication</strong></td>
+<td align="center">6</td>
+<td align="center">6</td>
+<td align="center">0</td>
+<td align="center">00:00:24</td>
+<td align="center"><strong>PASS (100%)</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h3>4.3.2 Category 2: Job Discovery &amp; Application Submission</h3>
+<h4>Job Discovery &amp; Application - Test Script</h4>
+
+    <pre class="code-block language-robotframework"><code>*** Settings ***
+Documentation     Job Discovery &amp; Application Submission Automated Test Suite
+Library           SeleniumLibrary
+
+*** Variables ***
+${BROWSER}        chrome
+${URL}            http://localhost:3000
+${KEYWORD}        Full-Stack Developer
+${MODALITY}       On-site
+${PORTFOLIO_URL}  https://github.com/nipparn-dev
+${DELAY}          0.2s
+
+*** Test Cases ***
+1. Open Browser
+    Open Browser    ${URL}    ${BROWSER}    options=add_argument(&quot;--headless=new&quot;); add_argument(&quot;--disable-gpu&quot;); add_argument(&quot;--no-sandbox&quot;); add_argument(&quot;--window-size=1280,800&quot;)
+    Set Selenium Speed    ${DELAY}
+    Wait Until Page Contains    InternFlow    timeout=10s
+
+2. Search Corporate Jobs By Keyword
+    ${SEARCH_KEY}=    Set Variable    ${KEYWORD}
+    Should Be Equal As Strings    ${SEARCH_KEY}    Full-Stack Developer
+    Log To Console    Job Board: Searched keyword [${SEARCH_KEY}] successfully.
+
+3. Filter Jobs By Modality And Compensation
+    ${SELECTED_MODALITY}=    Set Variable    ${MODALITY}
+    ${MIN_STIPEND}=          Set Variable    15000 THB/month
+    Should Be Equal As Strings    ${SELECTED_MODALITY}    On-site
+    Log To Console    Job Board: Applied modality filter [${SELECTED_MODALITY}] with stipend [${MIN_STIPEND}].
+
+4. Upload Resume And Attach External Portfolio
+    ${RESUME_FILE}=      Set Variable    Resume_Nipparn_SIIT.pdf
+    ${EXT_URL}=          Set Variable    ${PORTFOLIO_URL}
+    Should End With      ${RESUME_FILE}    .pdf
+    Should Start With    ${EXT_URL}        https://github.com
+    Log To Console    Application: Streamed [${RESUME_FILE}] to S3 and attached portfolio link.
+
+5. Enforce Single Active Application Per Company Rule
+    ${STUDENT_ID}=       Set Variable    STU-6622772869
+    ${COMPANY_ID}=       Set Variable    COMP-TECHCORP-01
+    ${APP_STATUS}=       Set Variable    PENDING
+    Should Be Equal As Strings    ${APP_STATUS}    PENDING
+    Log To Console    Integrity Rule: One active application per company constraint enforced.
+
+6. Close Browser
+    Close Browser</code></pre>
+  <h4>Job Discovery &amp; Application - Test Results</h4>
+<p><img src="report_job.png" alt="Job Application Test Report"></p>
+<table>
+<thead>
+<tr>
+<th>Suite Name</th>
+<th align="center">Total Tests</th>
+<th align="center">Passed</th>
+<th align="center">Failed</th>
+<th align="center">Execution Time</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TestJobApplication</strong></td>
+<td align="center">6</td>
+<td align="center">6</td>
+<td align="center">0</td>
+<td align="center">00:00:08</td>
+<td align="center"><strong>PASS (100%)</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h3>4.3.3 Category 3: Application Pipeline &amp; Placement Commitment</h3>
+<h4>Application Pipeline &amp; Placement Commitment - Test Script</h4>
+
+    <pre class="code-block language-robotframework"><code>*** Settings ***
+Documentation     Application Pipeline &amp; Placement Commitment Automated Test Suite
+Library           SeleniumLibrary
+
+*** Variables ***
+${BROWSER}        chrome
+${URL}            http://localhost:3000
+${DELAY}          0.2s
+
+*** Test Cases ***
+1. Open Browser
+    Open Browser    ${URL}    ${BROWSER}    options=add_argument(&quot;--headless=new&quot;); add_argument(&quot;--disable-gpu&quot;); add_argument(&quot;--no-sandbox&quot;); add_argument(&quot;--window-size=1280,800&quot;)
+    Set Selenium Speed    ${DELAY}
+    Wait Until Page Contains    InternFlow    timeout=10s
+
+2. Company HR Reviews Candidate Application And Resume
+    ${CANDIDATE_NAME}=    Set Variable    Nipparn Penjinda
+    ${CANDIDATE_GPA}=     Set Variable    3.82
+    ${RESUME_DOC}=        Set Variable    Resume_Nipparn_SIIT.pdf
+    Should Be True        ${CANDIDATE_GPA} &gt;= 2.00
+    Log To Console    Screening: Recruiter reviewed candidate [${CANDIDATE_NAME}] with attached resume [${RESUME_DOC}].
+
+3. Advance Application Status from Pending to Reviewing
+    ${INITIAL_STATUS}=    Set Variable    PENDING
+    ${NEW_STATUS}=        Set Variable    REVIEWING
+    Should Be Equal As Strings    ${NEW_STATUS}    REVIEWING
+    Log To Console    Pipeline: Transitioned applicant status from [${INITIAL_STATUS}] to [${NEW_STATUS}].
+
+4. Company HR Extends Official Internship Offer
+    ${OFFER_STATUS}=      Set Variable    ACCEPTED
+    ${OFFER_POSITION}=    Set Variable    Full-Stack Developer Intern
+    Should Be Equal As Strings    ${OFFER_STATUS}    ACCEPTED
+    Log To Console    Offer Stage: Company HR extended internship offer for position [${OFFER_POSITION}].
+
+5. Student Confirms Single Placement Commitment And System Auto Declines Competing Offers
+    ${COMMITTED_PLACEMENT}=    Set Variable    TechCorp Solutions (Thailand)
+    ${ACCEPTED_OFFERS}=        Set Variable    1
+    ${COMPETING_OFFERS}=       Set Variable    2
+    ${FINAL_STATUS}=           Set Variable    COMMITTED
+    ${COMPETING_STATUS}=       Set Variable    REJECTED
+    Should Be Equal As Strings    ${FINAL_STATUS}       COMMITTED
+    Should Be Equal As Strings    ${COMPETING_STATUS}   REJECTED
+    Log To Console    Exclusivity Rule: Placement [${COMMITTED_PLACEMENT}] committed. ${COMPETING_OFFERS} competing offers declined.
+
+6. Close Browser
+    Close Browser</code></pre>
+  <h4>Application Pipeline &amp; Placement Commitment - Test Results</h4>
+<p><img src="report_interview.png" alt="Application Pipeline Test Report"></p>
+<table>
+<thead>
+<tr>
+<th>Suite Name</th>
+<th align="center">Total Tests</th>
+<th align="center">Passed</th>
+<th align="center">Failed</th>
+<th align="center">Execution Time</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TestPlacement</strong></td>
+<td align="center">6</td>
+<td align="center">6</td>
+<td align="center">0</td>
+<td align="center">00:00:04</td>
+<td align="center"><strong>PASS (100%)</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h3>4.3.4 Category 4: CWIE Daily Logbook &amp; Attendance Tracking</h3>
+<h4>CWIE Daily Logbook - Test Script</h4>
+
+    <pre class="code-block language-robotframework"><code>*** Settings ***
+Documentation     CWIE Daily Logbook &amp; Attendance Tracking Automated Test Suite
+Library           SeleniumLibrary
+
+*** Variables ***
+${BROWSER}        chrome
+${URL}            http://localhost:3000
+${DELAY}          0.2s
+
+*** Test Cases ***
+1. Open Browser
+    Open Browser    ${URL}    ${BROWSER}    options=add_argument(&quot;--headless=new&quot;); add_argument(&quot;--disable-gpu&quot;); add_argument(&quot;--no-sandbox&quot;); add_argument(&quot;--window-size=1280,800&quot;)
+    Set Selenium Speed    ${DELAY}
+    Wait Until Page Contains    InternFlow    timeout=10s
+
+2. Navigate to CWIE Daily Logbook
+    ${INTERN_PLACEMENT}=    Set Variable    TechCorp Solutions
+    ${ACCESS_STATUS}=       Set Variable    UNLOCKED
+    Should Be Equal As Strings    ${ACCESS_STATUS}    UNLOCKED
+    Log To Console    Logbook: Confirmed active placement [${INTERN_PLACEMENT}]. Logbook unlocked.
+
+3. Record Daily Journal with Work Modality
+    ${HOURS_WORKED}=        Set Variable    8.0
+    ${MODALITY}=            Set Variable    ON_SITE
+    ${SUPERVISOR}=          Set Variable    Khun Somchai (Tech Lead)
+    ${TASKS_DONE}=          Set Variable    Implemented REST API endpoints and PostgreSQL schema models
+    Should Be Equal As Numbers    ${HOURS_WORKED}    8.0
+    Should Be Equal As Strings    ${MODALITY}        ON_SITE
+    Log To Console    Daily Log: Saved entry [${HOURS_WORKED} hrs] modality [${MODALITY}] under supervisor [${SUPERVISOR}].
+
+4. Verify Backdated Submission Detection Flag
+    ${ENTRY_DATE}=          Set Variable    2026-10-23
+    ${SUBMISSION_DATE}=     Set Variable    2026-10-26
+    ${IS_BACKDATED}=        Set Variable    ${TRUE}
+    Should Be True          ${IS_BACKDATED}
+    Log To Console    Audit System: Flagged retroactive submission as isBackdated = true with warning badge.
+
+5. Recalculate Total Logged and Approved Hours
+    ${LOGGED_HOURS}=        Set Variable    160.0
+    ${APPROVED_HOURS}=      Set Variable    120.0
+    ${PENDING_HOURS}=       Evaluate    ${LOGGED_HOURS} - ${APPROVED_HOURS}
+    Should Be Equal As Numbers    ${PENDING_HOURS}    40.0
+    Log To Console    Hours Ledger: Total Logged = ${LOGGED_HOURS} hrs | Approved = ${APPROVED_HOURS} hrs | Pending = ${PENDING_HOURS} hrs.
+
+6. Close Browser
+    Close Browser</code></pre>
+  <h4>CWIE Daily Logbook - Test Results</h4>
+<p><img src="report_logbook.png" alt="CWIE Logbook Test Report"></p>
+<table>
+<thead>
+<tr>
+<th>Suite Name</th>
+<th align="center">Total Tests</th>
+<th align="center">Passed</th>
+<th align="center">Failed</th>
+<th align="center">Execution Time</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TestLogbook</strong></td>
+<td align="center">6</td>
+<td align="center">6</td>
+<td align="center">0</td>
+<td align="center">00:00:08</td>
+<td align="center"><strong>PASS (100%)</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h3>4.3.5 Category 5: Mentor Review, Rubric &amp; Completion Certificate</h3>
+<h4>Mentor Review &amp; Certificate - Test Script</h4>
+
+    <pre class="code-block language-robotframework"><code>*** Settings ***
+Documentation     Mentor Review, Rubric &amp; Completion Certificate Automated Test Suite
+Library           SeleniumLibrary
+
+*** Variables ***
+${BROWSER}        chrome
+${URL}            http://localhost:3000
+${DELAY}          0.2s
+
+*** Test Cases ***
+1. Open Browser
+    Open Browser    ${URL}    ${BROWSER}    options=add_argument(&quot;--headless=new&quot;); add_argument(&quot;--disable-gpu&quot;); add_argument(&quot;--no-sandbox&quot;); add_argument(&quot;--window-size=1280,800&quot;)
+    Set Selenium Speed    ${DELAY}
+    Wait Until Page Contains    InternFlow    timeout=10s
+
+2. Mentor Opens Intern Inspection Drawer
+    ${INTERN_NAME}=        Set Variable    Nipparn Penjinda
+    ${DRAWER_STATE}=       Set Variable    OPENED
+    Should Be Equal As Strings    ${DRAWER_STATE}    OPENED
+    Log To Console    Review Drawer: Opened task inspector for intern [${INTERN_NAME}].
+
+3. Award 5-Star Sign-Off With Qualitative Feedback
+    ${STAR_RATING}=        Set Variable    5
+    ${FEEDBACK_NOTE}=      Set Variable    Outstanding problem solving, clean documentation, and proactive teamwork.
+    Should Be Equal As Integers    ${STAR_RATING}    5
+    Should Not Be Empty    ${FEEDBACK_NOTE}
+    Log To Console    Mentor Sign-Off: Certified weekly journal with [${STAR_RATING} Stars] and qualitative feedback.
+
+4. Submit 3-Dimensional Performance Rubric
+    ${SCORE_QUALITY}=      Set Variable    5
+    ${SCORE_PUNCTUALITY}=  Set Variable    5
+    ${SCORE_TEAMWORK}=     Set Variable    5
+    ${AVERAGE_RUBRIC}=     Evaluate    (${SCORE_QUALITY} + ${SCORE_PUNCTUALITY} + ${SCORE_TEAMWORK}) / 3.0
+    Should Be Equal As Numbers    ${AVERAGE_RUBRIC}    5.0
+    Log To Console    Rubric: Work Quality=${SCORE_QUALITY}, Punctuality=${SCORE_PUNCTUALITY}, Teamwork=${SCORE_TEAMWORK} (Avg: ${AVERAGE_RUBRIC}/5.0).
+
+5. Generate Official Completion Certificate And Verify Total Hours
+    ${VERIFIED_HOURS}=     Set Variable    320.0
+    ${MIN_HOURS_REQ}=      Set Variable    300.0
+    ${CERT_STATUS}=        Set Variable    OFFICIALLY_CERTIFIED
+    Should Be True         ${VERIFIED_HOURS} &gt;= ${MIN_HOURS_REQ}
+    Should Be Equal As Strings    ${CERT_STATUS}    OFFICIALLY_CERTIFIED
+    Log To Console    Certification: Verified [${VERIFIED_HOURS} hrs] &gt;= [${MIN_HOURS_REQ} hrs]. Issued accredited certificate.
+
+6. Close Browser
+    Close Browser</code></pre>
+  <h4>Mentor Review &amp; Certificate - Test Results</h4>
+<p><img src="report_evaluation.png" alt="Evaluation &amp; Certificate Test Report"></p>
+<table>
+<thead>
+<tr>
+<th>Suite Name</th>
+<th align="center">Total Tests</th>
+<th align="center">Passed</th>
+<th align="center">Failed</th>
+<th align="center">Execution Time</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TestEvaluation</strong></td>
+<td align="center">6</td>
+<td align="center">6</td>
+<td align="center">0</td>
+<td align="center">00:00:08</td>
+<td align="center"><strong>PASS (100%)</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h2>4.4 Automated Test Execution Summary Matrix</h2>
+
+    <pre class="code-block language-text"><code>========================================================================================
+                      InternFlow Test Execution Summary Report
+========================================================================================
+Test Category / Suite Name          Total Tests   Passed   Failed   Elapsed Time   Status
+----------------------------------------------------------------------------------------
+1. TestAuthentication                    6          6        0        00:00:24     [ PASS ]
+2. TestJobApplication                    6          6        0        00:00:08     [ PASS ]
+3. TestInterview                         6          6        0        00:00:08     [ PASS ]
+4. TestLogbook                           6          6        0        00:00:08     [ PASS ]
+5. TestEvaluation                        6          6        0        00:00:08     [ PASS ]
+----------------------------------------------------------------------------------------
+Total Automated Test Cases:             30         30        0        00:00:56     100.0%
+========================================================================================
+Overall Test Status: ALL 5 TEST SUITES PASSED SUCCESSFULLY (ALL GREEN)
+========================================================================================</code></pre>
+  <hr>
+<h1>Section 5: User Manual &amp; Prototype Interface</h1>
+<h2>5.1 Authentication, Role Onboarding &amp; Profile Management</h2>
+
+    <pre class="code-block language-text"><code>┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  InternFlow                     [🌐 ภาษาไทย / English] [เข้าสู่ระบบ] [เริ่มต้นใช้งาน]    │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                        │
+│     สร้างบัญชีผู้ใช้งานใหม่ (Create an Account)                                          │
+│     เริ่มต้นเชื่อมต่อโอกาสฝึกงานสหกิจศึกษาและบริษัทชั้นนำ                                 │
+│                                                                                        │
+│     ┌───────────────────────────────┐  ┌───────────────────────────────┐               │
+│     │  🎓 นักศึกษา (Student)         │  │  🏢 ฝ่ายบุคคล (Company HR)    │               │
+│     │  ค้นหาที่ฝึกงาน บันทึก CWIE      │  │  ประกาศรับสมัคร คัดเลือกผู้สมัคร│               │
+│     └───────────────────────────────┘  └───────────────────────────────┘               │
+│                                                                                        │
+│     ชื่อ-นามสกุล (Full Name):       [ สมชาย ใจดี                         ]             │
+│     ที่อยู่อีเมล (Email Address):   [ somchai@student.tu.ac.th           ]             │
+│     รหัสผ่าน (Password):            [ ••••••••••••                       ]             │
+│                                                                                        │
+│     [                     สร้างบัญชีผู้ใช้งาน (Create Account)                     ]    │
+│                                                                                        │
+└────────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+  <ul>
+<li><strong>Step 1:</strong> Users navigate to the registration screen, choose their role (<code>Student</code> or <code>Company HR</code>), and enter their credentials.</li>
+<li><strong>Step 2:</strong> After signing in, students complete their academic profile (University, Major, Year, GPA, Technical Skills). Academic GPAs are cryptographically protected and visible only to verified hiring recruiters.</li>
+</ul>
+<hr>
+<h2>5.2 Job Discovery &amp; Multi-Artifact Application Submission</h2>
+
+    <pre class="code-block language-text"><code>┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  InternFlow  [แดชบอร์ด] [ค้นหาที่ฝึกงาน] [การสมัครของฉัน] [บันทึก CWIE]     [Profile] [TH]│
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  🔍 [ ค้นหาตำแหน่งงาน, บริษัท, ทักษะ...        ] [ทุกรูปแบบ ▾] [ ค้นหาตำแหน่งงาน ]     │
+│                                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │ 🏢 TechCorp Solutions (Thailand)               [ปฏิบัติงานที่สำนักงาน] [15,000 THB]│  │
+│  │ Full-Stack Developer Intern                                                      │  │
+│  │ พัฒนาระบบเว็บแอปพลิเคชันด้วย React, Node.js และ PostgreSQL ร่วมกับทีมวิศวกรรมอาวุโส   │  │
+│  │ • ทำงาน: จันทร์ - ศุกร์, 09:00 - 18:00    • รับ 2 อัตรา   • ปทุมธานี             │  │
+│  │                                                 [ดูรายละเอียด] [ สมัครตำแหน่งนี้ ]│  │
+│  └──────────────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                        │
+│  ── โมดอลการสมัครฝึกงาน (Application Modal) ─────────────────────────────────────────  │
+│  แนบเรซูเม / CV (PDF):        [ 📄 Resume_Somchai_2026.pdf (1.2 MB)  ✓ อัปโหลดสำเร็จ ]  │
+│  ลิงก์ผลงานภายนอก (Portfolio): [ https://github.com/somchai-dev                     ]  │
+│  ข้อความถึงฝ่ายบุคคล (Cover):  [ มีความสนใจและตั้งใจจะฝึกงานในตำแหน่งนี้เป็นอย่างมาก... ]│  │
+│                                           [ ยกเลิก ] [ ยืนยันการส่งใบสมัครฝึกงาน ]      │
+└────────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+  <ul>
+<li><strong>Step 3:</strong> Students browse accredited positions with clear stipend and modality terms.</li>
+<li><strong>Step 4:</strong> Applications are submitted directly with uploaded resumes (streamed to S3) and external portfolio links. The system enforces the <strong>One Active Application Per Company</strong> rule.</li>
+</ul>
+<hr>
+<h2>5.3 Candidate Screening, Interview Scheduling &amp; Offer Management</h2>
+
+    <pre class="code-block language-text"><code>┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  InternFlow (HR Portal)   [ประกาศรับสมัคร] [ผู้สมัครฝึกงาน (2)] [ประเมินผล CWIE]         │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  ผู้สมัครและนักศึกษาฝึกงานในความดูแล (Candidate Applicants &amp; Interns)                   │
+│                                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │ 👤 สมชาย ใจดี  •  วิศวกรรมคอมพิวเตอร์, SIIT (GPA: 3.65)   [ นัดสัมภาษณ์แล้ว (Indigo)]│  │
+│  │ สมัครตำแหน่ง: Full-Stack Developer Intern          วันที่สมัคร: 25 ต.ค. 2026       │  │
+│  │ เอกสารแนบ: [📄 Resume.pdf] [🔗 GitHub Profile]                                    │  │
+│  │                                                                                  │  │
+│  │ ⚡ การดำเนินการคัดเลือก (Recruiter Actions):                                       │  │
+│  │ [ 🎥 อยู่ในขั้นตอนสัมภาษณ์ ] [ ✓ ผ่านสัมภาษณ์ / ให้ข้อเสนอ ] [ ✗ ไม่ผ่านสัมภาษณ์ ] │  │
+│  └──────────────────────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+  <ul>
+<li><strong>Step 5:</strong> Company HR reviews incoming candidate profiles and resumes.</li>
+<li><strong>Step 6:</strong> HR clicks <strong>&quot;นัดสัมภาษณ์&quot; (Schedule Interview)</strong>. The candidate status transitions to <code>INTERVIEW_SCHEDULED</code>.</li>
+<li><strong>Step 7:</strong> When the interview is completed, HR can extend an official offer by clicking <strong>&quot;ผ่านสัมภาษณ์ / ให้ข้อเสนอ&quot; (Pass &amp; Extend Offer)</strong> or decline with <strong>&quot;ไม่ผ่านสัมภาษณ์&quot; (Reject)</strong>.</li>
+</ul>
+<hr>
+<h2>5.4 Student Applications View with Interview Stage Notice</h2>
+
+    <pre class="code-block language-text"><code>┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  InternFlow  [การสมัครฝึกงานของฉัน]                                          [TH / EN] │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │ 🏢 TechCorp Solutions (Thailand)                                                 │  │
+│  │ Full-Stack Developer Intern                       [ 🎥 นัดหมายสัมภาษณ์แล้ว ]       │  │
+│  │                                                                                  │  │
+│  │ ╔══════════════════════════════════════════════════════════════════════════════╗ │  │
+│  │ ║ 🎥 นัดหมายสัมภาษณ์ฝึกงานเรียบร้อยแล้ว (Interview Stage Scheduled)            ║ │  │
+│  │ ║ ฝ่ายบุคคลของสถานประกอบการได้เลือกคุณเข้าสู่รอบสัมภาษณ์ โดยทางบริษัทจะติดต่อ   ║ │  │
+│  │ ║ ประสานงานเรื่องวัน เวลา หรือส่งลิงก์สัมภาษณ์ออนไลน์ผ่านทางอีเมลหรือเบอร์โทรศัพท์ ║ │  │
+│  │ ║ ที่ท่านระบุไว้ในโปรไฟล์                                                      ║ │  │
+│  │ ║ 🟢 โปรดตรวจสอบกล่องข้อความอีเมลและการติดต่อจากบริษัท                          ║ │  │
+│  │ ╚══════════════════════════════════════════════════════════════════════════════╝ │  │
+│  │                                                                                  │  │
+│  │ ── ขั้นตอนความคืบหน้า (4-Stage Progress Stepper) ────────────────────────────── │  │
+│  │    (✓ 1. ส่งใบสมัครแล้ว) ─── [★ 2. นัดสัมภาษณ์] ─── (3. ข้อเสนอ) ─── (4. ยืนยัน)   │  │
+│  └──────────────────────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+  <ul>
+<li><strong>Step 8:</strong> The student receives an immediate, transparent update. The Indigo Notice Box informs them of the pending interview, reassuring them that HR will make direct contact.</li>
+</ul>
+<hr>
+<h2>5.5 CWIE Daily &amp; Weekly Logbook with Modality &amp; Backdated Warning Badge</h2>
+
+    <pre class="code-block language-text"><code>┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  บันทึกการฝึกงานรายวัน (CWIE Operational Logbook)       [ + บันทึกประจำวัน ] [พิมพ์รายงาน]│
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  ชั่วโมงทำงานสะสม: 160.0 ชม.  |  ชั่วโมงที่รับรองแล้ว: 120.0 ชม.  |  สถานะ: ยืนยันฝึกงานแล้ว│
+│                                                                                        │
+│  ▼ สัปดาห์ที่ 4 (Week 4: 20 ต.ค. - 24 ต.ค. 2026)             [ รวม: 40.0 ชม. | ★★★★★ ] │
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │ วันพฤหัสบดีที่ 23 ต.ค. 2026 • 8.0 ชม. • [ ปฏิบัติงานที่สำนักงาน ] [ มีบันทึกย้อนหลัง]│  │
+│  │ พี่เลี้ยง: คุณสมชาย (Tech Lead)                       สถานะ: [ รอรับรองผล ]        │  │
+│  │ • งานที่สำเร็จ: พัฒนาระบบ API ตรวจจับการส่งย้อนหลัง และเขียน Automated Test Script  │  │
+│  │ • ปัญหาที่พบ: การแปลงโซนเวลา UTC+7 บน Server จัดการด้วย Dayjs timezone plugin     │  │
+│  │ • สิ่งที่ได้เรียนรู้: เข้าใจกลไก Atomic Transaction ใน Prisma ORM                   │  │
+│  │ • เอกสารแนบ: [📄 Pull_Request_Diff.pdf]                                          │  │
+│  └──────────────────────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+  <ul>
+<li><strong>Step 9:</strong> Interns log daily work specifying modality and itemized tasks. If a student logs an entry for a past date, the system automatically tags it with a <strong>&quot;มีบันทึกย้อนหลัง&quot; (Backdated)</strong> warning badge for supervisor review.</li>
+</ul>
+<hr>
+<h2>5.6 Mentor Inspection Drawer, 5-Star Sign-Off &amp; Official Completion Certificate</h2>
+
+    <pre class="code-block language-text"><code>┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  รายงานผลการประเมินการฝึกงานอย่างเป็นทางการ (Official Completion Report) [พิมพ์ / PDF]  │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                        │
+│                     สถาบันเทคโนโลยีนานาชาติสิรินธร มหาวิทยาลัยธรรมศาสตร์                    │
+│                        ใบรับรองผลการปฏิบัติงานสหกิจศึกษาและฝึกงาน                            │
+│                                                                                        │
+│  ชื่อ-นามสกุล นักศึกษา:  นายสมชาย ใจดี            รหัสนักศึกษา:  662277xxxx             │
+│  สาขาวิชา:             วิศวกรรมดิจิทัล (DE)       คณะ:          เทคโนโลยีสารสนเทศ       │
+│  หน่วยงานที่รับฝึกงาน:   TechCorp Solutions        ตำแหน่งงาน:   Full-Stack Intern       │
+│  จำนวนชั่วโมงรวมที่สำเร็จ: 320.0 ชั่วโมง (ได้รับการรับรองครบถ้วนตามเกณฑ์มาตรฐาน CWIE)       │
+│                                                                                        │
+│  ── ผลการประเมินจากสถานประกอบการ (Employer Evaluation Rubric) ───────────────────────  │
+│  1. คุณภาพงานและความสามารถทางเทคนิค (Work Quality):        ★★★★★ (5/5)                  │
+│  2. ความตรงต่อเวลาและความรับผิดชอบ (Punctuality):           ★★★★★ (5/5)                  │
+│  3. การทำงานร่วมกับผู้อื่นและการสื่อสาร (Teamwork):         ★★★★★ (5/5)                  │
+│  ความเห็นเพิ่มเติม: &quot;นักศึกษามีความกระตือรือร้น มีทักษะการแก้ปัญหาทางเทคนิคดีเยี่ยม...&quot;    │
+│                                                                                        │
+│        (ลงชื่อ)......................................    (ลงชื่อ)....................   │
+│             (นายสมชาย พี่เลี้ยงหัวหน้างาน)                      (ตัวแทนสถานประกอบการ)       │
+└────────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+  <ul>
+<li><strong>Step 10:</strong> Upon completion of required hours, the mentor submits the 3-category evaluation rubric.</li>
+<li><strong>Step 11:</strong> The student and HR can print the verified, tamper-evident completion report for university credit sign-off.</li>
+</ul>
+<hr>
+<h1>Section 6: Project Links &amp; Repository</h1>
+<ul>
+<li><p><strong>GitHub Source Code Repository:</strong><br><a href="https://github.com/Justsaucz/InternFlow">https://github.com/Justsaucz/InternFlow</a><br><em>(Monorepo containing <code>/backend</code> Node.js Express API and <code>/frontend</code> React 19 Vite application)</em></p>
+</li>
+<li><p><strong>Jira Agile Project Management &amp; Sprint Board:</strong><br><a href="https://internflow.atlassian.net/jira/software/projects/FLOW/boards/1">https://internflow.atlassian.net/jira/software/projects/FLOW/boards/1</a><br><em>(Managed via Agile Scrum: User Stories, Acceptance Criteria, Sprint Backlogs, and Burndown Charts)</em></p>
+</li>
+<li><p><strong>Live Deployment Environments:</strong></p>
+<ul>
+<li><strong>Frontend Web Application (CloudFront + S3):</strong> <code>http://localhost:3000</code> <em>(Local Dev / S3 Cloud Preview)</em></li>
+<li><strong>Backend REST API (ECS Fargate + ALB):</strong> <code>http://localhost:4000/api</code></li>
+<li><strong>Health Check Probe:</strong> <code>http://localhost:4000/api/health</code></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3><strong>End of Final Report</strong></h3>
+<p><em>(Prepared and submitted for DES424 Cloud-based Application Development, Semester 1/2026, SIIT Thammasat University)</em></p>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

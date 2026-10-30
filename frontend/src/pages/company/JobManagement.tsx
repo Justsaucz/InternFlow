@@ -11,6 +11,7 @@ import {
   X
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Job {
   id: string;
@@ -42,6 +43,7 @@ export default function JobManagement() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
   const { success, error: showError } = useToast();
+  const { t, language } = useLanguage();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -188,26 +190,26 @@ export default function JobManagement() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
-              Recruitment Center
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+              {t.nav.jobPostings}
             </span>
             <span className="text-xs font-semibold text-slate-500">
-              {jobs.length} Positions Posted
+              {jobs.length} {language === 'th' ? 'ตำแหน่งที่เปิดรับ' : 'Positions Posted'}
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Internship Job Postings
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-heading">
+            {language === 'th' ? 'จัดการตำแหน่งรับสมัครฝึกงาน' : 'Internship Job Postings'}
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Create, edit, and manage internship opportunities with working hours, stipend, and contact details.
+            {language === 'th' ? 'สร้าง แก้ไข และจัดการประกาศรับสมัครฝึกงาน พร้อมกำหนดเบี้ยเลี้ยงและเวลาทำงาน' : 'Create, edit, and manage internship opportunities with working hours, stipend, and contact details.'}
           </p>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs px-5 py-3 rounded-2xl hover:from-primary-700 hover:to-indigo-700 shadow-md shadow-primary-500/20 transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs px-5 py-3 rounded-2xl hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          Post New Internship
+          {t.dashboard.postNewJob}
         </button>
       </div>
 

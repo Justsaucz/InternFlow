@@ -55,7 +55,7 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
       where: {
         studentId: student.id,
         jobPost: { companyProfileId: targetJob.companyProfileId },
-        status: { in: ['PENDING', 'REVIEWING', 'ACCEPTED'] }
+        status: { in: ['PENDING', 'REVIEWING', 'INTERVIEW_SCHEDULED', 'ACCEPTED'] }
       },
       include: { jobPost: { select: { title: true } } }
     });
@@ -183,14 +183,14 @@ router.patch('/:id/status', authenticate, authorize([Role.COMPANY_HR]), async (r
     const id = Array.isArray(req.params.id) ? req.params.id[0]! : req.params.id!;
     const { status } = req.body;
 
-    const validStatuses: ApplicationStatus[] = ['REVIEWING', 'ACCEPTED', 'REJECTED'];
+    const validStatuses: ApplicationStatus[] = ['REVIEWING', 'INTERVIEW_SCHEDULED', 'ACCEPTED', 'REJECTED'];
     if (!validStatuses.includes(status)) {
-      res.status(400).json({ error: 'Invalid status. Must be REVIEWING, ACCEPTED, or REJECTED.' });
+      res.status(400).json({ error: 'Invalid status. Must be REVIEWING, INTERVIEW_SCHEDULED, ACCEPTED, or REJECTED.' });
       return;
     }
 
-    // If accepting, check if candidate already committed elsewhere
-    if (status === 'ACCEPTED') {
+    // If accepting or scheduling interview, check if candidate already committed elsewhere
+    if (status === 'ACCEPTED' || status === 'INTERVIEW_SCHEDULED') {
       const app = await prisma.application.findUnique({
         where: { id },
         include: { student: true }
@@ -278,7 +278,7 @@ router.patch('/:id/commit', authenticate, authorize([Role.STUDENT]), async (req:
         where: {
           studentId: student.id,
           id: { not: id },
-          status: { in: ['ACCEPTED', 'PENDING', 'REVIEWING'] }
+          status: { in: ['ACCEPTED', 'PENDING', 'REVIEWING', 'INTERVIEW_SCHEDULED'] }
         },
         data: {
           status: 'REJECTED',
