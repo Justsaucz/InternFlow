@@ -158,18 +158,6 @@ Platform URLs:
 
 ---
 
-## 👥 Team Responsibilities (SIIT DES424)
-
-| Member Name & Student ID | Core Area | Key Technical Deliverables |
-|---|---|---|
-| **Nipparn Penjinda**<br>`6622772869` | Full-Stack Architecture & Application Pipeline | Lead Application Pipeline UI, Job Board Filters, Public Profile Modals, Frontend State Architecture |
-| **Trin Kittacharoenchai**<br>`6622770392` | Backend Security, Auth & RBAC Middleware | Express 5 REST API Routing, JWT Authentication, Bcrypt Password Hashing, RBAC Access Controls |
-| **Napat Pumim**<br>`6622780144` | Database Design & Placement Exclusivity Engine | Prisma 7 Relational Schemas, PostgreSQL Migrations, Atomic Placement Commitment & Auto-Decline Transactions |
-| **Thanyawach Keaohan**<br>`6622780094` | Cloud DevOps & AWS Infrastructure | Amazon VPC Network Architecture, ECS Fargate Container Orchestration, ALB, S3 Direct Streaming, Docker Compose |
-| **Thantip Kangwanwanit**<br>`6622781217` | CWIE Logbook, Evaluation Engine & QA Automation | Daily CWIE Logbook, Backdated Detection Logic, Mentor Rubric Engine, Robot Framework Automated Test Suite |
-
----
-
 ## 📄 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
