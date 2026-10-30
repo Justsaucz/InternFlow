@@ -1,240 +1,175 @@
-# 🎓💼 InternFlow — Internship Management & Tracking Platform
+# 🎓💼 InternFlow — Internship & CWIE Management Platform
 
-A modern, cloud-based platform connecting students and company HR professionals into a single seamless workflow for finding, applying, managing, and evaluating internship placements — designed for deployment on **Amazon Web Services (AWS)**.
+A modern, cloud-native web platform connecting university students and corporate employers into a single standardized workflow for discovering, applying, tracking, logging, and evaluating Cooperative and Work-Integrated Education (CWIE) internship placements.
 
 ---
 
 ## ✨ Key Features
 
-### 1. 🔍 Job Board, Application Pipeline & Cross-Profiles
-- **Centralized Job Board** — Students can browse, filter, and search active internship opportunities from corporate employers in an interactive card view with working hours, stipend, and contact channels.
-- **Student Profile & Academic Metadata** — Students can maintain comprehensive academic profiles including **University / Academic Institution**, Faculty, Major, Year, GPA, Skills, and Bio.
-- **Cross-Profile Viewing Modal (`PublicProfileModal`)** — Seamless in-app slide-over modal allowing all platform participants to inspect public profiles:
-  - *Students* can inspect detailed Company profiles with full overview, website, contact info, and live job openings.
-  - *Company HR* can click candidate names/avatars to view student university, education, bio, tech skills, and GPA.
-- **Custom Profile Picture & Logo Uploads** — Direct image upload (JPG/PNG/WebP max 5MB) on Profile Edit pages with instant live previews and persistent cloud avatar display across the sidebar, candidate list, and profile modals.
-- **Job Editing & Safe Cascade Deletion** — Company HR can create, update, and manage job postings with working hours/schedule, allowance, contact info (Email, Phone, LINE ID), and career links, with safe in-app confirmation modal and transactional cascade cleanup.
-- **Multi-File & Multi-Link Pinpoint Applications** — Students can attach multiple documents (CV, Resumes, Portfolios, Transcripts, Project PDFs) and external links (GitHub, Figma, Google Drive) as itemized pinpoints with direct AWS S3 upload.
-- **One Active Application Per Company Rule** — Enforces single active application constraint per company to prevent candidate spamming and maintain organized employer review workflows.
-- **Single Placement Commitment Rule** — Students can receive offers (`ACCEPTED`) from multiple employers, but are permitted to commit to **only ONE** official internship placement (`COMMITTED`). Committing to an offer automatically closes and declines competing offers.
-- **Company-Approved Cancellation Workflow** — Active interns cannot abandon a placement unilaterally. To terminate or switch placements, students submit a formal cancellation request with reasons (`CANCEL_REQUESTED`), requiring explicit review and confirmation from Company HR (`CANCELLED`).
-- **Complete Application Status Lifecycle** — `PENDING` ➔ `REVIEWING` ➔ `ACCEPTED` (Offer) ➔ `COMMITTED` (Working) ➔ `CANCEL_REQUESTED` ➔ `CANCELLED`.
-- **Role-Based Privacy & GPA Masking** — Academic GPA is protected and masked from unauthorized public viewers, visible only to verified corporate employers.
-- **Dynamic Role-Based Dashboards** — Tailored analytics, live statistics, and recent activity feeds for Students and Company HR (`/api/dashboard/stats`).
+### 1. 🔍 Corporate Job Board & Application Pipeline
+- **Centralized Job Board** — Students can browse, filter, and search active internship postings with details on working hours, monthly allowance/stipend, work modality, and direct contact channels.
+- **Rich Multi-Attachment Applications** — Candidates can submit comprehensive applications with multiple itemized attachments (CV, resumes, transcripts, portfolios) and external work links (GitHub, Figma, Google Drive).
+- **Standardized Application Lifecycle** — Complete pipeline states:
+  $$\text{PENDING} \longrightarrow \text{REVIEWING} \longrightarrow \text{INTERVIEW\_SCHEDULED} \longrightarrow \text{ACCEPTED} \longrightarrow \text{COMMITTED}$$
+  Candidates can also be moved to `REJECTED` at screening or post-interview stages.
+- **Interview Coordination** — Company HR can schedule formal interviews with custom meeting dates, times, physical room locations, or external conference links (Zoom, Google Meet, MS Teams).
+- **Single Placement Exclusivity Engine** — Students may receive multiple offers (`ACCEPTED`), but can commit to **only ONE** placement (`COMMITTED`). Committing to an offer automatically triggers an atomic transaction that auto-declines all competing applications across other employers.
+- **Controlled Cancellation Workflow** — Active interns cannot unilaterally abandon a placement. A student must submit a formal release request (`CANCEL_REQUESTED`), requiring explicit review and confirmation by Company HR (`CANCELLED`).
+- **Academic Privacy & GPA Masking** — Student GPA and academic credentials are encrypted and masked from unauthorized public viewers, accessible only to verified hiring employers.
 
-### 2. 📝 Operational Weekly Logbook & Journal
-- **Placement-Guarded Access** — Weekly Logbook creation is locked until a student holds an officially confirmed placement (`COMMITTED`), ensuring all recorded hours map to verified corporate employers.
-- **Dynamic Pin-Point Deliverables** — Students record itemized Planned Objectives and Actual Completed Deliverables with dynamic bullet lists.
-- **Attendance & Work Modality** — Track work modality per week (`🏢 On-site`, `💻 Remote / WFH`, `🔄 Hybrid`).
-- **Supervisor Tracking & Problem-Solving** — Log direct supervisor name, troubleshooting challenges/solutions, and technical growth.
-- **Direct File Uploads & Labeled Artifacts** — Upload files (PDF reports, timesheets, images) directly or link external artifacts (GitHub Pull Requests, Figma designs, Google Docs) with custom labels.
+### 2. 📅 Daily CWIE Logbook & Attendance Tracking
+- **Placement-Guarded Logging** — Logbook access is unlocked only after an official placement commitment (`COMMITTED`).
+- **Daily Work Logs (8.0 hrs/day)** — Students log daily hours with work modality (`🏢 On-site`, `💻 Remote / WFH`, `🔄 Hybrid`), itemized deliverables, problems encountered, and technical fixes applied.
+- **Backdated Entry Detection (Audit Flag)** — System automatically detects and flags entries logged retroactively, providing mentors and faculty with full transparency on reporting punctuality.
+- **Artifact & Evidence Attachments** — Students can attach supporting files (PDF timesheets, code commits, design assets) to substantiate daily activities.
 
-### 3. 🔍 Company Mentor Verification & Review Workflow
-- **Full 7-Category Inspector Drawer** — Transparent review showing Planned Objectives, Tasks Done, Problems & Solutions, Key Learnings, Attached Artifacts & Files, Company Rating, and Mentor Remarks.
-- **Company Mentor Sign-off & Weekly Rating** — Employers review weekly logs, award a 1–5 star weekly rating (★), provide mentor feedback, and sign off (`Approved by Company Mentor ✓`).
+### 3. 🔍 Company Mentor Inspection Drawer & Sign-Off
+- **Slide-Over Inspection Drawer** — Company mentors can inspect submitted daily logs, deliverables, and attached artifacts in an organized slide-over drawer without leaving the roster view.
+- **Mentor Rating & Feedback** — Mentors award a 1–5 star rating (★) and constructive qualitative remarks for each entry.
+- **Official Sign-Off Verification** — Timestamped electronic verification confirming mentor validation of student working hours.
 
-### 4. 🏆 Employer Performance Rubric & Evaluation
-- **3-Stage Employer Performance Rubric** — Companies evaluate interns on **Work Quality**, **Punctuality & Responsibility**, and **Communication & Teamwork** (1–5 Stars) with qualitative remarks.
-- **Official Completion Certificate & Report** — Printable official completion document (`window.print()`) consolidating verified hours, verification history, and employer rubric scores.
+### 4. 🏆 Employer Performance Rubric & Official Certification
+- **3-Category Evaluation Rubric** — Corporate supervisors evaluate interns across 3 formal criteria (1–5 Stars):
+  1. **Work Quality & Technical Competence**
+  2. **Punctuality & Reliability**
+  3. **Teamwork & Communication**
+- **Qualitative Recommendation Remarks** — Mentors provide open-ended evaluations and employment recommendations.
+- **Printable CWIE Completion Certificate** — Generates an official, printable completion report (`window.print()`) featuring student academic metadata, accumulated verified hours, supervisor feedback, and performance scores.
 
----
-
-## 🔄 Application & Placement Lifecycle State Diagram
-
-```text
-               ┌───────────────┐
-               │    PENDING    │ (Student Submitted Application)
-               └───────┬───────┘
-                       │
-                       ▼
-               ┌───────────────┐
-               │   REVIEWING   │ (HR Screening & Candidate Evaluation)
-               └───────┬───────┘
-                       │
-         ┌─────────────┴─────────────┐
-         ▼                           ▼
-  ┌──────────────┐            ┌──────────────┐
-  │   REJECTED   │            │   ACCEPTED   │ (Company Offer Extended)
-  └──────────────┘            └──────┬───────┘
-                                     │
-                                     ▼ (Student Commits to Offer)
-                              ┌──────────────┐
-                              │  COMMITTED   │ ──▶ [Weekly Logbook Unlocked]
-                              └──────┬───────┘     [All Other Offers Auto-Declined]
-                                     │
-                                     ▼ (Student Requests Cancellation)
-                              ┌──────────────────┐
-                              │ CANCEL_REQUESTED │ (Pending Company Review)
-                              └──────┬───────────┘
-                                     │
-                      ┌──────────────┴──────────────┐
-                      ▼ (HR Rejects Release)        ▼ (HR Approves Release)
-               ┌──────────────┐              ┌──────────────┐
-               │  COMMITTED   │              │  CANCELLED   │ (Released & Free to Re-apply)
-               └──────────────┘              └──────────────┘
-```
-
----
-
-## 🏗️ AWS Cloud Infrastructure Architecture
-
-![InternFlow System Architecture](docs/system_diagram.png)
-
-```text
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                        │
-│     Users / Browsers (Students, Company HR, Advisors, Admin)                           │
-│         │                                                                              │
-│         ├───────────────────────────────────────┐                                      │
-│         │ Path A: Static UI Assets (Direct S3)  │ Path B: API Requests (/api/*)        │
-│         ▼                                       ▼                                      │
-│    ┌─────────────┐                     ┌────────────────────────────────────────────┐  │
-│    │  Amazon S3  │ (Static             │                 Amazon VPC                 │  │
-│    │ (Frontend   │  Website            │   ┌──────────────────────────┐             │  │
-│    │  Hosting)   │  Hosting)           │   │  Application Load        │ (Public     │  │
-│    └─────────────┘                     │   │   Balancer (ALB)         │  Subnets)   │  │
-│                                        │   └──────────┬───────────────┘             │  │
-│                                        │              │                             │  │
-│                                        │   ┌──────────▼───────────────┐             │  │
-│                                        │   │   Amazon ECS Fargate     │ (Private    │  │
-│                                        │   │   Node.js Express API    │  Subnets    │  │
-│                                        │   └──────────┬───────────────┘  AZ-A &     │  │
-│                                        │              │                  AZ-B)      │  │
-│                                        │              ├─────────────────────────────┤  │
-│                                        │              ▼                             ▼  │
-│  ┌────────────────────┐                │   ┌───────────────────────┐                   │
-│  │ Amazon S3          │ ◀──────────────┼───┤ Amazon RDS            │                   │
-│  │ (Regional Service) │    File        │   │ PostgreSQL 16         │                   │
-│  │ (CV/Resume Upload) │    Uploads     │   │ (Private Subnets)     │                   │
-│  └────────────────────┘                │   └───────────────────────┘                   │
-│                                        └────────────────────────────────────────────┘  │
-│                                                                                        │
-│     Supporting Services: Amazon ECR ── Amazon CloudWatch ── AWS IAM                    │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-
----
-
-## ☁️ AWS Cloud Technology Components
-
-### Main Components (Standalone Managed Cloud Services)
-
-| Component Name | Descriptions |
-|---|---|
-| **Amazon Simple Storage Service (S3)** | Scalable object storage service for frontend React static hosting and student CV/resume/report document storage. |
-| **Amazon Elastic Container Service (ECS)** | Fully managed container orchestration service running backend Node.js application containers on AWS Fargate. |
-| **Amazon Elastic Container Registry (ECR)** | Fully managed Docker container registry for securely storing and managing backend application images. |
-| **Amazon Relational Database Service (RDS)** | Managed database service running PostgreSQL 16 for all relational data (Users, Jobs, Applications, Logbooks). |
-| **AWS Identity and Access Management (IAM)** | Centralized identity service managing access permissions, roles, and security credentials between ECS, S3, and RDS. |
-| **Amazon CloudWatch** | Observability and monitoring service collecting container application logs, performance metrics, and health alarms. |
-
-### Micro Components (Infrastructure & Networking Primitives)
-
-| Component Name | Descriptions |
-|---|---|
-| **Amazon Virtual Private Cloud (VPC)** | Logically isolated virtual network boundary containing all backend compute and database resources. |
-| **Public and Private Subnets (Multi-AZ)** | Multi-availability zone segmentation isolating public load balancing from private container and database tiers. |
-| **Application Load Balancer (ALB)** | Managed layer-7 load balancer distributing incoming API requests across backend container targets. |
-| **Security Groups** | Stateful virtual firewalls controlling inbound/outbound port-level traffic for VPC resources. |
+### 5. 🌐 Bilingual Experience & User Profiles
+- **Thai & English Support (TH/EN)** — Full bilingual toggle allowing all platform participants to switch between Thai and English instantly.
+- **Public Profile Modals** — Slide-over modal allowing students to inspect company background and openings, and employers to review candidate university, faculty, major, year, and technical skill tags.
+- **Custom Profile Pictures & Company Logos** — Direct image uploads with instant preview and persistent cloud storage.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
+| Layer | Technologies |
 |---|---|
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, Lucide React |
 | **Backend** | Node.js, Express 5, TypeScript |
-| **File Uploads** | Multer, AWS SDK v3 (`@aws-sdk/client-s3`), `multer-s3` |
-| **Database & ORM** | PostgreSQL 16 on Amazon RDS + Prisma 7 ORM |
-| **Application Hosting** | Amazon ECS Fargate |
-| **Frontend Hosting** | Amazon S3 Static Website Hosting |
-| **Load Balancer** | AWS Application Load Balancer (ALB) |
-| **Containerization** | Docker + Docker Compose (local development & production) |
-| **Project Management** | Jira Software (Agile Scrum Board & Sprint Tracking) |
+| **Database & ORM** | PostgreSQL 16 on Amazon RDS, Prisma 7 ORM |
+| **File Storage** | Amazon S3 (`@aws-sdk/client-s3`, Multer S3) |
+| **Containerization** | Docker, Docker Compose |
+| **Cloud Hosting (AWS)** | Amazon ECS Fargate, Amazon VPC (Multi-AZ), Application Load Balancer (ALB) |
+| **Observability & Security** | Amazon CloudWatch, AWS IAM, Bcrypt password hashing, JWT RBAC middleware |
+
+---
+
+## 👤 Demo & Test Accounts
+
+All demo accounts use the standard password: **`password123`**
+
+| Role | Email Address | Password | Account Details |
+|---|---|---|---|
+| **Company HR** | `hr@techcorp.com` | `password123` | Sarah Jenkins — TechCorp Solutions (Cloud & Enterprise) |
+| **Company HR** | `hr@innovate.co` | `password123` | David Chen — Innovate Labs (AI & Data Platforms) |
+| **Student** | `student@internflow.com` | `password123` | Alex Rivers — Thammasat University (SIIT), 4th Year CS |
 
 ---
 
 ## 🚀 Quick Start (Local Development)
 
 ### Prerequisites
+- **Node.js**: v20 or higher
+- **Docker & Docker Compose** (for database container)
+- **Git**
 
-- Node.js 20+
-- Docker & Docker Compose
-- AWS Account & Credentials (Optional for local dev, required for S3 uploads)
-
-### Running with Docker Compose
+### Option 1: Docker Compose (All-in-One)
 
 ```bash
-# 1. Clone the repository
+# 1. Clone repository
 git clone https://github.com/Justsaucz/InternFlow.git
 cd InternFlow
 
-# 2. Configure environment variables
+# 2. Setup environment variables
 cp backend/.env.example backend/.env
 
-# 3. Start all services (Database, Backend API, Frontend App, Prisma Studio)
+# 3. Build and launch all services
 docker compose up -d --build
 
-# 4. Access the platform
+# 4. Open applications:
 # Frontend:      http://localhost:3000
 # Backend API:   http://localhost:4000
 # Prisma Studio: http://localhost:5555
 ```
 
----
+### Option 2: Manual Local Setup
 
-## 🔗 REST API Endpoints
+```bash
+# 1. Start local PostgreSQL (port 5432)
+docker compose up -d postgres
 
-### Authentication & Profiles
-- `POST /api/auth/register` — Register a new user (Student / Company HR)
-- `POST /api/auth/login` — Authenticate and receive JWT
-- `GET /api/student/profile` — Fetch student academic profile
-- `PUT /api/student/profile` — Update student profile & skills
-- `GET /api/company/profile` — Fetch company profile & HR contact info
-- `PUT /api/company/profile` — Update company profile & contact info
+# 2. Setup and run Backend
+cd backend
+npm install
+npx prisma db push
+npx ts-node src/scripts/seed.ts
+npm run dev
 
-### Job Postings & Applications
-- `GET /api/jobs` — List all active job postings
-- `GET /api/jobs/:id` — Get a single job posting by ID
-- `POST /api/jobs` — Create a new job posting (HR only)
-- `PUT /api/jobs/:id` — Edit an existing job posting (HR only)
-- `DELETE /api/jobs/:id` — Delete a job posting (HR only)
-- `GET /api/jobs/company` — List jobs posted by logged-in HR
-- `POST /api/applications` — Apply to a job with multi-attachment pinpoint files & links
-- `GET /api/applications/my` — Student view of submitted applications & attached artifacts
-- `GET /api/applications/company` — Company HR view of incoming applicants & multi-documents
-- `PATCH /api/applications/:id/status` — Accept or Reject an applicant (HR)
+# 3. Setup and run Frontend (in a new terminal)
+cd ../frontend
+npm install
+npm run dev
+```
 
-### Weekly Logbook & Company Sign-off Workflow
-- `POST /api/logbook` — Student creates or updates a weekly log with pin points & modality
-- `GET /api/logbook/my` — Student fetches own weekly logbook entries & hour gauge
-- `GET /api/logbook/student/:studentId` — Company HR inspects student weekly logs
-- `PUT /api/logbook/:id/approve` — Company HR signs off on weekly log with 1–5★ rating & feedback
-- `DELETE /api/logbook/:id` — Student deletes a weekly log entry
-- `POST /api/upload` — Direct file upload endpoint (CVs, weekly logbook files, reports)
-
-### Performance Evaluation
-- `GET /api/evaluations/company` — Active interns roster & evaluation statuses for HR (alias: `/company/interns`)
-- `POST /api/evaluations/submit` — HR submits 3-category rubric evaluation (1–5★)
-- `GET /api/evaluations/report/:studentId` — Generate official printable internship completion report
+Platform URLs:
+- **Frontend App**: `http://localhost:3000`
+- **Backend API**: `http://localhost:4000`
+- **Health Check**: `http://localhost:4000/api/health`
 
 ---
 
-## 👥 Team Responsibilities
+## 🔗 Core REST API Endpoints
 
-| Person | Area |
-|---|---|
-| 1 | Frontend Dashboards (Student, HR UI) |
-| 2 | Backend Auth, RBAC Logic & Security |
-| 3 | Database Design (Prisma Schema) & Placement Workflows |
-| 4 | File Upload Integration (Multer + AWS S3) |
-| 5 | DevOps & AWS Cloud Infrastructure (EC2, RDS, S3, Docker) |
-| 6 | Testing/QA, Logbook & Company Evaluation System, Documentation |
+### 🔐 Authentication & Profile Management
+- `POST /api/auth/register` — Register a new account (`STUDENT` or `COMPANY_HR`)
+- `POST /api/auth/login` — Authenticate credentials and issue JWT
+- `GET /api/student/profile` — Fetch student academic profile & metadata
+- `PUT /api/student/profile` — Update student profile, skills, and bio
+- `GET /api/company/profile` — Fetch corporate profile & contact details
+- `PUT /api/company/profile` — Update company profile & contact details
+- `POST /api/upload` — Direct multipart file upload endpoint (CVs, resumes, logbook artifacts)
+
+### 💼 Job Postings & Applications
+- `GET /api/jobs` — Browse active job postings (with search & filters)
+- `GET /api/jobs/:id` — Retrieve detailed job post
+- `POST /api/jobs` — Create new internship opening (HR only)
+- `PUT /api/jobs/:id` — Update job post details (HR only)
+- `DELETE /api/jobs/:id` — Remove job post with safe cascade handling (HR only)
+- `GET /api/jobs/company` — List postings created by the authenticated company
+- `POST /api/applications` — Submit an internship application with multi-attachment documents & links
+- `GET /api/applications/my` — Candidate view of submitted applications & live statuses
+- `GET /api/applications/company` — Employer view of incoming applicants & attached credentials
+- `PATCH /api/applications/:id/status` — Update application status (`REVIEWING`, `INTERVIEW_SCHEDULED`, `ACCEPTED`, `REJECTED`, `COMMITTED`, `CANCEL_REQUESTED`, `CANCELLED`)
+
+### 📅 Daily CWIE Logbooks & Mentor Verification
+- `POST /api/logbook` — Submit or update a daily logbook entry (hours, modality, deliverables, issues)
+- `GET /api/logbook/my` — Retrieve student's daily logbook history & accumulated hours gauge
+- `GET /api/logbook/student/:studentId` — Employer view of student logbook entries
+- `PUT /api/logbook/:id/approve` — Company mentor sign-off with 1–5★ rating and feedback
+- `DELETE /api/logbook/:id` — Delete a logbook entry
+
+### 🏆 Performance Evaluation & Completion Certification
+- `GET /api/evaluations/company` — Employer roster of active interns and evaluation statuses
+- `POST /api/evaluations/submit` — Submit 3-category rubric evaluation (1–5★) and supervisor remarks
+- `GET /api/evaluations/report/:studentId` — Generate official printable CWIE completion report data
+
+---
+
+## 👥 Team Responsibilities (SIIT DES424)
+
+| Member Name & Student ID | Core Area | Key Technical Deliverables |
+|---|---|---|
+| **Nipparn Penjinda**<br>`6622772869` | Full-Stack Architecture & Application Pipeline | Lead Application Pipeline UI, Job Board Filters, Public Profile Modals, Frontend State Architecture |
+| **Trin Kittacharoenchai**<br>`6622770392` | Backend Security, Auth & RBAC Middleware | Express 5 REST API Routing, JWT Authentication, Bcrypt Password Hashing, RBAC Access Controls |
+| **Napat Pumim**<br>`6622780144` | Database Design & Placement Exclusivity Engine | Prisma 7 Relational Schemas, PostgreSQL Migrations, Atomic Placement Commitment & Auto-Decline Transactions |
+| **Thanyawach Keaohan**<br>`6622780094` | Cloud DevOps & AWS Infrastructure | Amazon VPC Network Architecture, ECS Fargate Container Orchestration, ALB, S3 Direct Streaming, Docker Compose |
+| **Thantip Kangwanwanit**<br>`6622781217` | CWIE Logbook, Evaluation Engine & QA Automation | Daily CWIE Logbook, Backdated Detection Logic, Mentor Rubric Engine, Robot Framework Automated Test Suite |
 
 ---
 
 ## 📄 License
 
-MIT
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
