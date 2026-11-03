@@ -1,0 +1,29 @@
+FROM node:24-bookworm-slim AS build
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY backend/package*.json ./
+RUN --mount=type=secret,id=build_ca if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi; npm ci
+COPY backend/prisma ./prisma
+COPY backend/prisma.config.ts backend/tsconfig.json ./
+COPY backend/src ./src
+ENV DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build
+RUN --mount=type=secret,id=build_ca if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi; node node_modules/prisma/build/index.js generate && npm run build
+RUN --mount=type=secret,id=build_ca if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi; mkdir certs && node -e "fetch('https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem').then(r=>{if(!r.ok)throw Error('RDS CA download failed');return r.text()}).then(s=>{if(!s.includes('BEGIN CERTIFICATE'))throw Error('Invalid RDS CA bundle');require('fs').writeFileSync('certs/global-bundle.pem',s)})"
+
+FROM build AS migration
+ENV NODE_EXTRA_CA_CERTS=/app/certs/global-bundle.pem
+ENTRYPOINT ["node", "node_modules/prisma/build/index.js"]
+CMD ["migrate", "deploy"]
+
+FROM node:24-bookworm-slim AS runtime
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY backend/package*.json ./
+RUN --mount=type=secret,id=build_ca if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi; npm ci --omit=dev && mkdir uploads && chown node:node uploads
+COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/certs ./certs
+ENV NODE_ENV=production PORT=4000 NODE_EXTRA_CA_CERTS=/app/certs/global-bundle.pem
+USER node
+EXPOSE 4000
+CMD ["node", "dist/index.js"]

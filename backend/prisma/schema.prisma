@@ -37,6 +37,10 @@ model User {
   studentProfile StudentProfile?
   companyProfile CompanyProfile?
   documents      Document[]
+  uploadedFiles  UploadedFile[]
+  // Retained for non-destructive upgrades from the original migration.
+  universityId   String? @ignore
+  legacyUniversity University? @relation(fields: [universityId], references: [id], onDelete: SetNull) @ignore
 }
 
 
@@ -54,11 +58,27 @@ model StudentProfile {
   skills       String[]
   bio          String?
   avatarUrl    String?
+  universityId String? @ignore
+  legacyUniversity University? @relation(fields: [universityId], references: [id], onDelete: Restrict) @ignore
   
   applications Application[]
   weeklyLogs   WeeklyLog[]
   dailyLogs    DailyLog[]
   evaluations  InternshipEvaluation[]
+}
+
+// Historical university records are preserved, but have no active UI workflow.
+model University {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String   @unique
+  description String?
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+  students    StudentProfile[]
+  @@ignore
 }
 
 model CompanyProfile {
@@ -140,6 +160,19 @@ model Document {
   type          String       // e.g., "CV", "TRANSCRIPT", "REPORT"
   
   createdAt     DateTime     @default(now())
+}
+
+// Ownership metadata for the existing upload/download operation.
+model UploadedFile {
+  id           String   @id @default(uuid())
+  key          String   @unique
+  fileUrl      String   @unique
+  ownerId      String
+  owner        User     @relation(fields: [ownerId], references: [id])
+  isPublic     Boolean  @default(false)
+  mimeType     String
+  originalName String
+  createdAt    DateTime @default(now())
 }
 
 model WeeklyLog {

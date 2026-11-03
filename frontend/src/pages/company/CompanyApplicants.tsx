@@ -1,3 +1,5 @@
+import { API_BASE } from '../../utils/api';
+import FileLink from '../../components/ui/FileLink';
 import { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, Eye, Building, Mail, Briefcase, Calendar, FileText, ExternalLink, Clock, AlertTriangle, UserCheck, Video } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
@@ -49,7 +51,7 @@ export default function CompanyApplicants() {
   const fetchApplications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications/company`, {
+      const res = await fetch(`${API_BASE}/api/applications/company`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -66,7 +68,7 @@ export default function CompanyApplicants() {
   const updateStatus = async (id: string, status: string) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications/${id}/status`, {
+      const res = await fetch(`${API_BASE}/api/applications/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -76,12 +78,12 @@ export default function CompanyApplicants() {
       });
       const data = await res.json();
       if (res.ok) {
-        const label = status === 'ACCEPTED' 
-          ? (language === 'th' ? 'ส่งข้อเสนอฝึกงานแล้ว' : 'offered') 
-          : status === 'REJECTED' 
-          ? (language === 'th' ? 'ปฏิเสธใบสมัครแล้ว' : 'rejected') 
+        const label = status === 'ACCEPTED'
+          ? (language === 'th' ? 'ส่งข้อเสนอฝึกงานแล้ว' : 'offered')
+          : status === 'REJECTED'
+          ? (language === 'th' ? 'ปฏิเสธใบสมัครแล้ว' : 'rejected')
           : status === 'INTERVIEW_SCHEDULED'
-          ? (language === 'th' ? 'นัดหมายสัมภาษณ์เรียบร้อยแล้ว' : 'interview scheduled')
+          ? (language === 'th' ? 'เข้าสู่ขั้นตอนสัมภาษณ์แล้ว' : 'advanced to interview stage')
           : (language === 'th' ? 'อัปเดตสถานะแล้ว' : 'updated');
         success(language === 'th' ? `ดำเนินการสำเร็จ: ${label}` : `Application ${label} successfully!`);
         fetchApplications();
@@ -97,7 +99,7 @@ export default function CompanyApplicants() {
   const handleCancellationAction = async (id: string, action: 'APPROVE' | 'REJECT') => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications/${id}/cancellation-action`, {
+      const res = await fetch(`${API_BASE}/api/applications/${id}/cancellation-action`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -151,10 +153,10 @@ export default function CompanyApplicants() {
                       title="View Student Profile"
                     >
                       {app.student.user.avatarUrl ? (
-                        <img 
-                          src={app.student.user.avatarUrl.startsWith('http') ? app.student.user.avatarUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${app.student.user.avatarUrl}`} 
-                          alt={app.student.user.name} 
-                          className="w-full h-full object-cover" 
+                        <img
+                          src={app.student.user.avatarUrl.startsWith('http') ? app.student.user.avatarUrl : `${API_BASE}${app.student.user.avatarUrl}`}
+                          alt={app.student.user.name}
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         app.student.user.name.charAt(0)
@@ -173,7 +175,7 @@ export default function CompanyApplicants() {
                           {status.label}
                         </span>
                       </div>
-                      
+
                       <div className="mt-1 text-sm text-gray-500 space-y-1">
                         <div className="flex items-center gap-2">
                           <Briefcase className="w-4 h-4 text-gray-400" />
@@ -225,18 +227,17 @@ export default function CompanyApplicants() {
                       <div className="mt-3 flex flex-wrap gap-2">
                         {app.documents?.map((doc, idx) => {
                           const isLink = doc.fileUrl.startsWith('http://') || doc.fileUrl.startsWith('https://');
-                          const docUrl = isLink ? doc.fileUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${doc.fileUrl}`;
+                          const docUrl = isLink ? doc.fileUrl : `${API_BASE}${doc.fileUrl}`;
                           return (
-                            <a 
-                              key={doc.id || idx}
-                              href={docUrl} 
-                              target="_blank" 
+                            <FileLink key={doc.id || idx}
+                              href={docUrl}
+                              target="_blank"
                               rel="noreferrer"
                               className="px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 flex items-center gap-1 transition-colors"
                             >
                               {isLink ? <ExternalLink className="w-3 h-3 text-indigo-600" /> : <FileText className="w-3 h-3 text-indigo-600" />}
                               <span>{doc.title || 'Attachment'}</span>
-                            </a>
+                            </FileLink>
                           );
                         })}
                       </div>
@@ -252,12 +253,12 @@ export default function CompanyApplicants() {
                     )}
                     {(app.status === 'PENDING' || app.status === 'REVIEWING') && (
                       <>
-                        <button 
-                          onClick={() => updateStatus(app.id, 'INTERVIEW_SCHEDULED')} 
+                        <button
+                          onClick={() => updateStatus(app.id, 'INTERVIEW_SCHEDULED')}
                           className="px-3 py-1.5 border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer shadow-xs"
                           title={language === 'th' ? 'นัดหมายสัมภาษณ์นักศึกษา' : 'Schedule Interview'}
                         >
-                          <Video className="w-3.5 h-3.5 mr-1 text-indigo-600" /> {language === 'th' ? 'นัดสัมภาษณ์' : 'Schedule Interview'}
+                          <Video className="w-3.5 h-3.5 mr-1 text-indigo-600" /> {language === 'th' ? 'เข้าสู่รอบสัมภาษณ์' : 'Advance to Interview'}
                         </button>
                         <button onClick={() => updateStatus(app.id, 'ACCEPTED')} className="px-3 py-1.5 border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer">
                           <CheckCircle className="w-3.5 h-3.5 mr-1" /> {language === 'th' ? 'ให้ข้อเสนอ' : 'Extend Offer'}
@@ -273,15 +274,15 @@ export default function CompanyApplicants() {
                           <Video className="w-3.5 h-3.5 text-indigo-600" />
                           {language === 'th' ? 'อยู่ในขั้นตอนสัมภาษณ์' : 'Interview in Progress'}
                         </span>
-                        <button 
-                          onClick={() => updateStatus(app.id, 'ACCEPTED')} 
+                        <button
+                          onClick={() => updateStatus(app.id, 'ACCEPTED')}
                           className="px-3 py-1.5 border border-emerald-300 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer shadow-xs"
                         >
                           <CheckCircle className="w-3.5 h-3.5 mr-1 text-emerald-600" />
                           {language === 'th' ? 'ผ่านสัมภาษณ์ / ให้ข้อเสนอ' : 'Pass & Extend Offer'}
                         </button>
-                        <button 
-                          onClick={() => updateStatus(app.id, 'REJECTED')} 
+                        <button
+                          onClick={() => updateStatus(app.id, 'REJECTED')}
                           className="px-3 py-1.5 border border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer"
                         >
                           <XCircle className="w-3.5 h-3.5 mr-1" />

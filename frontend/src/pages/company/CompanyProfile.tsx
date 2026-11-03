@@ -1,10 +1,11 @@
+import { API_BASE } from '../../utils/api';
 import { useEffect, useState, useRef } from 'react';
-import { 
-  Building2, 
-  Globe, 
-  MapPin, 
-  Mail, 
-  Phone, 
+import {
+  Building2,
+  Globe,
+  MapPin,
+  Mail,
+  Phone,
   Save,
   Camera
 } from 'lucide-react';
@@ -39,7 +40,7 @@ export default function CompanyProfile() {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/company/profile`, {
+      const res = await fetch(`${API_BASE}/api/company/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -84,7 +85,7 @@ export default function CompanyProfile() {
       data.append('file', file);
       data.append('type', 'AVATAR');
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+      const res = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: data
@@ -111,7 +112,7 @@ export default function CompanyProfile() {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/company/profile`, {
+      const res = await fetch(`${API_BASE}/api/company/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -152,12 +153,12 @@ export default function CompanyProfile() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
       {/* Hidden File Input */}
-      <input 
-        type="file" 
-        ref={logoInputRef} 
-        onChange={handleLogoFileChange} 
-        accept="image/png,image/jpeg,image/jpg,image/webp" 
-        className="hidden" 
+      <input
+        type="file"
+        ref={logoInputRef}
+        onChange={handleLogoFileChange}
+        accept="image/png,image/jpeg,image/jpg,image/webp"
+        className="hidden"
       />
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
@@ -185,14 +186,14 @@ export default function CompanyProfile() {
         {/* Company Header Overview */}
         <div className="flex items-center gap-5 pb-6 border-b border-slate-100">
           <div className="relative group">
-            <div 
+            <div
               onClick={() => logoInputRef.current?.click()}
               className="w-20 h-20 rounded-2xl bg-white p-1 shadow-md border-2 border-slate-200 overflow-hidden flex items-center justify-center relative cursor-pointer hover:border-emerald-300 transition-all"
             >
               {(localLogoPreview || formData.logoUrl) ? (
-                <img 
-                  src={(localLogoPreview || formData.logoUrl).startsWith('blob:') || (localLogoPreview || formData.logoUrl).startsWith('http') ? (localLogoPreview || formData.logoUrl) : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${(localLogoPreview || formData.logoUrl)}`} 
-                  alt={formData.companyName} 
+                <img
+                  src={(localLogoPreview || formData.logoUrl).startsWith('blob:') || (localLogoPreview || formData.logoUrl).startsWith('http') ? (localLogoPreview || formData.logoUrl) : `${API_BASE}${(localLogoPreview || formData.logoUrl)}`}
+                  alt={formData.companyName}
                   className="w-full h-full object-contain rounded-xl"
                 />
               ) : (

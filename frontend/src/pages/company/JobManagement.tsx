@@ -1,3 +1,4 @@
+import { API_BASE } from '../../utils/api';
 import { useEffect, useState } from 'react';
 import { 
   Plus, 
@@ -68,7 +69,7 @@ export default function JobManagement() {
   const fetchJobs = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/company`, {
+      const res = await fetch(`${API_BASE}/api/jobs/company`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -129,8 +130,8 @@ export default function JobManagement() {
     try {
       const token = localStorage.getItem('token');
       const url = editingJobId 
-        ? `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${editingJobId}`
-        : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs`;
+        ? `${API_BASE}/api/jobs/${editingJobId}`
+        : `${API_BASE}/api/jobs`;
       
       const method = editingJobId ? 'PUT' : 'POST';
 
@@ -164,7 +165,7 @@ export default function JobManagement() {
     setDeletingId(jobId);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${jobId}`, {
+      const res = await fetch(`${API_BASE}/api/jobs/${jobId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

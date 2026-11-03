@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { Role, ApplicationStatus } from '@prisma/client';
+import { HttpError, activeStatuses, withStudentLock, handleRouteError } from '../lib/workflow';
 
 const router = Router();
 
@@ -10,6 +11,11 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
   try {
     const userId = req.user?.userId;
     const { jobPostId, coverLetter, cvUrl, attachments } = req.body;
+    if (typeof jobPostId !== 'string' || (coverLetter != null && typeof coverLetter !== 'string') ||
+        (attachments != null && (!Array.isArray(attachments) || attachments.some((att: any) =>
+          !att || typeof att.url !== 'string' || (att.title != null && typeof att.title !== 'string'))))) {
+      throw new HttpError(400, 'Invalid application data.');
+    }
 
     const student = await prisma.studentProfile.findUnique({ where: { userId } });
     if (!student) {
@@ -21,7 +27,7 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
       where: { id: jobPostId },
       include: { company: { select: { companyName: true } } }
     });
-    if (!targetJob) {
+    if (!targetJob || !targetJob.isActive) {
       res.status(404).json({ error: 'Job not found' });
       return;
     }
@@ -67,7 +73,16 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
     }
 
     // Create Application and Documents in a transaction
-    const application = await prisma.$transaction(async (tx) => {
+    const application = await withStudentLock(student.id, async (tx) => {
+      const active = await tx.application.findFirst({ where: { studentId: student.id, status: { in: activeStatuses } } });
+      if (active) throw new HttpError(409, 'You already have an active placement.');
+      const job = await tx.jobPost.findUnique({ where: { id: jobPostId } });
+      if (!job?.isActive) throw new HttpError(409, 'This job is no longer accepting applications.');
+      const companyApp = await tx.application.findFirst({ where: {
+        studentId: student.id, jobPost: { companyProfileId: job.companyProfileId },
+        status: { in: ['PENDING', 'REVIEWING', 'INTERVIEW_SCHEDULED', 'ACCEPTED'] }
+      } });
+      if (companyApp) throw new HttpError(409, 'You already have an active application with this company.');
       const app = await tx.application.create({
         data: {
           jobPostId,
@@ -109,8 +124,7 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
 
     res.status(201).json({ message: 'Application submitted successfully', application });
   } catch (error) {
-    console.error('Error creating application:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleRouteError(res, error, 'Failed to submit application.');
   }
 });
 
@@ -177,48 +191,32 @@ router.get('/company', authenticate, authorize([Role.COMPANY_HR]), async (req: A
   }
 });
 
-// PATCH - Company HR updates application status (Accept/Reject)
+// PATCH - Company HR advances only applications owned by their company.
 router.patch('/:id/status', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const id = Array.isArray(req.params.id) ? req.params.id[0]! : req.params.id!;
+    const id = req.params.id as string;
     const { status } = req.body;
-
-    const validStatuses: ApplicationStatus[] = ['REVIEWING', 'INTERVIEW_SCHEDULED', 'ACCEPTED', 'REJECTED'];
-    if (!validStatuses.includes(status)) {
-      res.status(400).json({ error: 'Invalid status. Must be REVIEWING, INTERVIEW_SCHEDULED, ACCEPTED, or REJECTED.' });
-      return;
-    }
-
-    // If accepting or scheduling interview, check if candidate already committed elsewhere
-    if (status === 'ACCEPTED' || status === 'INTERVIEW_SCHEDULED') {
-      const app = await prisma.application.findUnique({
-        where: { id },
-        include: { student: true }
-      });
-      if (app) {
-        const alreadyCommitted = await prisma.application.findFirst({
-          where: {
-            studentId: app.studentId,
-            status: { in: ['COMMITTED', 'CANCEL_REQUESTED'] }
-          }
-        });
-        if (alreadyCommitted) {
-          res.status(400).json({ error: 'This candidate has already accepted an internship placement elsewhere.' });
-          return;
-        }
+    const transitions: Partial<Record<ApplicationStatus, ApplicationStatus[]>> = {
+      PENDING: ['REVIEWING', 'INTERVIEW_SCHEDULED', 'ACCEPTED', 'REJECTED'],
+      REVIEWING: ['INTERVIEW_SCHEDULED', 'ACCEPTED', 'REJECTED'],
+      INTERVIEW_SCHEDULED: ['ACCEPTED', 'REJECTED'],
+      ACCEPTED: ['REJECTED']
+    };
+    if (!['REVIEWING', 'INTERVIEW_SCHEDULED', 'ACCEPTED', 'REJECTED'].includes(status)) throw new HttpError(400, 'Invalid application status.');
+    const owned = await prisma.application.findFirst({ where: { id, jobPost: { company: { userId: req.user!.userId } } } });
+    if (!owned) throw new HttpError(404, 'Application not found.');
+    const application = await withStudentLock(owned.studentId, async tx => {
+      const current = await tx.application.findUnique({ where: { id } });
+      if (!current) throw new HttpError(404, 'Application not found.');
+      if (!transitions[current.status]?.includes(status)) throw new HttpError(409, 'This application can no longer make that status change.');
+      if (status !== 'REJECTED') {
+        const active = await tx.application.findFirst({ where: { studentId: current.studentId, status: { in: activeStatuses } } });
+        if (active) throw new HttpError(409, 'This student already has an active placement.');
       }
-    }
-
-    const application = await prisma.application.update({
-      where: { id },
-      data: { status }
+      return tx.application.update({ where: { id }, data: { status } });
     });
-
     res.json(application);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error) { handleRouteError(res, error, 'Failed to update application.'); }
 });
 
 // PATCH - Student commits to ONE accepted offer (Accept Offer & Start Internship)
@@ -265,7 +263,12 @@ router.patch('/:id/commit', authenticate, authorize([Role.STUDENT]), async (req:
     }
 
     // Execute in transaction: Commit this application, auto-decline/close all others
-    const committedApp = await prisma.$transaction(async (tx) => {
+    const committedApp = await withStudentLock(student.id, async (tx) => {
+      const target = await tx.application.findFirst({ where: { id, studentId: student.id }, include: { jobPost: true } });
+      if (!target || target.status !== 'ACCEPTED') throw new HttpError(409, 'This offer is no longer available.');
+      await tx.$queryRaw`SELECT id FROM "JobPost" WHERE id = ${target.jobPostId} FOR UPDATE`;
+      const active = await tx.application.findFirst({ where: { studentId: student.id, status: { in: activeStatuses } } });
+      if (active) throw new HttpError(409, 'You already have an active placement.');
       // 1. Commit target
       const updated = await tx.application.update({
         where: { id },
@@ -294,8 +297,7 @@ router.patch('/:id/commit', authenticate, authorize([Role.STUDENT]), async (req:
       application: committedApp
     });
   } catch (error) {
-    console.error('Error committing to offer:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleRouteError(res, error, 'Failed to confirm placement.');
   }
 });
 
@@ -331,12 +333,13 @@ router.patch('/:id/request-cancel', authenticate, authorize([Role.STUDENT]), asy
       return;
     }
 
-    const updated = await prisma.application.update({
-      where: { id },
-      data: {
-        status: 'CANCEL_REQUESTED',
-        cancellationReason: reason.trim()
-      }
+    const updated = await withStudentLock(student.id, async tx => {
+      const result = await tx.application.updateMany({
+        where: { id, studentId: student.id, status: 'COMMITTED' },
+        data: { status: 'CANCEL_REQUESTED', cancellationReason: reason.trim() }
+      });
+      if (!result.count) throw new HttpError(409, 'Placement status has changed. Refresh and try again.');
+      return tx.application.findUnique({ where: { id } });
     });
 
     res.json({
@@ -344,8 +347,7 @@ router.patch('/:id/request-cancel', authenticate, authorize([Role.STUDENT]), asy
       application: updated
     });
   } catch (error) {
-    console.error('Error requesting cancellation:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleRouteError(res, error, 'Failed to request cancellation.');
   }
 });
 
@@ -383,9 +385,13 @@ router.patch('/:id/cancellation-action', authenticate, authorize([Role.COMPANY_H
     }
 
     const nextStatus: ApplicationStatus = action === 'APPROVE' ? 'CANCELLED' : 'COMMITTED';
-    const updated = await prisma.application.update({
-      where: { id },
-      data: { status: nextStatus }
+    const updated = await withStudentLock(application.studentId, async tx => {
+      const result = await tx.application.updateMany({
+        where: { id, status: 'CANCEL_REQUESTED', jobPost: { companyProfileId: company.id } },
+        data: { status: nextStatus }
+      });
+      if (!result.count) throw new HttpError(409, 'Cancellation status has changed. Refresh and try again.');
+      return tx.application.findUnique({ where: { id } });
     });
 
     res.json({
@@ -393,8 +399,7 @@ router.patch('/:id/cancellation-action', authenticate, authorize([Role.COMPANY_H
       application: updated
     });
   } catch (error) {
-    console.error('Error processing cancellation action:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleRouteError(res, error, 'Failed to review cancellation.');
   }
 });
 

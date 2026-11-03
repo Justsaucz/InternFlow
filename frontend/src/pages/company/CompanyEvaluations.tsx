@@ -1,3 +1,5 @@
+import { API_BASE } from '../../utils/api';
+import FileLink from '../../components/ui/FileLink';
 import { useEffect, useState } from 'react';
 import { 
   Users, 
@@ -88,7 +90,7 @@ export default function CompanyEvaluations() {
   const fetchInterns = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/company`, {
+      const res = await fetch(`${API_BASE}/api/evaluations/company`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -121,11 +123,12 @@ export default function CompanyEvaluations() {
   const openLogsModal = async (intern: ActiveIntern) => {
     setSelectedForLogs(intern);
     setLogsLoading(true);
+    setGroupedWeeks([]);
     setBatchWeekNumber(null);
     setApprovingLogId(null);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/student/${intern.student.id}`, {
+      const res = await fetch(`${API_BASE}/api/logbook/student/${intern.student.id}?applicationId=${intern.applicationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -163,7 +166,7 @@ export default function CompanyEvaluations() {
     setBatchSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/batch-approve`, {
+      const res = await fetch(`${API_BASE}/api/logbook/batch-approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -171,6 +174,7 @@ export default function CompanyEvaluations() {
         },
         body: JSON.stringify({
           studentId: selectedForLogs.student.id,
+          applicationId: selectedForLogs.applicationId,
           weekNumber: batchWeekNumber,
           mentorRating: batchRating,
           mentorFeedback: batchFeedback
@@ -202,7 +206,7 @@ export default function CompanyEvaluations() {
     setSingleSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/${approvingLogId}/approve`, {
+      const res = await fetch(`${API_BASE}/api/logbook/${approvingLogId}/approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -240,7 +244,7 @@ export default function CompanyEvaluations() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/evaluations/submit`, {
+      const res = await fetch(`${API_BASE}/api/evaluations/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -355,7 +359,7 @@ export default function CompanyEvaluations() {
                             >
                               {intern.student.avatarUrl || intern.student.user.avatarUrl ? (
                                 <img
-                                  src={(intern.student.avatarUrl || intern.student.user.avatarUrl)!.startsWith('http') ? (intern.student.avatarUrl || intern.student.user.avatarUrl)! : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${intern.student.avatarUrl || intern.student.user.avatarUrl}`}
+                                  src={(intern.student.avatarUrl || intern.student.user.avatarUrl)!.startsWith('http') ? (intern.student.avatarUrl || intern.student.user.avatarUrl)! : `${API_BASE}${intern.student.avatarUrl || intern.student.user.avatarUrl}`}
                                   alt={intern.student.user.name}
                                   className="w-full h-full object-cover rounded-lg"
                                 />
@@ -740,8 +744,7 @@ export default function CompanyEvaluations() {
                                         {linkItems.map((link, idx) => {
                                           const isFile = isFileAttachment(link.url, link.title);
                                           return (
-                                            <a
-                                              key={idx}
+                                            <FileLink key={idx}
                                               href={link.url}
                                               target="_blank"
                                               rel="noreferrer"
@@ -749,7 +752,7 @@ export default function CompanyEvaluations() {
                                             >
                                               {isFile ? <FileText className="w-3.5 h-3.5 text-indigo-600" /> : <ExternalLink className="w-3.5 h-3.5" />}
                                               {link.title || t.logbook.viewArtifact}
-                                            </a>
+                                            </FileLink>
                                           );
                                         })}
                                       </div>

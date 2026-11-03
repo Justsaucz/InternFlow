@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { Role } from '@prisma/client';
+import { jwtSecret } from '../lib/config';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -18,7 +19,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super_secret_jwt_key') as { userId: string, role: Role };
+    const decoded = jwt.verify(token, jwtSecret) as { userId: string, role: Role };
     req.user = decoded;
     next();
   } catch (error) {

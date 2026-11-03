@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from './components/ui/Toast';
 import { LanguageProvider } from './context/LanguageContext';
 import Login from './pages/Login';
@@ -15,6 +15,10 @@ import StudentLogbook from './pages/student/StudentLogbook';
 import CompanyEvaluations from './pages/company/CompanyEvaluations';
 
 import Home from './pages/Home';
+
+// S3 REST object hosting has HTTPS but no SPA path rewrite. Hash routes keep
+// every page request on index.html without requiring a CDN or new AWS service.
+const Router = import.meta.env.VITE_ROUTER_MODE === 'hash' ? HashRouter : BrowserRouter;
 
 function App() {
   return (

@@ -1,16 +1,18 @@
+import { API_BASE } from '../../utils/api';
+import FileLink from '../../components/ui/FileLink';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  FileText, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  Building2, 
-  Briefcase, 
-  Calendar, 
-  ArrowRight, 
-  ChevronDown, 
-  ChevronUp, 
+import {
+  FileText,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Building2,
+  Briefcase,
+  Calendar,
+  ArrowRight,
+  ChevronDown,
+  ChevronUp,
   ExternalLink,
   Award,
   AlertTriangle,
@@ -43,53 +45,53 @@ interface Application {
 }
 
 const getStatusConfig = (isThai: boolean): Record<string, { label: string; color: string; icon: any; step: number }> => ({
-  PENDING: { 
-    label: isThai ? 'รอการตรวจสอบ' : 'Pending Review', 
-    color: 'bg-amber-50 text-amber-700 border-amber-200', 
+  PENDING: {
+    label: isThai ? 'รอการตรวจสอบ' : 'Pending Review',
+    color: 'bg-amber-50 text-amber-700 border-amber-200',
     icon: Clock,
-    step: 1 
+    step: 1
   },
-  REVIEWING: { 
-    label: isThai ? 'ฝ่ายบุคคลกำลังพิจารณา' : 'Under HR Review', 
-    color: 'bg-blue-50 text-blue-700 border-blue-200', 
+  REVIEWING: {
+    label: isThai ? 'ฝ่ายบุคคลกำลังพิจารณา' : 'Under HR Review',
+    color: 'bg-blue-50 text-blue-700 border-blue-200',
     icon: FileText,
-    step: 2 
+    step: 2
   },
-  INTERVIEW_SCHEDULED: { 
-    label: isThai ? 'นัดหมายสัมภาษณ์แล้ว' : 'Interview Scheduled', 
-    color: 'bg-indigo-50 text-indigo-700 border-indigo-200 ring-2 ring-indigo-100', 
+  INTERVIEW_SCHEDULED: {
+    label: isThai ? 'นัดหมายสัมภาษณ์แล้ว' : 'Interview Scheduled',
+    color: 'bg-indigo-50 text-indigo-700 border-indigo-200 ring-2 ring-indigo-100',
     icon: Video,
-    step: 2 
+    step: 2
   },
-  ACCEPTED: { 
-    label: isThai ? 'ได้รับข้อเสนอฝึกงาน' : 'Offer Received from HR', 
-    color: 'bg-emerald-50 text-emerald-700 border-emerald-200', 
+  ACCEPTED: {
+    label: isThai ? 'ได้รับข้อเสนอฝึกงาน' : 'Offer Received from HR',
+    color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     icon: CheckCircle2,
-    step: 3 
+    step: 3
   },
-  COMMITTED: { 
-    label: isThai ? 'ยืนยันสถานที่ฝึกงานแล้ว' : 'Active Placement (Confirmed)', 
-    color: 'bg-primary-50 text-primary-700 border-primary-300 ring-2 ring-primary-100', 
+  COMMITTED: {
+    label: isThai ? 'ยืนยันสถานที่ฝึกงานแล้ว' : 'Active Placement (Confirmed)',
+    color: 'bg-primary-50 text-primary-700 border-primary-300 ring-2 ring-primary-100',
     icon: Award,
-    step: 4 
+    step: 4
   },
-  CANCEL_REQUESTED: { 
-    label: isThai ? 'แจ้งขอยกเลิก (รอ HR อนุมัติ)' : 'Cancellation Pending HR Review', 
-    color: 'bg-amber-50 text-amber-800 border-amber-300', 
+  CANCEL_REQUESTED: {
+    label: isThai ? 'แจ้งขอยกเลิก (รอ HR อนุมัติ)' : 'Cancellation Pending HR Review',
+    color: 'bg-amber-50 text-amber-800 border-amber-300',
     icon: AlertTriangle,
-    step: 3 
+    step: 3
   },
-  CANCELLED: { 
-    label: isThai ? 'ยกเลิกการฝึกงานแล้ว' : 'Placement Cancelled', 
-    color: 'bg-slate-100 text-slate-600 border-slate-300', 
+  CANCELLED: {
+    label: isThai ? 'ยกเลิกการฝึกงานแล้ว' : 'Placement Cancelled',
+    color: 'bg-slate-100 text-slate-600 border-slate-300',
     icon: XCircle,
-    step: 0 
+    step: 0
   },
-  REJECTED: { 
-    label: isThai ? 'ไม่ผ่านการคัดเลือก' : 'Declined / Closed', 
-    color: 'bg-rose-50 text-rose-700 border-rose-200', 
+  REJECTED: {
+    label: isThai ? 'ไม่ผ่านการคัดเลือก' : 'Declined / Closed',
+    color: 'bg-rose-50 text-rose-700 border-rose-200',
     icon: XCircle,
-    step: 0 
+    step: 0
   },
 });
 
@@ -116,7 +118,7 @@ export default function MyApplications() {
   const fetchApplications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications/my`, {
+      const res = await fetch(`${API_BASE}/api/applications/my`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -139,7 +141,7 @@ export default function MyApplications() {
     setSubmittingAction(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications/${commitTargetApp.id}/commit`, {
+      const res = await fetch(`${API_BASE}/api/applications/${commitTargetApp.id}/commit`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -171,7 +173,7 @@ export default function MyApplications() {
     setSubmittingAction(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications/${cancelTargetApp.id}/request-cancel`, {
+      const res = await fetch(`${API_BASE}/api/applications/${cancelTargetApp.id}/request-cancel`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -305,11 +307,11 @@ export default function MyApplications() {
             const hasOtherCommitment = !!committedPlacement && committedPlacement.id !== app.id;
 
             return (
-              <div 
-                key={app.id} 
+              <div
+                key={app.id}
                 className={`bg-white rounded-3xl border transition-all duration-200 p-6 sm:p-7 space-y-6 shadow-xs hover:shadow-md ${
-                  isCommitted 
-                    ? 'border-primary-300 ring-2 ring-primary-100/70' 
+                  isCommitted
+                    ? 'border-primary-300 ring-2 ring-primary-100/70'
                     : isCancelRequested
                     ? 'border-amber-200 bg-amber-50/20'
                     : isInterviewScheduled
@@ -327,9 +329,9 @@ export default function MyApplications() {
                       title="View Company Profile"
                     >
                       {companyLogo ? (
-                        <img 
-                          src={companyLogo.startsWith('http') ? companyLogo : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${companyLogo}`} 
-                          alt={app.jobPost.company.companyName} 
+                        <img
+                          src={companyLogo.startsWith('http') ? companyLogo : `${API_BASE}${companyLogo}`}
+                          alt={app.jobPost.company.companyName}
                           className="w-full h-full object-contain rounded-xl"
                         />
                       ) : (
@@ -444,11 +446,11 @@ export default function MyApplications() {
                     <div className="grid grid-cols-4 gap-2 text-center relative">
                       {[
                         { stepNum: 1, label: language === 'th' ? 'ส่งใบสมัครแล้ว' : 'Submitted' },
-                        { 
-                          stepNum: 2, 
-                          label: isInterviewScheduled 
-                            ? (language === 'th' ? 'นัดสัมภาษณ์' : 'Interview') 
-                            : (language === 'th' ? 'กำลังพิจารณา' : 'Under Review') 
+                        {
+                          stepNum: 2,
+                          label: isInterviewScheduled
+                            ? (language === 'th' ? 'นัดสัมภาษณ์' : 'Interview')
+                            : (language === 'th' ? 'กำลังพิจารณา' : 'Under Review')
                         },
                         { stepNum: 3, label: language === 'th' ? 'ได้รับข้อเสนอ' : 'Offer Received' },
                         { stepNum: 4, label: language === 'th' ? 'ยืนยันเข้าฝึกงาน' : 'Confirmed Working' },
@@ -458,10 +460,10 @@ export default function MyApplications() {
 
                         return (
                           <div key={s.stepNum} className="flex flex-col items-center gap-1.5 relative z-10">
-                            <div 
+                            <div
                               className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                                isDone 
-                                  ? 'bg-primary-600 text-white shadow-sm shadow-primary-500/30' 
+                                isDone
+                                  ? 'bg-primary-600 text-white shadow-sm shadow-primary-500/30'
                                   : 'bg-slate-200 text-slate-500'
                               } ${isCurrent ? 'ring-4 ring-primary-100 scale-110' : ''}`}
                             >
@@ -501,10 +503,9 @@ export default function MyApplications() {
                     <span className="text-[11px] font-bold text-slate-400">Attached Artifacts:</span>
                     {app.documents.map((doc, dIdx) => {
                       const isLink = doc.fileUrl.startsWith('http://') || doc.fileUrl.startsWith('https://');
-                      const url = isLink ? doc.fileUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${doc.fileUrl}`;
+                      const url = isLink ? doc.fileUrl : `${API_BASE}${doc.fileUrl}`;
                       return (
-                        <a
-                          key={doc.id || dIdx}
+                        <FileLink key={doc.id || dIdx}
                           href={url}
                           target="_blank"
                           rel="noreferrer"
@@ -512,7 +513,7 @@ export default function MyApplications() {
                         >
                           {isLink ? <ExternalLink className="w-3 h-3 text-indigo-600" /> : <FileText className="w-3 h-3 text-primary-600" />}
                           <span>{doc.title || 'Document'}</span>
-                        </a>
+                        </FileLink>
                       );
                     })}
                   </div>

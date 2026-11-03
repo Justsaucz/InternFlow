@@ -1,3 +1,4 @@
+import { API_BASE } from '../../utils/api';
 import { useEffect, useState, useRef } from 'react';
 import { Book, Award, Sparkles, User, Mail, GraduationCap, Edit3, X, Check, Camera } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
@@ -25,8 +26,8 @@ export default function StudentProfile() {
   const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const { success, error: showError } = useToast();
-  const { t } = useLanguage();
-  
+  const { t, language } = useLanguage();
+
   const [formData, setFormData] = useState({
     name: '',
     studentId: '',
@@ -47,7 +48,7 @@ export default function StudentProfile() {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const profileRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/student/profile`, {
+      const profileRes = await fetch(`${API_BASE}/api/student/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (profileRes.ok) {
@@ -94,7 +95,7 @@ export default function StudentProfile() {
       data.append('file', file);
       data.append('type', 'AVATAR');
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+      const res = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: data
@@ -127,7 +128,7 @@ export default function StudentProfile() {
         skills: formData.skills.split(',').map(s => s.trim()).filter(s => s)
       };
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/student/profile`, {
+      const res = await fetch(`${API_BASE}/api/student/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +166,7 @@ export default function StudentProfile() {
       </div>
     );
   }
-  
+
   if (!profile) return <div className="text-center py-12 text-gray-500">Profile not found</div>;
 
   const currentAvatar = localAvatarPreview || (editing ? formData.avatarUrl : (profile.avatarUrl || profile.user.avatarUrl));
@@ -173,12 +174,12 @@ export default function StudentProfile() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Hidden File Input for Avatar */}
-      <input 
-        type="file" 
-        ref={avatarInputRef} 
-        onChange={handleAvatarFileChange} 
-        accept="image/png,image/jpeg,image/jpg,image/webp" 
-        className="hidden" 
+      <input
+        type="file"
+        ref={avatarInputRef}
+        onChange={handleAvatarFileChange}
+        accept="image/png,image/jpeg,image/jpg,image/webp"
+        className="hidden"
       />
 
       {/* Page Title & Action */}
@@ -220,16 +221,16 @@ export default function StudentProfile() {
           {/* Avatar Badge positioned cleanly over bottom edge */}
           <div className="absolute left-6 sm:left-8 -bottom-12 z-10">
             <div className="relative group">
-              <div 
+              <div
                 onClick={() => {
                   if (editing) avatarInputRef.current?.click();
                 }}
                 className={`w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white p-1 shadow-xl border-4 border-white overflow-hidden relative ${editing ? 'cursor-pointer hover:border-primary-200' : ''} transition-all`}
               >
                 {currentAvatar ? (
-                  <img 
-                    src={currentAvatar.startsWith('blob:') || currentAvatar.startsWith('http') ? currentAvatar : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${currentAvatar}`} 
-                    alt={profile.user.name} 
+                  <img
+                    src={currentAvatar.startsWith('blob:') || currentAvatar.startsWith('http') ? currentAvatar : `${API_BASE}${currentAvatar}`}
+                    alt={profile.user.name}
                     className="w-full h-full object-cover rounded-xl"
                   />
                 ) : (
@@ -283,7 +284,7 @@ export default function StudentProfile() {
                   Student
                 </span>
               </div>
-              
+
               <div className="flex flex-wrap items-center gap-3 mt-1.5 text-sm text-gray-600">
                 <span className="inline-flex items-center gap-1.5 font-medium">
                   <Mail className="w-4 h-4 text-gray-400" />
@@ -431,7 +432,7 @@ export default function StudentProfile() {
                   <h4 className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
                     <Book className="w-4 h-4 mr-1.5 text-primary-500" /> Academic Details
                   </h4>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-gray-50/80 border border-gray-100 sm:col-span-2">
                       <span className="text-xs text-gray-500 font-medium">University / Academic Institution</span>
@@ -521,7 +522,7 @@ export default function StudentProfile() {
                     <span className="text-xs font-bold uppercase tracking-wider text-primary-700">Internship Tip</span>
                   </div>
                   <p className="text-xs text-primary-800/80 leading-relaxed">
-                    Students who add their major, GPA, and 3+ skills receive up to <strong>2.5x more interview invitations</strong> from partner companies.
+                    {language === 'th' ? 'เพิ่มสาขาวิชา ข้อมูลการศึกษา และทักษะ เพื่อให้บริษัทพิจารณาคุณสมบัติได้ครบถ้วน ข้อมูลผลการเรียนยังเป็นข้อมูลที่คุณระบุ' : 'Add your major, academic details, and skills to help employers review your qualifications. Academic details are currently self-reported.'}
                   </p>
                 </div>
               </div>

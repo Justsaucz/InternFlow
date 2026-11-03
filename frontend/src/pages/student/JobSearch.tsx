@@ -1,15 +1,18 @@
+import { API_BASE } from '../../utils/api';
 import { useEffect, useState } from 'react';
-import { 
-  Briefcase, 
-  MapPin, 
-  Building2, 
-  Search, 
-  DollarSign, 
-  Send, 
-  UploadCloud, 
-  CheckCircle2, 
-  X, 
-  Users, 
+import { useSearchParams } from 'react-router-dom';
+import { matchesJob } from '../../utils/jobFilters';
+import {
+  Briefcase,
+  MapPin,
+  Building2,
+  Search,
+  DollarSign,
+  Send,
+  UploadCloud,
+  CheckCircle2,
+  X,
+  Users,
   Clock,
   Mail,
   Phone,
@@ -57,8 +60,15 @@ interface Job {
 export default function JobSearch() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'remote' | 'onsite'>('all');
+  const [params, setParams] = useSearchParams();
+  const [searchTerm, updateSearchTerm] = useState(() => params.get('q') || '');
+  const queryTerm = params.get('q') || '';
+  useEffect(() => { updateSearchTerm(queryTerm); }, [queryTerm]);
+  const setSearchTerm = (value: string) => {
+    updateSearchTerm(value);
+    setParams(current => { current.set('q', value); return current; }, { replace: true });
+  };
+  const [filterType, setFilterType] = useState<'all' | 'remote' | 'onsite'>(() => params.get('workType') === 'REMOTE' ? 'remote' : params.get('workType') === 'ONSITE' ? 'onsite' : 'all');
   const { t, language } = useLanguage();
 
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -78,7 +88,7 @@ export default function JobSearch() {
   const fetchJobs = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs`, {
+      const res = await fetch(`${API_BASE}/api/jobs`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -111,8 +121,8 @@ export default function JobSearch() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      showError('File size must be under 10MB');
+    if (file.size > 5 * 1024 * 1024) {
+      showError('File size must be under 5MB');
       return;
     }
 
@@ -123,7 +133,7 @@ export default function JobSearch() {
       formData.append('file', file);
       formData.append('type', 'CV');
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+      const res = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -151,15 +161,15 @@ export default function JobSearch() {
   };
 
   const isFileAttachment = (link: AttachmentLink) => {
-    return link.title.startsWith('[File]') || 
-           link.url.includes('/uploads/') || 
+    return link.title.startsWith('[File]') ||
+           link.url.includes('/uploads/') ||
            /\.(pdf|png|jpg|jpeg|doc|docx|zip)$/i.test(link.url);
   };
 
   const submitApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedJobId) return;
-    
+
     setModalError(null);
     setUploading(true);
     try {
@@ -167,20 +177,20 @@ export default function JobSearch() {
       const validAttachments = attachments.filter(a => a.url && a.url.trim().length > 0);
 
       // Submit Application
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/applications`, {
+      const res = await fetch(`${API_BASE}/api/applications`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-          jobPostId: selectedJobId, 
+        body: JSON.stringify({
+          jobPostId: selectedJobId,
           coverLetter: coverLetter,
           attachments: validAttachments,
           cvUrl: validAttachments[0]?.url || ''
         })
       });
-      
+
       const data = await res.json();
       if (res.ok) {
         setModalSuccess(true);
@@ -201,16 +211,8 @@ export default function JobSearch() {
     }
   };
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = 
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      job.company.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchTerm.toLowerCase());
-
-    if (filterType === 'remote') return matchesSearch && job.isRemote;
-    if (filterType === 'onsite') return matchesSearch && !job.isRemote;
-    return matchesSearch;
-  });
+  const filteredJobs = jobs.filter(job => matchesJob(job, searchTerm, params.get('category') || 'ALL',
+    filterType === 'all' ? params.get('workType') || 'ALL' : filterType.toUpperCase()));
 
   const selectedJob = jobs.find(j => j.id === selectedJobId);
 
@@ -250,7 +252,7 @@ export default function JobSearch() {
 
           <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl w-full sm:w-auto justify-center">
             <button
-              onClick={() => setFilterType('all')}
+              onClick={() => { setFilterType('all'); setParams(current => { current.delete('workType'); current.delete('category'); return current; }, { replace: true }); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 filterType === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
               }`}
@@ -296,8 +298,8 @@ export default function JobSearch() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredJobs.length > 0 ? (
             filteredJobs.map(job => (
-              <div 
-                key={job.id} 
+              <div
+                key={job.id}
                 className="bg-white rounded-3xl shadow-sm border border-slate-200/80 hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden flex flex-col justify-between group"
               >
                 <div className="p-6 sm:p-7 space-y-4">
@@ -310,9 +312,9 @@ export default function JobSearch() {
                       title="View Company Profile"
                     >
                       {job.company.logoUrl ? (
-                        <img 
-                          src={job.company.logoUrl.startsWith('http') ? job.company.logoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${job.company.logoUrl}`} 
-                          alt={job.company.companyName} 
+                        <img
+                          src={job.company.logoUrl.startsWith('http') ? job.company.logoUrl : `${API_BASE}${job.company.logoUrl}`}
+                          alt={job.company.companyName}
                           className="w-full h-full object-contain rounded-xl"
                         />
                       ) : (
@@ -394,9 +396,9 @@ export default function JobSearch() {
                           </span>
                         )}
                         {job.applicationLink && (
-                          <a 
-                            href={job.applicationLink} 
-                            target="_blank" 
+                          <a
+                            href={job.applicationLink}
+                            target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 text-primary-600 font-bold hover:underline"
                           >
@@ -415,7 +417,7 @@ export default function JobSearch() {
 
                 {/* Footer Action */}
                 <div className="p-6 pt-0">
-                  <button 
+                  <button
                     onClick={() => setSelectedJobId(job.id)}
                     className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-sm py-3 rounded-2xl hover:from-primary-700 hover:to-indigo-700 shadow-md shadow-primary-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
                   >
@@ -448,8 +450,8 @@ export default function JobSearch() {
                   Apply to {selectedJob.company.companyName}
                 </h3>
               </div>
-              <button 
-                onClick={() => setSelectedJobId(null)} 
+              <button
+                onClick={() => setSelectedJobId(null)}
                 className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -509,11 +511,11 @@ export default function JobSearch() {
                         <label className="cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 px-2.5 py-1 rounded-lg transition-colors">
                           <UploadCloud className="w-3.5 h-3.5" />
                           {uploadingFile ? 'Uploading...' : 'Upload File'}
-                          <input 
-                            type="file" 
-                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip" 
-                            className="hidden" 
-                            onChange={handleFileUpload} 
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip"
+                            className="hidden"
+                            onChange={handleFileUpload}
                             disabled={uploadingFile}
                           />
                         </label>
@@ -571,11 +573,11 @@ export default function JobSearch() {
                             {uploadingFile ? 'Uploading file...' : 'Click to upload CV / Resume or add links'}
                           </span>
                           <span className="text-[10px] text-slate-400">PDF, Word docs, portfolios, GitHub, or Figma links</span>
-                          <input 
-                            type="file" 
-                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip" 
-                            className="hidden" 
-                            onChange={handleFileUpload} 
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip"
+                            className="hidden"
+                            onChange={handleFileUpload}
                             disabled={uploadingFile}
                           />
                         </label>

@@ -1,3 +1,4 @@
+import { API_BASE } from '../utils/api';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -32,7 +33,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<StatItem[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { t, formatDate } = useLanguage();
+  const { t, formatDate, language } = useLanguage();
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -45,7 +46,7 @@ export default function Dashboard() {
   const fetchDashboardStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/dashboard/stats`, {
+      const res = await fetch(`${API_BASE}/api/dashboard/stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -90,7 +91,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* ── Welcome Hero Banner ────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#062314] via-[#0b3820] to-[#04190e] rounded-3xl p-8 sm:p-10 text-white shadow-xl shadow-emerald-950/20 border border-emerald-900/40">
+      <div className="dashboard-hero relative overflow-hidden bg-gradient-to-r from-[#062314] via-[#0b3820] to-[#04190e] rounded-3xl p-8 sm:p-10 text-white shadow-xl shadow-emerald-950/20 border border-emerald-900/40">
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -100,7 +101,7 @@ export default function Dashboard() {
             {user.role === 'STUDENT' ? t.nav.studentRole : t.nav.companyRole} {t.nav.workspace}
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white font-heading">
-            {t.dashboard.welcome}, {user.name}! 👋
+            {t.dashboard.welcome}, {user.name}!
           </h2>
           <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl">
             {user.role === 'STUDENT' ? t.dashboard.studentSubtitle : t.dashboard.companySubtitle}
@@ -114,7 +115,7 @@ export default function Dashboard() {
           <h3 className="text-base font-bold text-slate-900 font-heading">{t.dashboard.keyMetrics}</h3>
           <span className="text-xs text-slate-500 flex items-center gap-1.5 font-semibold">
             <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-            {t.dashboard.liveSync}
+            {(user.role === 'STUDENT' ? t.nav.myApplications : t.nav.applicants)}
           </span>
         </div>
 
@@ -240,10 +241,10 @@ export default function Dashboard() {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="text-lg font-bold text-slate-900 font-heading">{t.dashboard.recentActivity}</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Real-time status updates across your talent pipeline</p>
+              <p className="text-xs text-slate-500 mt-0.5">{language === 'th' ? 'สถานะล่าสุดของใบสมัครและที่ฝึกงานของคุณ' : 'Recent updates to your applications and placements'}</p>
             </div>
             <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
-              {t.dashboard.liveFeed}
+              {t.dashboard.recentActivity}
             </span>
           </div>
 
@@ -307,7 +308,7 @@ function StatCard({ title, value, index }: { title: string; value: number; index
   };
 
   return (
-    <div className="bg-white p-6 sm:p-7 rounded-3xl shadow-xs border border-slate-200/80 flex items-center justify-between hover:shadow-lg hover:border-emerald-200 hover:-translate-y-0.5 transition-all group">
+    <div className="stat-card bg-white p-6 sm:p-7 rounded-3xl shadow-xs border border-slate-200/80 flex items-center justify-between hover:shadow-lg hover:border-emerald-200 hover:-translate-y-0.5 transition-all group">
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">{title}</p>
         <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-heading">{value}</p>

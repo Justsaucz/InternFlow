@@ -3,6 +3,9 @@ dist/
 build/
 .env
 .env.local
+.env.*
+*.env
+!.env.example
 .DS_Store
 *.log
 uploads/
@@ -11,4 +14,11 @@ backend/dist/
 frontend/dist/
 .claude/
 .windsurf/
+deploy/.env*
+!deploy/.env.example
+deploy/artifacts/
+deploy/.local-ca.pem
 
+
+backend/tests/*-results.json
+**/__pycache__/

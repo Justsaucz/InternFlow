@@ -1,3 +1,5 @@
+import { API_BASE } from '../../utils/api';
+import FileLink from '../../components/ui/FileLink';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -59,7 +61,7 @@ export default function StudentLogbook() {
 
   // Form State for Daily Log
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [logDate, setLogDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [logDate, setLogDate] = useState<string>(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()));
   const [weekNumber, setWeekNumber] = useState<number>(1);
   const [hoursWorked, setHoursWorked] = useState<number>(8.0);
   const [workModality, setWorkModality] = useState<'ON_SITE' | 'REMOTE' | 'HYBRID'>('ON_SITE');
@@ -69,7 +71,7 @@ export default function StudentLogbook() {
   const [learnings, setLearnings] = useState<string>('');
   const [attachmentLinks, setAttachmentLinks] = useState<AttachmentLink[]>([]);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   const isSelectedDateBackdated = logDate < todayStr;
 
   useEffect(() => {
@@ -79,7 +81,7 @@ export default function StudentLogbook() {
   const fetchLogbook = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/my`, {
+      const res = await fetch(`${API_BASE}/api/logbook/my`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -155,7 +157,7 @@ export default function StudentLogbook() {
     setDeletingId(logId);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook/${logId}`, {
+      const res = await fetch(`${API_BASE}/api/logbook/${logId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -209,8 +211,8 @@ export default function StudentLogbook() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      showError(language === 'th' ? 'ขนาดไฟล์ต้องไม่เกิน 10MB' : 'File size must be under 10MB');
+    if (file.size > 5 * 1024 * 1024) {
+      showError(language === 'th' ? 'ขนาดไฟล์ต้องไม่เกิน 5MB' : 'File size must be under 5MB');
       return;
     }
 
@@ -221,7 +223,7 @@ export default function StudentLogbook() {
       formData.append('file', file);
       formData.append('type', 'REPORT');
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+      const res = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -275,7 +277,7 @@ export default function StudentLogbook() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/logbook`, {
+      const res = await fetch(`${API_BASE}/api/logbook`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -738,8 +740,7 @@ export default function StudentLogbook() {
                                   {linkItems.map((link, idx) => {
                                     const isFile = isFileAttachment(link);
                                     return (
-                                      <a
-                                        key={idx}
+                                      <FileLink key={idx}
                                         href={link.url}
                                         target="_blank"
                                         rel="noreferrer"
@@ -747,7 +748,7 @@ export default function StudentLogbook() {
                                       >
                                         {isFile ? <FileText className="w-3.5 h-3.5 text-indigo-600" /> : <ExternalLink className="w-3.5 h-3.5" />}
                                         {link.title || t.logbook.viewArtifact}
-                                      </a>
+                                      </FileLink>
                                     );
                                   })}
                                 </div>
@@ -1117,7 +1118,7 @@ export default function StudentLogbook() {
             </div>
 
             {/* Printable Document Body */}
-            <div className="p-10 space-y-8 bg-white text-slate-900 font-sans">
+            <div className="internflow-report p-5 sm:p-10 space-y-8 bg-white text-slate-900 font-sans">
               <div className="border-b-2 border-slate-900 pb-6 text-center space-y-1">
                 <h1 className="text-2xl font-black uppercase tracking-wider text-slate-900">
                   InternFlow Performance Report
@@ -1141,7 +1142,7 @@ export default function StudentLogbook() {
                 <div className="space-y-1.5">
                   <p><span className="font-bold text-slate-500">{t.logbook.hostOrg}</span> <span className="font-extrabold">{activePlacement?.jobPost?.company?.companyName}</span></p>
                   <p><span className="font-bold text-slate-500">{t.logbook.positionTitle}</span> {activePlacement?.jobPost?.title}</p>
-                  <p><span className="font-bold text-slate-500">{t.logbook.totalHoursCompleted}</span> <span className="font-extrabold text-emerald-700">{totalHours} {t.common.hours}</span></p>
+                  <p><span className="font-bold text-slate-500">{t.logbook.totalHoursCompleted}</span> <span className="font-extrabold text-emerald-700">{approvedHours} {t.common.hours}</span></p>
                 </div>
               </div>
 

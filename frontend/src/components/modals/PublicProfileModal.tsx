@@ -1,3 +1,4 @@
+import { API_BASE } from '../../utils/api';
 import { useEffect, useState } from 'react';
 import { 
   X, 
@@ -97,7 +98,7 @@ export default function PublicProfileModal({
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/profile/${profileType}/${profileId}`,
+        `${API_BASE}/api/profile/${profileType}/${profileId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -165,7 +166,7 @@ export default function PublicProfileModal({
                     <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-xl border-4 border-white overflow-hidden flex items-center justify-center">
                       {studentData.avatarUrl ? (
                         <img 
-                          src={studentData.avatarUrl.startsWith('http') ? studentData.avatarUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${studentData.avatarUrl}`}
+                          src={studentData.avatarUrl.startsWith('http') ? studentData.avatarUrl : `${API_BASE}${studentData.avatarUrl}`}
                           alt={studentData.name}
                           className="w-full h-full object-cover rounded-xl"
                         />
@@ -285,7 +286,7 @@ export default function PublicProfileModal({
                     <div className="w-20 h-20 rounded-2xl bg-white p-1.5 shadow-xl border-4 border-white overflow-hidden flex items-center justify-center">
                       {companyData.logoUrl ? (
                         <img 
-                          src={companyData.logoUrl.startsWith('http') ? companyData.logoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${companyData.logoUrl}`}
+                          src={companyData.logoUrl.startsWith('http') ? companyData.logoUrl : `${API_BASE}${companyData.logoUrl}`}
                           alt={companyData.companyName}
                           className="w-full h-full object-contain rounded-xl"
                         />
