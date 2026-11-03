@@ -123,8 +123,8 @@ export default function CompanyApplicants() {
   const statusMap = getStatusConfig(language === 'th');
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="workspace-page space-y-6">
+      <div className="workspace-page-header">
         <h2 className="text-2xl font-bold text-slate-900 font-heading">
           {language === 'th' ? 'ผู้สมัครและนักศึกษาฝึกงานในความดูแล' : 'Applicants & Active Interns'}
         </h2>

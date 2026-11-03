@@ -186,9 +186,9 @@ export default function JobManagement() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <div className="workspace-page space-y-8 animate-in fade-in duration-200">
       {/* ── Top Header ────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+      <div className="workspace-page-header flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
@@ -222,7 +222,7 @@ export default function JobManagement() {
       ) : (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-100 text-left">
+            <table className="workspace-jobs-table min-w-full divide-y divide-slate-100 text-left">
               <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="px-6 py-4">Role & Requirements</th>
@@ -336,7 +336,7 @@ export default function JobManagement() {
 
       {/* ── Create / Edit Job Modal ────────────────────────────────────────── */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="workspace-dialog fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-100 animate-in fade-in zoom-in-95 duration-200 my-8">
             <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center sticky top-0 z-10">
               <div>
@@ -558,7 +558,7 @@ export default function JobManagement() {
 
       {/* ── Delete Confirmation Modal ──────────────────────────────────────── */}
       {jobToDelete && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="workspace-dialog fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">

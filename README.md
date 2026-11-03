@@ -88,6 +88,8 @@ The UI was checked at desktop, tablet and mobile widths. These checks do not est
 - [Cloud preparation and validation](docs/CLOUD_PREPARATION_2026-11-03.md)
 - [Bug fixes and independent submission scope](docs/BUGFIXES_2026-11-03.md)
 - [Testing Report corrections](docs/TESTING_REPORT_MINIMAL_CORRECTIONS.md)
+- [Workspace styling and verified unused-code cleanup](docs/WORKSPACE_REFRESH_AND_CLEANUP_2026-11-03.md)
+- [Minimal report text replacements outside Testing](docs/REPORT_LINE_EDITS_2026-11-03.md)
 
 This repository is the **Project / DES424 version**. The independent Teerayut submission shares the refreshed visual language but may have different functions. Its source and local data are not included in this repository.
 

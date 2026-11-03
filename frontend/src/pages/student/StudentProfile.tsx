@@ -172,7 +172,7 @@ export default function StudentProfile() {
   const currentAvatar = localAvatarPreview || (editing ? formData.avatarUrl : (profile.avatarUrl || profile.user.avatarUrl));
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="workspace-page workspace-profile max-w-4xl mx-auto space-y-6">
       {/* Hidden File Input for Avatar */}
       <input
         type="file"
@@ -183,7 +183,7 @@ export default function StudentProfile() {
       />
 
       {/* Page Title & Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="workspace-page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 tracking-tight font-heading">{t.profile.title}</h2>
           <p className="text-sm text-gray-500 mt-0.5">{t.profile.subtitle}</p>

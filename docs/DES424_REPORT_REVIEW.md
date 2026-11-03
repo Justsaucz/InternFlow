@@ -1,5 +1,7 @@
 # ตรวจรายงาน DES424 เทียบกับเว็บใน Project
 
+> Historical review before the later cloud-preparation and UI work. For current proposed report wording, see [the minimal line edits](REPORT_LINE_EDITS_2026-11-03.md). Storage-key and migration observations below describe the earlier source state.
+
 วันที่ตรวจ: 3 พฤศจิกายน 2026 (เวลาไทย)
 
 เอกสารที่ตรวจ: `C:\Users\Admin\Downloads\InternFlow_DES424 Group Project (1).pdf` จำนวน 33 หน้า

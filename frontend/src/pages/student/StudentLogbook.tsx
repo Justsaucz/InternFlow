@@ -362,9 +362,9 @@ export default function StudentLogbook() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-200">
+    <div className="workspace-page max-w-7xl mx-auto space-y-8 animate-in fade-in duration-200">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="workspace-page-header flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
@@ -787,7 +787,7 @@ export default function StudentLogbook() {
 
       {/* ── Add / Edit Daily Log Modal ─────────────────────────────────────── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="workspace-dialog fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
             <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
               <div>
@@ -872,7 +872,7 @@ export default function StudentLogbook() {
                       value={hoursWorked}
                       onChange={(e) => setHoursWorked(Number(e.target.value))}
                     />
-                    <div className="flex gap-1.5">
+                    <div className="log-hours-presets flex gap-1.5">
                       {[4, 6, 8, 10].map((h) => (
                         <button
                           key={h}
@@ -898,7 +898,7 @@ export default function StudentLogbook() {
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                     {t.logbook.workModalityLabel}
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="log-modality-options grid grid-cols-3 gap-2">
                     {[
                       { id: 'ON_SITE', label: t.common.modalities.onSite },
                       { id: 'REMOTE', label: t.common.modalities.remote },
@@ -1095,7 +1095,7 @@ export default function StudentLogbook() {
 
       {/* ── Official Report Modal ─────────────────────────────────────────── */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto print:p-0 print:bg-white">
+        <div className="workspace-dialog fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto print:p-0 print:bg-white">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-200 my-8 print:shadow-none print:border-none print:m-0">
             {/* Action Bar (Hidden in Print) */}
             <div className="px-7 py-4 bg-slate-900 text-white flex justify-between items-center print:hidden">

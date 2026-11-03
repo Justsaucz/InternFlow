@@ -301,9 +301,9 @@ export default function CompanyEvaluations() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <div className="workspace-page space-y-8 animate-in fade-in duration-200">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+      <div className="workspace-page-header flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
@@ -477,7 +477,7 @@ export default function CompanyEvaluations() {
 
       {/* ── Logbook Review Drawer Modal (Grouped by Week with Batch Sign-off) ── */}
       {selectedForLogs && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="workspace-dialog fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
             <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
               <div>
@@ -824,7 +824,7 @@ export default function CompanyEvaluations() {
 
       {/* ── Final Evaluation Rubric Modal ──────────────────────────────────── */}
       {selectedIntern && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="workspace-dialog fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
             <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
               <div>

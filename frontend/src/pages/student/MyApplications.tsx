@@ -205,9 +205,9 @@ export default function MyApplications() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-200">
+    <div className="workspace-page max-w-5xl mx-auto space-y-8 animate-in fade-in duration-200">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
+      <div className="workspace-page-header flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
@@ -545,7 +545,7 @@ export default function MyApplications() {
 
       {/* ── Commitment Confirmation Modal ───────────────────────────────────── */}
       {commitTargetApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="workspace-dialog fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-5">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
@@ -597,7 +597,7 @@ export default function MyApplications() {
 
       {/* ── Cancellation Request Modal ──────────────────────────────────────── */}
       {cancelTargetApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="workspace-dialog fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
           <form onSubmit={handleSubmitCancellationRequest} className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-5">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">

@@ -217,9 +217,9 @@ export default function JobSearch() {
   const selectedJob = jobs.find(j => j.id === selectedJobId);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-200">
+    <div className="workspace-page max-w-7xl mx-auto space-y-8 animate-in fade-in duration-200">
       {/* ── Header & Search Controls ───────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+      <div className="workspace-page-header flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
@@ -439,7 +439,7 @@ export default function JobSearch() {
 
       {/* ── Application Modal ─────────────────────────────────────────────── */}
       {selectedJob && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="workspace-dialog fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-8">
             <div className="px-7 py-5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex justify-between items-center">
               <div>

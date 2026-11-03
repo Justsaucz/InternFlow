@@ -38,39 +38,14 @@ body {
   @apply bg-slate-50 text-slate-900 antialiased;
 }
 
-/* ── Custom Utilities & Glassmorphism ────────────────── */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-}
-
-.glass-dark {
-  background: rgba(6, 35, 20, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(52, 211, 153, 0.2);
-}
-
 /* ── Custom Micro-Animations ────────────────────────── */
-@keyframes bounce-subtle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
 
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.85; transform: scale(1.02); }
 }
 
-.animate-bounce-subtle {
-  animation: bounce-subtle 3s ease-in-out infinite;
-}
 
-.animate-pulse-subtle {
-  animation: pulse-subtle 4s ease-in-out infinite;
-}
 
 /* ── Toast Notification Animations ───────────────────── */
 @keyframes toast-slide-in {
@@ -278,14 +253,6 @@ button:disabled { cursor:not-allowed; }
 .workspace-main table th { background:#f7f9f5; font-size:10px; font-weight:600; letter-spacing:.4px; }
 .workspace-main table td { font-size:12px; border-color:#edf0e9; }
 .workspace-main table tbody tr:hover { background-color:#fafcf8; }
-.workspace-main .dashboard-hero { background:#214a38; border:1px solid #31583f; box-shadow:none; border-radius:18px; padding:32px; }
-.dashboard-hero>div.absolute { display:none; }
-.dashboard-hero h2 { font-size:32px; line-height:1.35; font-weight:600; letter-spacing:-1px; }
-.dashboard-hero p { font-size:13px; line-height:1.9; color:#bfd0bc; }
-.dashboard-hero .rounded-full { border-color:#99bb7f2b; background:#99bb7f12; color:#d2e2bb; font-weight:500; font-size:9px; }
-.workspace-main .stat-card { border-radius:15px; border-color:#e1e8dd; box-shadow:0 2px 3px #35502b03; }
-.workspace-main .stat-card>div>p:first-child { text-transform:none; font-size:11px; letter-spacing:0; color:#839079; font-weight:500; }
-.workspace-main .stat-card>div>p:nth-child(2) { font-size:34px; font-weight:600; color:#274332; }
 .auth-shell { background:#f7f9f4; }.auth-shell>div:first-child { background-image:none!important; background-color:#1c4032; }
 .auth-shell>div:first-child>div.absolute { display:none; }
 .auth-shell :where(button[type=submit],a)[class*="from-emerald-"] { background-image:none; background-color:#2b674a; box-shadow:none; border-radius:10px; }
@@ -296,7 +263,7 @@ button:disabled { cursor:not-allowed; }
 @media(min-width:1024px){.workspace-sidebar { width:248px; }.workspace-sidebar .p-6 { padding:24px 23px; }}
 @media(max-width:1150px){.landing-navlinks { display:none; }.hero-grid { gap:35px; }.hero-copy h1 { font-size:57px; }.landing-page:lang(th) .hero-copy h1 { font-size:50px; }.category-grid { grid-template-columns:repeat(3,1fr); }.category-tile { display:grid; grid-template-columns:45px 1fr; column-gap:13px; padding:20px; }.category-icon { grid-row:span 2; margin:0; }.category-tile strong { min-height:0; }.category-count { margin-top:4px; }.category-arrow { bottom:22px; }.landing-search { grid-template-columns:1.1fr 1fr .8fr auto; }.search-field { padding:0 12px; gap:8px; }.landing-search>.ui-button { margin-left:10px; padding-inline:17px; }}
 @media(max-width:900px){.landing-container { width:calc(100% - 48px); }.hero-grid { gap:27px; grid-template-columns:1.05fr 1fr; }.hero-copy h1 { font-size:45px; letter-spacing:-2px; }.landing-page:lang(th) .hero-copy h1 { font-size:42px; }.hero-description { font-size:12px; }.hero-visual { padding:45px 14px 57px; min-height:370px; }.journey-card { padding:15px; }.journey-step { padding-inline:6px; gap:8px; }.journey-step small { font-size:7px; }.journey-card-top { font-size:10px; }.opportunity-note { right:-8px; width:245px; }.hero-actions { gap:17px; }.hero-proof { gap:12px; font-size:8px; }.landing-search { grid-template-columns:1fr 1fr; gap:16px 0; padding:17px; }.search-field { min-height:39px; }.search-keyword { grid-column:span 2; border-right:none; border-bottom:1px solid #e8ece3; padding-bottom:15px; }.search-field:nth-child(3) { border-right:none; }.landing-search>.ui-button { grid-column:span 2; margin:0; }.opening-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.process-grid { gap:28px; }.employer-panel { padding:40px; grid-template-columns:1.5fr 1fr; }.employer-panel h2 { font-size:28px; }.faq-layout { gap:35px; }.workspace-main { padding:24px; }.section-heading { align-items:flex-start; }.section-heading .ui-text-link { margin-top:20px; }}
-@media(max-width:700px){.landing-nav { min-height:76px; gap:10px; }.landing-nav-actions { gap:12px; }.landing-nav-cta { display:none; }.brand-lockup { font-size:21px; gap:9px; }.brand-symbol { width:36px; height:36px; font-size:25px; }.brand-lockup small { font-size:7px; }.landing-signin { font-size:10px; }.landing-hero { padding-top:44px; }.hero-grid { display:block; padding-bottom:30px; }.hero-copy h1 { font-size:52px; }.landing-page:lang(th) .hero-copy h1 { font-size:44px; }.hero-copy { max-width:500px; }.hero-description { font-size:13px; max-width:420px; }.hero-visual { display:none; }.hero-proof { font-size:9px; gap:22px; margin-top:21px; }.hero-actions { margin-top:23px; gap:23px; }.hero-actions .ui-text-link { font-size:11px; }.section-heading { display:block; }.section-heading .ui-text-link { margin-top:16px; }.landing-section { padding-block:49px; }.landing-page h2 { font-size:27px; line-height:1.55; letter-spacing:-.7px; }.category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }.category-tile { display:block; padding:17px; }.category-icon { width:32px; height:32px; margin-bottom:13px; }.category-icon svg { width:19px; }.category-tile strong { font-size:11px; min-height:38px; padding-right:3px; }.category-count { font-size:8px; margin-top:6px; }.category-arrow { right:12px; bottom:17px; width:13px; }.openings-section { padding-block:49px; }.listing-total { display:inline-flex; margin-top:17px; }.opening-tabs { gap:6px; }.opening-tabs button { font-size:9px; padding:8px 11px; }.opening-grid { grid-template-columns:1fr; }.opening-card { padding:22px; }.opening-card h3 { min-height:0; font-size:16px; }.opening-company { font-size:10px; }.opening-location { font-size:11px; }.opening-details { font-size:10px; }.process-grid { grid-template-columns:1fr; gap:28px; margin-top:25px; }.process-step { padding-top:16px; }.process-step h3 { margin-top:12px; }.process-step p { max-width:none; }.employer-panel { display:block; padding:30px 25px; border-radius:15px; }.employer-panel h2 { font-size:28px; }.employer-graphic { display:none; }.employer-panel .section-eyebrow { font-size:7px; }.employer-panel p:not(.section-eyebrow) { font-size:12px; }.faq-layout { display:block; }.faq-list { margin-top:26px; }.faq-entry h3 button { padding:20px 0; font-size:12px; }.footer-content { align-items:flex-start; flex-wrap:wrap; gap:22px; }.footer-content>p { display:none; }.footer-content>span { align-self:center; }.workspace-main { padding:20px 16px 32px; }.workspace-header { height:68px; min-height:68px; }.workspace-main .dashboard-hero { padding:25px 22px; }.dashboard-hero h2 { font-size:27px; }.workspace-main h2 { letter-spacing:-.5px; }.auth-shell>div:last-child { padding-inline:24px; }}
+@media(max-width:700px){.landing-nav { min-height:76px; gap:10px; }.landing-nav-actions { gap:12px; }.landing-nav-cta { display:none; }.brand-lockup { font-size:21px; gap:9px; }.brand-symbol { width:36px; height:36px; font-size:25px; }.brand-lockup small { font-size:7px; }.landing-signin { font-size:10px; }.landing-hero { padding-top:44px; }.hero-grid { display:block; padding-bottom:30px; }.hero-copy h1 { font-size:52px; }.landing-page:lang(th) .hero-copy h1 { font-size:44px; }.hero-copy { max-width:500px; }.hero-description { font-size:13px; max-width:420px; }.hero-visual { display:none; }.hero-proof { font-size:9px; gap:22px; margin-top:21px; }.hero-actions { margin-top:23px; gap:23px; }.hero-actions .ui-text-link { font-size:11px; }.section-heading { display:block; }.section-heading .ui-text-link { margin-top:16px; }.landing-section { padding-block:49px; }.landing-page h2 { font-size:27px; line-height:1.55; letter-spacing:-.7px; }.category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }.category-tile { display:block; padding:17px; }.category-icon { width:32px; height:32px; margin-bottom:13px; }.category-icon svg { width:19px; }.category-tile strong { font-size:11px; min-height:38px; padding-right:3px; }.category-count { font-size:8px; margin-top:6px; }.category-arrow { right:12px; bottom:17px; width:13px; }.openings-section { padding-block:49px; }.listing-total { display:inline-flex; margin-top:17px; }.opening-tabs { gap:6px; }.opening-tabs button { font-size:9px; padding:8px 11px; }.opening-grid { grid-template-columns:1fr; }.opening-card { padding:22px; }.opening-card h3 { min-height:0; font-size:16px; }.opening-company { font-size:10px; }.opening-location { font-size:11px; }.opening-details { font-size:10px; }.process-grid { grid-template-columns:1fr; gap:28px; margin-top:25px; }.process-step { padding-top:16px; }.process-step h3 { margin-top:12px; }.process-step p { max-width:none; }.employer-panel { display:block; padding:30px 25px; border-radius:15px; }.employer-panel h2 { font-size:28px; }.employer-graphic { display:none; }.employer-panel .section-eyebrow { font-size:7px; }.employer-panel p:not(.section-eyebrow) { font-size:12px; }.faq-layout { display:block; }.faq-list { margin-top:26px; }.faq-entry h3 button { padding:20px 0; font-size:12px; }.footer-content { align-items:flex-start; flex-wrap:wrap; gap:22px; }.footer-content>p { display:none; }.footer-content>span { align-self:center; }.workspace-main { padding:20px 16px 32px; }.workspace-header { height:68px; min-height:68px; }.workspace-main h2 { letter-spacing:-.5px; }.auth-shell>div:last-child { padding-inline:24px; }}
 @media(max-width:380px){.landing-container { width:calc(100% - 36px); }.hero-copy h1 { font-size:46px; }.landing-page:lang(th) .hero-copy h1 { font-size:39px; }.hero-actions { gap:17px; }.hero-actions .ui-button { padding:13px 17px; }.hero-actions .ui-text-link { font-size:10px; gap:6px; }.search-suggestions { gap:10px; font-size:8px; }.search-field { padding-inline:6px; }.field-caption { font-size:7px; letter-spacing:.3px; }.search-field select { font-size:10px; }.brand-lockup small { display:none; }}
 @media(prefers-reduced-motion:reduce){html { scroll-behavior:auto; }*,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }}
 
