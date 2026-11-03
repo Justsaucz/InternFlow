@@ -13,10 +13,12 @@ from robot.api.deco import keyword, library
 class InternFlowLibrary:
     def __init__(self):
         self.process = None
+        self.started = False
         self.lines = queue.Queue()
 
     @keyword
     def start_isolated_internflow(self):
+        self.started = False
         node = os.environ.get('NODE_BINARY') or shutil.which('node')
         if not node:
             raise RuntimeError('Install Node.js or set NODE_BINARY.')
@@ -33,6 +35,7 @@ class InternFlowLibrary:
         threading.Thread(target=collect, daemon=True).start()
         info = self._receive(90)
         self.web = info['web']
+        self.started = True
         return info['web']
 
     def _receive(self, timeout=30):
@@ -53,7 +56,8 @@ class InternFlowLibrary:
     def stop_isolated_internflow(self):
         if self.process and self.process.poll() is None:
             try:
-                self._rpc({'op': 'stop'})
+                if self.started:
+                    self._rpc({'op': 'stop'})
             finally:
                 self.process.wait(timeout=30)
 

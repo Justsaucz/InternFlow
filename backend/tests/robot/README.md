@@ -25,6 +25,12 @@ The demo database is never reset or seeded. Suite teardown kills only the
 processes the fixture started and drops only its guarded temporary DB name.
 Do not run tests against a production database or remove the local-host guard.
 
+Each fixture uses its own temporary Vite optimizer cache via `VITE_CACHE_DIR`.
+This keeps concurrent tests separate from an open development preview. Default
+development uses the ignored `.vite-cache` folder. Startup failures include the
+frontend output, and teardown does not send commands to a fixture that never
+became ready.
+
 The cases share a fixture and must execute in file order. The student browser
 session is shared by U01-U06; U07 creates a fresh company browser session.
 Use the complete suite when reproducing the reported 20/20 result.

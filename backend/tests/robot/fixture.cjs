@@ -6,6 +6,8 @@ const { spawn, execFileSync } = require('node:child_process');
 const { randomBytes } = require('node:crypto');
 const path = require('node:path');
 const net = require('node:net');
+const fs = require('node:fs');
+const os = require('node:os');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 require('dotenv').config({ path: path.join(__dirname, '../../.env'), quiet: true });
@@ -107,10 +109,17 @@ async function freePort() {
   await new Promise(resolve => socket.close(resolve));
   return port;
 }
-let frontend;
+let frontend, frontendCache;
 async function stop() {
   if (frontend) {
     try { execFileSync('taskkill', ['/PID', String(frontend.pid), '/T', '/F'], {stdio:'ignore'}); } catch {}
+  }
+  if (frontendCache) {
+    const directory = path.resolve(frontendCache);
+    const parent = path.resolve(os.tmpdir());
+    if (path.dirname(directory) === parent && path.basename(directory).startsWith('internflow-vite-')) {
+      try { fs.rmSync(directory, {recursive:true,force:true}); } catch { /* Windows may retain a closed-file handle briefly. */ }
+    }
   }
   await cleanup();
 }
@@ -121,16 +130,21 @@ function reply(value) { process.stdout.write(JSON.stringify(value) + '\n'); }
     process.env.CORS_ORIGIN = 'http://127.0.0.1:' + port;
     await setup();
     const frontCwd = path.resolve(cwd, '../frontend');
+    frontendCache=fs.mkdtempSync(path.join(os.tmpdir(),'internflow-vite-'));
+    let frontendLog='';
     frontend=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port',String(port),'--strictPort'],{
-      cwd:frontCwd,env:{...process.env,VITE_API_URL:base},stdio:['ignore','ignore','ignore']
+      cwd:frontCwd,env:{...process.env,VITE_API_URL:base,VITE_CACHE_DIR:frontendCache},stdio:['ignore','pipe','pipe']
     });
+    frontend.stdout.on('data',chunk=>frontendLog=(frontendLog+chunk).slice(-12000));
+    frontend.stderr.on('data',chunk=>frontendLog=(frontendLog+chunk).slice(-12000));
     const web='http://127.0.0.1:'+port;
     let ready=false;
     for(let n=0;n<100;n++) {
+      if(frontend.exitCode!==null)break;
       try { if((await fetch(web)).ok) { ready=true;break; } } catch {}
       await new Promise(resolve=>setTimeout(resolve,100));
     }
-    assert.ok(ready,'Isolated frontend did not start');
+    assert.ok(ready,'Isolated frontend did not start: '+frontendLog);
     reply({ready:true,base,web});
     const lines=require('node:readline').createInterface({input:process.stdin});
     for await (const line of lines) {
