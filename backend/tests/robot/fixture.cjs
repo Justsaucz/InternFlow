@@ -19,6 +19,10 @@ const admin = new Pool({ connectionString: dbUrl.href });
 dbUrl.pathname = '/' + dbName;
 let db, server, base, serverLog = '', password;
 const tokens = {};
+const ownsFileRoot = !process.env.UPLOAD_DIR;
+const fileRoot = process.env.UPLOAD_DIR || fs.mkdtempSync(path.join(os.tmpdir(), 'internflow-robot-files-'));
+process.env.UPLOAD_DIR = fileRoot;
+process.env.STORAGE_MODE ||= 'local';
 
 async function api(method, url, actor, body) {
   const response = await fetch(base + url, {
@@ -83,6 +87,7 @@ async function setup() {
   await application('app-f', 'f', 'job-a', 'PENDING');
   await application('app-g', 'g', 'job-a', 'COMMITTED');
   await log('log-a-approved', 'a', 'app-a', '2026-10-01', true);
+  await db.query('UPDATE "DailyLog" SET "mentorRating"=5,"mentorFeedback"=$1 WHERE id=$2', ['Original approved review', 'log-a-approved']);
   await log('log-a-pending', 'a', 'app-a', '2026-10-02');
   await log('log-a-old', 'a', 'app-old', '2026-09-01');
   await log('log-b', 'b', 'app-b', '2026-10-01T09:00:00Z');
@@ -99,6 +104,10 @@ async function cleanup() {
   if (db) await db.end();
   if (/^internflow_test_[a-f0-9]{16}$/.test(dbName)) await admin.query('DROP DATABASE IF EXISTS "' + dbName + '" WITH (FORCE)');
   await admin.end();
+  const directory = path.resolve(fileRoot);
+  if (ownsFileRoot && path.dirname(directory) === path.resolve(os.tmpdir()) && /^internflow-robot-files-[A-Za-z0-9_-]+$/.test(path.basename(directory))) {
+    fs.rmSync(directory, {recursive:true,force:true});
+  }
 }
 
 // JSON-lines transport only. Robot Framework performs the test assertions.

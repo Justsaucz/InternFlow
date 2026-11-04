@@ -1,6 +1,10 @@
 # InternFlow DES424 Robot Framework tests
 
 This suite applies only to `Project/InternFlow`. It adds no product features.
+
+For the five report-ready independent modules (40 checks), see
+[report/README.md](report/README.md). The older core suite below has overlapping
+coverage; do not add the counts as if they were distinct requirements.
 It executes 12 HTTP/database cases and 8 SeleniumLibrary browser cases.
 The report module screenshots are filtered views of one 20-case integration run.
 
