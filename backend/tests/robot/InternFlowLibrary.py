@@ -1,6 +1,7 @@
 """HTTP/fixture transport for Robot assertions; no application mock or test runner."""
 import json
 import base64
+import tempfile
 from urllib.parse import quote
 import os
 from pathlib import Path
@@ -16,6 +17,7 @@ class InternFlowLibrary:
     def __init__(self):
         self.process = None
         self.started = False
+        self.fixture_files = None
         self.lines = queue.Queue()
 
     @keyword
@@ -62,6 +64,11 @@ class InternFlowLibrary:
                     self._rpc({'op': 'stop'})
             finally:
                 self.process.wait(timeout=30)
+        if self.fixture_files is not None:
+            directory = Path(self.fixture_files.name).resolve()
+            if directory.parent == Path(tempfile.gettempdir()).resolve() and directory.name.startswith('internflow-robot-input-'):
+                self.fixture_files.cleanup()
+            self.fixture_files = None
 
     @keyword
     def api_request(self, method, path, actor=None, body=None):
@@ -82,9 +89,8 @@ class InternFlowLibrary:
         return self._rpc(dict(op='session', actor=actor))['token']
 
 
-    @keyword
-    def upload_test_resume(self, actor):
-        """Upload a valid one-page PDF containing only fictional fixture text."""
+    def _resume_bytes(self):
+        """Build a valid one-page PDF containing fictional fixture text only."""
         stream = b"BT /F1 12 Tf 40 750 Td (Robot test resume - fictional data only) Tj ET"
         objects = [
             b"<< /Type /Catalog /Pages 2 0 R >>",
@@ -102,8 +108,21 @@ class InternFlowLibrary:
         data += b"xref\n0 6\n0000000000 65535 f \n"
         data += b"".join(f"{offset:010d} 00000 n \n".encode() for offset in offsets[1:])
         data += b"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + str(xref).encode() + b"\n%%EOF\n"
+        return data
+
+    @keyword
+    def upload_test_resume(self, actor):
         return self._rpc({'op': 'upload', 'actor': actor, 'filename': 'robot-resume.pdf',
-                          'mime': 'application/pdf', 'data': base64.b64encode(data).decode()})
+                          'mime': 'application/pdf', 'data': base64.b64encode(self._resume_bytes()).decode()})
+
+    @keyword
+    def create_test_resume_file(self):
+        if self.fixture_files is None:
+            self.fixture_files = tempfile.TemporaryDirectory(prefix='internflow-robot-input-')
+        target = Path(self.fixture_files.name) / 'robot-resume.pdf'
+        target.write_bytes(self._resume_bytes())
+        return str(target)
+
 
     @keyword
     def read_uploaded_file(self, url, actor=None):
