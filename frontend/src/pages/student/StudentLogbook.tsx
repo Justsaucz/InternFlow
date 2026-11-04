@@ -236,7 +236,7 @@ export default function StudentLogbook() {
           title: `[File] ${file.name}`,
           url: fileUrl
         };
-        setAttachmentLinks([...attachmentLinks, newAttachment]);
+        setAttachmentLinks(previous => [...previous, newAttachment]);
         success(language === 'th' ? `อัปโหลด ${file.name} สำเร็จ!` : `Uploaded ${file.name} successfully!`);
       } else {
         const err = await res.json();
@@ -252,6 +252,7 @@ export default function StudentLogbook() {
 
   const handleCreateOrUpdateLog = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (uploadingFile || submitting) return;
     setSubmitting(true);
 
     const validActual = actualDeliverables.map((s) => s.trim()).filter((s) => s.length > 0);
@@ -573,7 +574,7 @@ export default function StudentLogbook() {
                       {week.mentorApproved ? (
                         <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          {t.common.status.approved} {week.mentorRating ? `(${week.mentorRating} ★)` : ''}
+                          {t.common.status.approved} {week.mentorRating ? `(${language === 'th' ? 'เฉลี่ยรายวัน' : 'Daily average'} ${week.mentorRating}/5)` : ''}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
@@ -599,7 +600,7 @@ export default function StudentLogbook() {
                       </span>
                       {week.mentorRating && (
                         <span className="font-black text-amber-600">
-                          {'★'.repeat(week.mentorRating)} ({week.mentorRating}/5)
+                          {language === 'th' ? 'เฉลี่ยคะแนนรายวัน' : 'Average daily rating'} ({week.mentorRating}/5)
                         </span>
                       )}
                     </div>
@@ -665,7 +666,7 @@ export default function StudentLogbook() {
                                   </span>
                                 )}
 
-                                {!log.mentorApproved && (
+                                {activePlacement && !log.mentorApproved && (
                                   <button
                                     onClick={() => handleOpenEdit(log)}
                                     className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
@@ -675,7 +676,7 @@ export default function StudentLogbook() {
                                   </button>
                                 )}
 
-                                {!log.mentorApproved && (
+                                {activePlacement && !log.mentorApproved && (
                                   <button
                                     onClick={() => handleDeleteLog(log.id)}
                                     disabled={deletingId === log.id}
@@ -756,7 +757,7 @@ export default function StudentLogbook() {
                             )}
 
                             {/* Individual Day Mentor Feedback */}
-                            {log.mentorFeedback && (
+                            {(log.mentorFeedback || log.mentorRating) && (
                               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                                 <span className="font-bold text-slate-700">{t.logbook.mentorReview} </span>
                                 <span className="italic text-slate-600">"{log.mentorFeedback}"</span>
@@ -1082,7 +1083,7 @@ export default function StudentLogbook() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || uploadingFile}
                   className="flex-1 px-5 py-3 bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-bold text-xs rounded-xl hover:from-primary-700 hover:to-indigo-700 shadow-md shadow-primary-500/20 cursor-pointer disabled:opacity-50"
                 >
                   {submitting ? t.common.saving : editingId ? t.logbook.updateDailyLogBtn : t.logbook.saveDailyLogBtn}

@@ -4,6 +4,8 @@ import prisma from '../lib/prisma';
 import { Role } from '@prisma/client';
 import { HttpError, activeStatuses, placementStatuses, targetHours, withStudentLock, companyPlacement, rating, workDate, handleRouteError } from '../lib/workflow';
 
+import { validateAttachments } from '../lib/logbook-attachments';
+
 const router = Router();
 
 // Helper to group daily logs by week
@@ -38,12 +40,6 @@ function groupLogsByWeek(dailyLogs: any[]) {
     if (log.isBackdated) {
       group.hasBackdated = true;
     }
-    if (log.mentorRating) {
-      group.mentorRating = log.mentorRating;
-    }
-    if (log.mentorFeedback) {
-      group.mentorFeedback = log.mentorFeedback;
-    }
 
     const logTime = new Date(log.logDate).getTime();
     if (logTime < new Date(group.startDate).getTime()) {
@@ -54,6 +50,12 @@ function groupLogsByWeek(dailyLogs: any[]) {
     }
   }
 
+  // Summarise approved daily ratings; a daily comment is never a weekly review.
+  for (const group of weekMap.values()) {
+    const ratings = group.days.filter((day: any) => day.mentorApproved && day.mentorRating != null).map((day: any) => day.mentorRating);
+    group.mentorRating = ratings.length ? Math.round(ratings.reduce((sum: number, value: number) => sum + value, 0) / ratings.length * 10) / 10 : null;
+    group.ratedDays = ratings.length;
+  }
   // Sort weeks in ascending or descending order
   return Array.from(weekMap.values()).sort((a, b) => b.weekNumber - a.weekNumber);
 }
@@ -117,7 +119,8 @@ router.post('/', authenticate, authorize([Role.STUDENT]), async (req: AuthReques
         logDate: { gte: date, lt: new Date(date.getTime() + 86400000) }
       } });
       if (duplicate) throw new HttpError(409, 'A daily log already exists for this work date.');
-      const data = { logDate: date, weekNumber: week, hoursWorked: hours, workModality: workModality || 'ON_SITE', supervisorName: supervisorName || null, tasksDone, problemsAndSolutions: problemsAndSolutions || null, learnings: learnings || '', attachmentUrl: attachmentUrl || null, isBackdated };
+      const safeAttachments = await validateAttachments(tx, attachmentUrl, req.user!.userId);
+      const data = { logDate: date, weekNumber: week, hoursWorked: hours, workModality: workModality || 'ON_SITE', supervisorName: supervisorName || null, tasksDone, problemsAndSolutions: problemsAndSolutions || null, learnings: learnings || '', attachmentUrl: safeAttachments, isBackdated };
       if (id) {
         // Enforce the approval condition in the write as well as the check.
         const updated = await tx.dailyLog.updateMany({ where: { id, studentId: student.id, applicationId: active.id, mentorApproved: false }, data });
@@ -139,6 +142,8 @@ router.delete('/:id', authenticate, authorize([Role.STUDENT]), async (req: AuthR
       const existing = await tx.dailyLog.findFirst({ where: { id, studentId: student.id } });
       if (!existing) throw new HttpError(404, 'Log entry not found.');
       if (existing.mentorApproved) throw new HttpError(409, 'Approved logs cannot be deleted.');
+      const active = await tx.application.findFirst({ where: { id: existing.applicationId || '', studentId: student.id, status: { in: activeStatuses } } });
+      if (!active) throw new HttpError(409, 'Archived placement logs are read-only.');
       await tx.dailyLog.deleteMany({ where: { id, studentId: student.id, mentorApproved: false } });
     });
     res.json({ message: 'Daily log deleted successfully.' });
@@ -166,7 +171,9 @@ const approveSingleLog = async (req: AuthRequest, res: Response): Promise<void> 
     const updated = await withStudentLock(log.studentId, async tx => {
       const placement = await tx.application.findFirst({ where: { id: log.applicationId!, studentId: log.studentId, status: { in: activeStatuses }, jobPost: { company: { userId: req.user!.userId } } } });
       if (!placement) throw new HttpError(403, 'This log is not assigned to your company.');
-      return tx.dailyLog.update({ where: { id }, data: { mentorApproved: true, mentorRating, mentorFeedback: req.body.mentorFeedback || null } });
+      const changed = await tx.dailyLog.updateMany({ where: { id, mentorApproved: false }, data: { mentorApproved: true, mentorRating, mentorFeedback: req.body.mentorFeedback?.trim() || null } });
+      if (!changed.count) throw new HttpError(409, 'This log has already been approved.');
+      return tx.dailyLog.findUniqueOrThrow({ where: { id } });
     });
     res.json(updated);
   } catch (error) { handleRouteError(res, error, 'Failed to approve daily log.'); }
@@ -183,15 +190,15 @@ router.post('/batch-approve', authenticate, authorize([Role.COMPANY_HR]), async 
     if (typeof studentId !== 'string' || !Number.isInteger(week) || week < 1) throw new HttpError(400, 'Student and a valid week number are required.');
     const mentorRating = rating(req.body.mentorRating, true);
     if (mentorFeedback != null && typeof mentorFeedback !== 'string') throw new HttpError(400, 'Invalid feedback.');
-    const logs = await withStudentLock(studentId, async tx => {
+    const result = await withStudentLock(studentId, async tx => {
       const placement = await tx.application.findFirst({ where: { ...(applicationId ? { id: applicationId } : {}), studentId, status: { in: activeStatuses }, jobPost: { company: { userId: req.user!.userId } } } });
       if (!placement) throw new HttpError(403, 'This placement is not assigned to your company.');
       const where = { studentId, applicationId: placement.id, weekNumber: week };
       // Keep earlier individual sign-offs intact when approving remaining days.
-      await tx.dailyLog.updateMany({ where: { ...where, mentorApproved: false }, data: { mentorApproved: true, mentorRating, mentorFeedback: mentorFeedback || null } });
-      return tx.dailyLog.findMany({ where, orderBy: { logDate: 'asc' } });
+      const updated = await tx.dailyLog.updateMany({ where: { ...where, mentorApproved: false }, data: { mentorApproved: true, mentorRating, mentorFeedback: mentorFeedback?.trim() || null } });
+      return { updatedCount: updated.count, logs: await tx.dailyLog.findMany({ where, orderBy: { logDate: 'asc' } }) };
     });
-    res.json({ message: `Week ${week} verified.`, updatedCount: logs.length, logs });
+    res.json({ message: `Week ${week} verified.`, ...result });
   } catch (error) { handleRouteError(res, error, 'Failed to approve week.'); }
 });
 

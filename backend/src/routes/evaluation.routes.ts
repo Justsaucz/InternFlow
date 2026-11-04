@@ -31,7 +31,7 @@ router.get('/company/interns', authenticate, authorize([Role.COMPANY_HR]), getCo
 router.post('/submit', authenticate, authorize([Role.COMPANY_HR]), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { studentId, applicationId, feedback } = req.body;
-    if ((!studentId && !applicationId) || (studentId != null && typeof studentId !== 'string') || (applicationId != null && typeof applicationId !== 'string') || typeof feedback !== 'string') throw new HttpError(400, 'A valid student or application and feedback are required.');
+    if ((!studentId && !applicationId) || (studentId != null && typeof studentId !== 'string') || (applicationId != null && typeof applicationId !== 'string') || (typeof feedback !== 'string' || !feedback.trim())) throw new HttpError(400, 'A valid student or application and feedback are required.');
     const company = await prisma.companyProfile.findUnique({ where: { userId: req.user!.userId } });
     if (!company) throw new HttpError(404, 'Company profile not found.');
     const app = await prisma.application.findFirst({ where: {

@@ -6,6 +6,11 @@ const { spawn, execFileSync } = require('node:child_process');
 const { randomBytes } = require('node:crypto');
 const path = require('node:path');
 const net = require('node:net');
+const fs = require('node:fs');
+const os = require('node:os');
+const uploadRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'internflow-upload-test-'));
+const privateUploadRoot = path.join(uploadRoot, 'private');
+fs.mkdirSync(privateUploadRoot);
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 require('dotenv').config({ path: path.join(__dirname, '../.env'), quiet: true });
@@ -60,7 +65,7 @@ before(async () => {
   const port = listener.address().port;
   await new Promise(resolve => listener.close(resolve));
   base = 'http://127.0.0.1:' + port;
-  server = spawn(process.execPath, ['node_modules/tsx/dist/cli.mjs', 'src/index.ts'], { cwd, env: { ...process.env, DATABASE_URL: dbUrl.href, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'] });
+  server = spawn(process.execPath, ['node_modules/tsx/dist/cli.mjs', 'src/index.ts'], { cwd, env: { ...process.env, DATABASE_URL: dbUrl.href, PORT: String(port), UPLOAD_DIR: uploadRoot, PRIVATE_UPLOAD_DIR: privateUploadRoot, STORAGE_MODE: 'local', READINESS_PROCESSOR_DISABLED: 'true' }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', chunk => serverLog += chunk);
   server.stderr.on('data', chunk => serverLog += chunk);
   let ready = false;
@@ -97,6 +102,8 @@ after(async () => {
   if (db) await db.end();
   if (/^internflow_test_[a-f0-9]{16}$/.test(dbName)) await admin.query('DROP DATABASE IF EXISTS "' + dbName + '" WITH (FORCE)');
   await admin.end();
+  // The directory was created by mkdtemp for this test run only.
+  fs.rmSync(uploadRoot, { recursive: true, force: true });
 });
 
 test('reports and logbooks enforce student and company ownership', async () => {
@@ -222,4 +229,74 @@ test('editing and approval serialize: the final signed content cannot change', a
   assert.equal(signed.mentorApproved, true);
   assert.equal((await api('POST', '/api/logbook', 'g', { ...logBody('log-g'), tasksDone: '["Tampered"]' })).status, 409);
   assert.equal((await db.query('SELECT "tasksDone" FROM "DailyLog" WHERE id=$1', ['log-g'])).rows[0].tasksDone, signed.tasksDone);
+});
+
+test('cancelled placement logs remain read-only with or without a new active placement', async () => {
+  await user('archive'); await job('job-archive', 'hr-c');
+  await application('app-archive', 'archive', 'job-archive', 'CANCELLED');
+  await log('log-archive', 'archive', 'app-archive', '2026-09-12');
+  assert.equal((await api('DELETE', '/api/logbook/log-archive', 'archive')).status, 409);
+  assert.equal((await api('DELETE', '/api/logbook/log-a-old', 'a')).status, 409);
+  assert.equal((await api('POST', '/api/logbook', 'archive', logBody('log-archive','2026-09-12'))).status, 403);
+  assert.equal((await api('GET', '/api/logbook/my', 'archive')).body.logs[0].id, 'log-archive');
+  assert.equal((await db.query('SELECT id FROM "DailyLog" WHERE id IN ($1,$2)', ['log-archive','log-a-old'])).rowCount, 2);
+});
+
+test('concurrent sign-offs preserve the first rating and feedback; repeat batch is a no-op', async () => {
+  await user('signoff'); await job('job-signoff', 'hr-a');
+  await application('app-signoff', 'signoff', 'job-signoff', 'COMMITTED');
+  await log('log-signoff', 'signoff', 'app-signoff', '2026-09-13');
+  const reviews=[{mentorRating:2,mentorFeedback:'First review'},{mentorRating:5,mentorFeedback:'Other review'}];
+  const replies=await Promise.all(reviews.map(review=>api('PUT','/api/logbook/log-signoff/approve','hr-a',review)));
+  assert.deepEqual(replies.map(r=>r.status).sort(),[200,409]);
+  const winner=replies.findIndex(r=>r.status===200);
+  const original=(await db.query('SELECT "mentorRating","mentorFeedback" FROM "DailyLog" WHERE id=$1',['log-signoff'])).rows[0];
+  assert.deepEqual(original,reviews[winner]);
+  const repeat=await api('POST','/api/logbook/batch-approve','hr-a',{studentId:'signoff',applicationId:'app-signoff',weekNumber:1,mentorRating:1,mentorFeedback:'Do not overwrite'});
+  assert.equal(repeat.status,200);assert.equal(repeat.body.updatedCount,0);
+  assert.deepEqual((await db.query('SELECT "mentorRating","mentorFeedback" FROM "DailyLog" WHERE id=$1',['log-signoff'])).rows[0],original);
+});
+
+test('weekly averages use all rated approved days without mislabelling a daily comment as a weekly review', async () => {
+  await user('averages'); await job('job-averages','hr-a'); await application('app-averages','averages','job-averages','COMMITTED');
+  for(const [id,day,approved,score,feedback] of [['log-average-a','2026-09-14',true,5,'Day one'],['log-average-b','2026-09-15',true,2,'Day two'],['log-average-c','2026-09-16',false,5,'Not approved']]) {
+    await log(id,'averages','app-averages',day,approved);await db.query('UPDATE "DailyLog" SET "mentorRating"=$2,"mentorFeedback"=$3 WHERE id=$1',[id,score,feedback]);
+  }
+  for(const result of [await api('GET','/api/logbook/my','averages'),await api('GET','/api/logbook/student/averages?applicationId=app-averages','hr-a')]) {
+    assert.equal(result.status,200);const week=result.body.groupedWeeks[0];assert.equal(week.mentorRating,3.5);assert.equal(week.ratedDays,2);assert.equal(week.mentorFeedback,null);assert.equal(week.approvedHours,16);
+  }
+});
+
+test('evaluation rejects whitespace-only feedback and missing or blank scores without changing saved results', async () => {
+  const body={studentId:'averages',applicationId:'app-averages',workQualityScore:3,punctualityScore:4,teamworkScore:2,feedback:'Specific observations'};
+  assert.equal((await api('POST','/api/evaluations/submit','hr-a',body)).status,200);
+  for(const patch of [{feedback:' \n\t '},{workQualityScore:''},{punctualityScore:null},{teamworkScore:undefined}]) assert.equal((await api('POST','/api/evaluations/submit','hr-a',{...body,...patch})).status,400);
+  const row=(await db.query('SELECT feedback,"workQualityScore" FROM "InternshipEvaluation" WHERE "applicationId"=$1',['app-averages'])).rows[0];
+  assert.deepEqual(row,{feedback:'Specific observations',workQualityScore:3});
+});
+
+test('unsafe attachment schemes cannot be saved into logbook', async () => {
+  for(const url of ['javascript:alert(1)','data:text/html,test','file:///tmp/secret','/private-uploads/no-file.pdf','/uploads/../secret','https://user:password@example.test/']) assert.equal((await api('POST','/api/logbook','averages',{...logBody(undefined,'2026-09-20'),attachmentUrl:JSON.stringify([{title:'Unsafe',url}])})).status,400,url);
+});
+
+test('logbook files require authentication and ownership; placement company can read and public images remain public', async () => {
+  const form=new FormData();
+  form.append('applicationId','app-averages');form.append('file',new Blob(['%PDF-1.4\nSynthetic private logbook attachment\n%%EOF'],{type:'application/pdf'}),'logbook-test.pdf');
+  const uploaded=await fetch(base+'/api/upload',{method:'POST',headers:{Authorization:'Bearer '+tokens.averages},body:form});
+  assert.equal(uploaded.status,200);const file=await uploaded.json();const url=file.url;
+  assert.ok(url);
+  assert.equal((await api('POST','/api/logbook','averages',{...logBody(undefined,'2026-09-21'),weekNumber:4,attachmentUrl:JSON.stringify([{title:'Private evidence',url}])})).status,201);
+  assert.equal((await api('POST','/api/logbook','b',{...logBody(undefined,'2026-09-21'),attachmentUrl:JSON.stringify([{title:'Not my file',url}])})).status,400);
+  assert.equal((await fetch(base+url)).status,404,'Anonymous direct file URL is private.');
+  const content='/api/upload/content?url='+encodeURIComponent(url);
+  assert.equal((await fetch(base+content)).status,401);
+  for(const actor of ['averages','hr-a']){
+    const response=await fetch(base+content,{headers:{Authorization:'Bearer '+tokens[actor]}});assert.equal(response.status,200);assert.match(await response.text(),/Synthetic private logbook attachment/);assert.match(response.headers.get('cache-control'),/no-store/);
+  }
+  for(const actor of ['b','hr-b']) assert.equal((await fetch(base+content,{headers:{Authorization:'Bearer '+tokens[actor]}})).status,404);
+  // Archived evidence remains readable to its owner and original company.
+  await db.query('UPDATE "Application" SET status=$2 WHERE id=$1',['app-averages','CANCELLED']);
+  assert.equal((await fetch(base+content,{headers:{Authorization:'Bearer '+tokens['hr-a']}})).status,200);
+  const image=new FormData();image.append('purpose','profile-image');image.append('file',new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jWZkAAAAASUVORK5CYII=','base64')],{type:'image/png'}),'avatar.png');
+  const publicUpload=await fetch(base+'/api/upload',{method:'POST',headers:{Authorization:'Bearer '+tokens['hr-a']},body:image});assert.equal(publicUpload.status,200);const publicFile=await publicUpload.json();assert.equal((await fetch(base+publicFile.url)).status,200);
 });

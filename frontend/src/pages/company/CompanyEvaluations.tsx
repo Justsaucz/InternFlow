@@ -65,21 +65,21 @@ export default function CompanyEvaluations() {
   const { success, error: showError } = useToast();
 
   // Final Evaluation Rubric State
-  const [workQuality, setWorkQuality] = useState(5);
-  const [punctuality, setPunctuality] = useState(5);
-  const [teamwork, setTeamwork] = useState(5);
+  const [workQuality, setWorkQuality] = useState<number | ''>('');
+  const [punctuality, setPunctuality] = useState<number | ''>('');
+  const [teamwork, setTeamwork] = useState<number | ''>('');
   const [feedback, setFeedback] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Batch Week Sign-off State
   const [batchWeekNumber, setBatchWeekNumber] = useState<number | null>(null);
-  const [batchRating, setBatchRating] = useState<number>(5);
+  const [batchRating, setBatchRating] = useState<number>(0);
   const [batchFeedback, setBatchFeedback] = useState<string>('');
   const [batchSubmitting, setBatchSubmitting] = useState(false);
 
   // Single Daily Log Sign-off State
   const [approvingLogId, setApprovingLogId] = useState<string | null>(null);
-  const [singleRating, setSingleRating] = useState<number>(5);
+  const [singleRating, setSingleRating] = useState<number>(0);
   const [singleFeedback, setSingleFeedback] = useState<string>('');
   const [singleSubmitting, setSingleSubmitting] = useState(false);
 
@@ -108,14 +108,14 @@ export default function CompanyEvaluations() {
   const openEvaluationModal = (intern: ActiveIntern) => {
     setSelectedIntern(intern);
     if (intern.evaluation) {
-      setWorkQuality(intern.evaluation.workQualityScore || 5);
-      setPunctuality(intern.evaluation.punctualityScore || 5);
-      setTeamwork(intern.evaluation.teamworkScore || 5);
+      setWorkQuality(intern.evaluation.workQualityScore ?? '');
+      setPunctuality(intern.evaluation.punctualityScore ?? '');
+      setTeamwork(intern.evaluation.teamworkScore ?? '');
       setFeedback(intern.evaluation.feedback || '');
     } else {
-      setWorkQuality(5);
-      setPunctuality(5);
-      setTeamwork(5);
+      setWorkQuality('');
+      setPunctuality('');
+      setTeamwork('');
       setFeedback('');
     }
   };
@@ -176,7 +176,7 @@ export default function CompanyEvaluations() {
           studentId: selectedForLogs.student.id,
           applicationId: selectedForLogs.applicationId,
           weekNumber: batchWeekNumber,
-          mentorRating: batchRating,
+          mentorRating: batchRating || null,
           mentorFeedback: batchFeedback
         })
       });
@@ -213,7 +213,7 @@ export default function CompanyEvaluations() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          mentorRating: singleRating,
+          mentorRating: singleRating || null,
           mentorFeedback: singleFeedback
         })
       });
@@ -240,6 +240,10 @@ export default function CompanyEvaluations() {
   const handleSubmitEvaluation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedIntern) return;
+    if (!workQuality || !punctuality || !teamwork || !feedback.trim()) {
+      showError(language === 'th' ? 'กรุณาเลือกคะแนนทุกหัวข้อและเขียนความคิดเห็น' : 'Select every score and enter feedback.');
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -537,15 +541,15 @@ export default function CompanyEvaluations() {
                             {isFullyApproved ? (
                               <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-2xs">
                                 <CheckCircle2 className="w-4 h-4" />
-                                {t.evaluations.weekApproved} {week.mentorRating ? `(${week.mentorRating} ★)` : ''}
+                                {t.evaluations.weekApproved} {week.mentorRating ? `(${language === 'th' ? 'เฉลี่ยรายวัน' : 'Daily average'} ${week.mentorRating}/5)` : ''}
                               </span>
                             ) : (
                               <button
                                 id="batch-signoff-week-btn"
                                 onClick={() => {
                                   setBatchWeekNumber(week.weekNumber);
-                                  setBatchRating(5);
-                                  setBatchFeedback(week.mentorFeedback || (language === 'th' ? 'ผลงานประจำสัปดาห์ครบถ้วนและถูกต้องตามเกณฑ์' : 'Weekly deliverables verified and meet required criteria'));
+                                  setBatchRating(0);
+                                  setBatchFeedback('');
                                 }}
                                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
                               >
@@ -585,7 +589,7 @@ export default function CompanyEvaluations() {
                                     ★
                                   </button>
                                 ))}
-                                <span className="text-xs font-bold text-emerald-900 ml-1">({batchRating} / 5)</span>
+                                <span className="text-xs font-bold text-emerald-900 ml-1">({batchRating || (language === 'th' ? 'ยังไม่ให้คะแนน' : 'Not rated')} / 5)</span>
                               </div>
                             </div>
 
@@ -681,8 +685,8 @@ export default function CompanyEvaluations() {
                                         <button
                                           onClick={() => {
                                             setApprovingLogId(log.id);
-                                            setSingleRating(5);
-                                            setSingleFeedback(log.mentorFeedback || (language === 'th' ? 'รับรองผลการปฏิบัติงานประจำวัน' : 'Approved day deliverables'));
+                                            setSingleRating(0);
+                                            setSingleFeedback('');
                                           }}
                                           className="text-[11px] font-bold px-2.5 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer"
                                         >
@@ -850,16 +854,12 @@ export default function CompanyEvaluations() {
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                     {t.evaluations.workQualityLabel}
                   </label>
-                  <span className="text-xs font-black text-primary-600">{workQuality} / 5</span>
+                  <span className="text-xs font-black text-primary-600 whitespace-nowrap shrink-0">{workQuality} / 5</span>
                 </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600"
-                  value={workQuality}
-                  onChange={(e) => setWorkQuality(Number(e.target.value))}
-                />
+                <select required aria-label={t.evaluations.workQualityLabel} className="w-full border border-slate-200 rounded-xl p-3" value={workQuality} onChange={(e) => setWorkQuality(e.target.value ? Number(e.target.value) : '')}>
+                    <option value="">{language === 'th' ? 'เลือกคะแนน' : 'Select a score'}</option>
+                    {[1,2,3,4,5].map(score => <option key={score} value={score}>{score} / 5</option>)}
+                  </select>
               </div>
 
               {/* Score 2: Punctuality */}
@@ -868,16 +868,12 @@ export default function CompanyEvaluations() {
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                     {t.evaluations.punctualityLabel}
                   </label>
-                  <span className="text-xs font-black text-primary-600">{punctuality} / 5</span>
+                  <span className="text-xs font-black text-primary-600 whitespace-nowrap shrink-0">{punctuality} / 5</span>
                 </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600"
-                  value={punctuality}
-                  onChange={(e) => setPunctuality(Number(e.target.value))}
-                />
+                <select required aria-label={t.evaluations.punctualityLabel} className="w-full border border-slate-200 rounded-xl p-3" value={punctuality} onChange={(e) => setPunctuality(e.target.value ? Number(e.target.value) : '')}>
+                    <option value="">{language === 'th' ? 'เลือกคะแนน' : 'Select a score'}</option>
+                    {[1,2,3,4,5].map(score => <option key={score} value={score}>{score} / 5</option>)}
+                  </select>
               </div>
 
               {/* Score 3: Teamwork */}
@@ -886,16 +882,12 @@ export default function CompanyEvaluations() {
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                     {t.evaluations.teamworkLabel}
                   </label>
-                  <span className="text-xs font-black text-primary-600">{teamwork} / 5</span>
+                  <span className="text-xs font-black text-primary-600 whitespace-nowrap shrink-0">{teamwork} / 5</span>
                 </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600"
-                  value={teamwork}
-                  onChange={(e) => setTeamwork(Number(e.target.value))}
-                />
+                <select required aria-label={t.evaluations.teamworkLabel} className="w-full border border-slate-200 rounded-xl p-3" value={teamwork} onChange={(e) => setTeamwork(e.target.value ? Number(e.target.value) : '')}>
+                    <option value="">{language === 'th' ? 'เลือกคะแนน' : 'Select a score'}</option>
+                    {[1,2,3,4,5].map(score => <option key={score} value={score}>{score} / 5</option>)}
+                  </select>
               </div>
 
               {/* Qualitative Feedback */}
