@@ -4,8 +4,9 @@ import { useState, type AnchorHTMLAttributes, type MouseEvent } from 'react';
 const api = API_BASE;
 export default function FileLink({ href = '', children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {
   const [error, setError] = useState('');
-  const managed = href.startsWith('/uploads/') || (() => {
-    try { const url = new URL(href); return (url.origin === new URL(api).origin && url.pathname.startsWith('/uploads/')) ||
+  const managedPath = (value: string) => /^\/(?:private-uploads|uploads)\//.test(value);
+  const managed = managedPath(href) || (() => {
+    try { const url = new URL(href); return ((url.origin === new URL(api).origin || url.origin === window.location.origin) && managedPath(url.pathname)) ||
       (import.meta.env.VITE_S3_BUCKET_NAME && url.hostname.startsWith(import.meta.env.VITE_S3_BUCKET_NAME+'.s3.') && url.hostname.endsWith('.amazonaws.com')); } catch { return false; }
   })();
   const safe = managed || /^https?:\/\//i.test(href);
@@ -16,7 +17,7 @@ export default function FileLink({ href = '', children, ...props }: AnchorHTMLAt
     if (preview) preview.opener = null;
     try {
       let storedUrl = href;
-      try { const url = new URL(href); if (url.origin === new URL(api).origin) storedUrl = url.pathname; } catch { /* relative upload */ }
+      try { const url = new URL(href); if (url.origin === new URL(api).origin || url.origin === window.location.origin) storedUrl = url.pathname; } catch { /* relative upload */ }
       const response = await fetch(`${api}/api/upload/content?url=${encodeURIComponent(storedUrl)}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
       });

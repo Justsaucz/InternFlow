@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { HttpError } from './workflow';
+import { canReadLegacyLogbookFile } from './legacy-logbook-files';
 
 export function attachmentLinks(value: unknown): { title: string; url: string }[] {
   if (value == null || value === '') return [];
@@ -20,7 +21,10 @@ export function attachmentLinks(value: unknown): { title: string; url: string }[
 export async function validateAttachments(tx: Prisma.TransactionClient, value: unknown, userId: string) {
   const links = attachmentLinks(value);
   for (const link of links) {
-    if (link.url.startsWith('/private-uploads/')) throw new HttpError(400, 'Use a file uploaded by this application.');
+    if (link.url.startsWith('/private-uploads/')) {
+      if (!await canReadLegacyLogbookFile(link.url, userId, true)) throw new HttpError(400, 'Use your own logbook file upload.');
+      continue;
+    }
     let key = link.url.startsWith('/uploads/') ? link.url : null;
     try { const url = new URL(link.url); if (['localhost','127.0.0.1'].includes(url.hostname) && url.pathname.startsWith('/uploads/')) key = url.pathname; } catch { /* relative */ }
     const file = await tx.uploadedFile.findUnique({ where: { fileUrl: key || link.url } });

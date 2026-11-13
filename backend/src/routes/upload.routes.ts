@@ -8,6 +8,7 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { HttpError, handleRouteError } from '../lib/workflow';
 import { s3, usesS3, uploadDir, localFile, removeFile, canReadFile, sendFile } from '../lib/file-storage';
+import { canReadLegacyLogbookFile, sendLegacyLogbookFile } from '../lib/legacy-logbook-files';
 
 const router = Router();
 function prefix(req: AuthRequest) {
@@ -57,8 +58,13 @@ router.get('/content', authenticate, async (req: AuthRequest, res: Response) => 
   try {
     const url = typeof req.query.url === 'string' ? req.query.url : '';
     const file = await prisma.uploadedFile.findUnique({ where: { fileUrl: url } });
-    if (!file || !await canReadFile(file, req.user!.userId)) throw new HttpError(404, 'File not found or access denied.');
-    await sendFile(file, res);
+    if (file) {
+      if (!await canReadFile(file, req.user!.userId)) throw new HttpError(404, 'File not found or access denied.');
+      await sendFile(file, res);
+    } else {
+      if (!await canReadLegacyLogbookFile(url, req.user!.userId)) throw new HttpError(404, 'File not found or access denied.');
+      await sendLegacyLogbookFile(url, res);
+    }
   } catch (error) {
     if (!res.headersSent) handleRouteError(res, error, 'Failed to read file.'); else res.destroy();
   }

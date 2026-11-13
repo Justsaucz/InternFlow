@@ -1048,8 +1048,8 @@ export default function StudentLogbook() {
                           onChange={(e) => handleAttachmentChange(idx, 'title', e.target.value)}
                         />
                         <input
-                          type={link.url.startsWith('/uploads/') ? 'text' : 'url'}
-                          readOnly={link.url.startsWith('/uploads/')}
+                          type={/^\/(?:private-uploads|uploads)\//.test(link.url) ? 'text' : 'url'}
+                          readOnly={/^\/(?:private-uploads|uploads)\//.test(link.url)}
                           placeholder={t.logbook.linkUrlPlaceholder}
                           className="flex-1 border border-slate-200 bg-white rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-primary-500"
                           value={link.url}

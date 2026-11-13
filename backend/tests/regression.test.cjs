@@ -300,3 +300,42 @@ test('logbook files require authentication and ownership; placement company can 
   const image=new FormData();image.append('purpose','profile-image');image.append('file',new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jWZkAAAAASUVORK5CYII=','base64')],{type:'image/png'}),'avatar.png');
   const publicUpload=await fetch(base+'/api/upload',{method:'POST',headers:{Authorization:'Bearer '+tokens['hr-a']},body:image});assert.equal(publicUpload.status,200);const publicFile=await publicUpload.json();assert.equal((await fetch(base+publicFile.url)).status,200);
 });
+
+
+test('legacy private logbook PDFs use authenticated reads with exact ownership and no public route', async () => {
+  const filename='legacy-'+randomBytes(8).toString('hex')+'.pdf';
+  const url='/private-uploads/'+filename;
+  const bytes='%PDF-1.4\nFictional legacy logbook evidence\n%%EOF';
+  fs.writeFileSync(path.join(privateUploadRoot,filename),bytes);
+  const logId='legacy-'+randomBytes(8).toString('hex');
+  await db.query('INSERT INTO "DailyLog" (id,"studentId","applicationId","logDate","tasksDone",learnings,"attachmentUrl","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())',
+    [logId,'averages','app-averages','2026-08-01','["Legacy evidence"]','Legacy test',JSON.stringify([{title:'Legacy PDF',url}])]);
+  const content='/api/upload/content?url='+encodeURIComponent(url);
+  assert.equal((await fetch(base+url)).status,404,'Private legacy paths are not served publicly.');
+  assert.equal((await fetch(base+content)).status,401);
+  for(const actor of ['averages','hr-a']){
+    const r=await fetch(base+content,{headers:{Authorization:'Bearer '+tokens[actor]}});
+    assert.equal(r.status,200,actor);
+    assert.equal(await r.text(),bytes);
+    assert.match(r.headers.get('content-type'),/application\/pdf/);
+    assert.match(r.headers.get('cache-control'),/no-store/);
+  }
+  for(const actor of ['b','hr-b']){
+    assert.equal((await fetch(base+content,{headers:{Authorization:'Bearer '+tokens[actor]}})).status,404);
+  }
+  for(const bad of ['/private-uploads/../secret.pdf','/private-uploads/unknown.pdf','https://unrelated.invalid'+url]){
+    assert.equal((await fetch(base+'/api/upload/content?url='+encodeURIComponent(bad),{headers:{Authorization:'Bearer '+tokens.averages}})).status,404);
+  }
+  // A forged application-document reference must not grant access to another HR.
+  await db.query('INSERT INTO "Document" (id,"userId","applicationId",title,"fileUrl",type) VALUES ($1,$2,$3,$4,$5,$6)',
+    ['forged-'+logId,'u-b','app-b','Forged reference',url,'REPORT']);
+  assert.equal((await fetch(base+content,{headers:{Authorization:'Bearer '+tokens['hr-b']}})).status,404);
+  // Conflicting legacy log ownership fails closed instead of broadening access.
+  await db.query('INSERT INTO "DailyLog" (id,"studentId","applicationId","logDate","tasksDone",learnings,"attachmentUrl","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())',
+    ['conflict-'+logId,'b','app-b','2026-08-01','["Conflict"]','Conflict test',JSON.stringify([{title:'Forged',url}])]);
+  assert.equal((await fetch(base+content,{headers:{Authorization:'Bearer '+tokens.b}})).status,404);
+  assert.equal((await fetch(base+content,{headers:{Authorization:'Bearer '+tokens.averages}})).status,404);
+  await db.query('DELETE FROM "DailyLog" WHERE id=$1',['conflict-'+logId]);
+  fs.unlinkSync(path.join(privateUploadRoot,filename));
+  assert.equal((await fetch(base+content,{headers:{Authorization:'Bearer '+tokens.averages}})).status,404,'Missing files return a controlled 404.');
+});
