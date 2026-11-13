@@ -92,6 +92,7 @@ export default function StudentProfile() {
     try {
       const token = localStorage.getItem('token');
       const data = new FormData();
+      data.append('purpose', 'profile-image');
       data.append('file', file);
       data.append('type', 'AVATAR');
 
