@@ -1,7 +1,7 @@
 import { API_BASE } from '../../utils/api';
 import FileLink from '../../components/ui/FileLink';
 import { useEffect, useState } from 'react';
-import { CheckCircle, XCircle, Eye, Building, Mail, Briefcase, Calendar, FileText, ExternalLink, Clock, AlertTriangle, UserCheck, Video } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Building, Mail, Calendar, FileText, ExternalLink, Clock, AlertTriangle, UserCheck, Video } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import PublicProfileModal from '../../components/modals/PublicProfileModal';
 import { useLanguage } from '../../context/LanguageContext';
@@ -138,18 +138,18 @@ export default function CompanyApplicants() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         </div>
       ) : applications.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-3">
           {applications.map((app) => {
             const status = statusMap[app.status] || { label: app.status, color: 'bg-gray-100 text-gray-800' };
 
             return (
-              <div key={app.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                  <div className="flex items-start gap-4">
+              <div key={app.id} className="bg-white p-3.5 px-4 rounded-xl border border-gray-200/80 shadow-xs hover:shadow-sm transition-all">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3.5 min-w-0">
                     <button
                       type="button"
                       onClick={() => setViewingStudentId(app.student.userId || app.student.id)}
-                      className="w-12 h-12 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-lg overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary-400 transition-all"
+                      className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary-400 transition-all"
                       title="View Student Profile"
                     >
                       {app.student.user.avatarUrl ? (
@@ -162,69 +162,33 @@ export default function CompanyApplicants() {
                         app.student.user.name.charAt(0)
                       )}
                     </button>
-                    <div>
-                      <div className="flex items-center gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <button
                           type="button"
                           onClick={() => setViewingStudentId(app.student.userId || app.student.id)}
-                          className="text-lg font-bold text-gray-900 hover:text-primary-600 transition-colors text-left cursor-pointer"
+                          className="text-sm font-bold text-gray-900 hover:text-primary-600 transition-colors text-left cursor-pointer"
                         >
                           {app.student.user.name}
                         </button>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${status.color}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${status.color}`}>
                           {status.label}
                         </span>
+                        <span className="text-gray-300">•</span>
+                        <span className="font-semibold text-gray-700 text-xs">{app.jobPost.title}</span>
+                        <span className="text-gray-300">•</span>
+                        <span className="text-xs text-gray-500">{app.student.major} ({app.student.university || 'SIIT'})</span>
                       </div>
 
-                      <div className="mt-1 text-sm text-gray-500 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="w-4 h-4 text-gray-400" />
-                          <span className="font-medium text-gray-700">{app.jobPost.title}</span>
-                          <span>•</span>
-                          <span>{app.student.major}, {app.student.faculty}</span>
-                        </div>
-                        {app.student.university && (
-                          <div className="text-xs text-gray-400">
-                            {app.student.university}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-4 text-xs">
-                          <span className="flex items-center gap-1">
-                            <Mail className="w-3.5 h-3.5 text-gray-400" />
-                            {app.student.user.email}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                            Applied {new Date(app.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-
-                      {app.coverLetter && (
-                        <div className="mt-3 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 max-w-xl">
-                          <span className="font-semibold text-gray-700">Cover Letter: </span>
-                          "{app.coverLetter}"
-                        </div>
-                      )}
-
-                      {/* Cancellation Request Notice Box */}
-                      {app.status === 'CANCEL_REQUESTED' && (
-                        <div className="mt-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1 max-w-xl">
-                          <div className="font-bold flex items-center gap-1.5 text-amber-800">
-                            <AlertTriangle className="w-4 h-4 text-amber-600" />
-                            Student requested to cancel this internship:
-                          </div>
-                          <p className="italic text-slate-700 bg-white/80 p-2 rounded-lg border border-amber-100">
-                            "{app.cancellationReason || 'No reason specified'}"
-                          </p>
-                          <p className="text-[11px] text-amber-700">
-                            Action required: Choose to approve their release or decline the cancellation request.
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Documents / Pin-Point Attachments */}
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="flex items-center gap-3.5 text-xs text-gray-500 mt-0.5 flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <Mail className="w-3.5 h-3.5 text-gray-400" />
+                          {app.student.user.email}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                          Applied {new Date(app.createdAt).toLocaleDateString()}
+                        </span>
                         {app.documents?.map((doc, idx) => {
                           const isLink = doc.fileUrl.startsWith('http://') || doc.fileUrl.startsWith('https://');
                           const docUrl = isLink ? doc.fileUrl : `${API_BASE}${doc.fileUrl}`;
@@ -233,7 +197,7 @@ export default function CompanyApplicants() {
                               href={docUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 flex items-center gap-1 transition-colors"
+                              className="px-2 py-0.5 rounded text-[11px] font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 flex items-center gap-1 transition-colors"
                             >
                               {isLink ? <ExternalLink className="w-3 h-3 text-indigo-600" /> : <FileText className="w-3 h-3 text-indigo-600" />}
                               <span>{doc.title || 'Attachment'}</span>
@@ -241,11 +205,30 @@ export default function CompanyApplicants() {
                           );
                         })}
                       </div>
+
+                      {app.coverLetter?.trim() && (
+                        <div className="mt-2 max-w-xl rounded-lg bg-gray-50 px-2.5 py-2 text-xs text-gray-600">
+                          <p className="font-semibold text-gray-700">
+                            {language === 'th' ? 'จดหมายสมัครงาน' : 'Cover Letter'}
+                          </p>
+                          <p className="mt-1 whitespace-pre-wrap break-words">{app.coverLetter}</p>
+                        </div>
+                      )}
+
+                      {app.status === 'CANCEL_REQUESTED' && (
+                        <div className="mt-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-center gap-2">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                          <span>
+                            <strong className="text-amber-800">Cancellation Request: </strong>
+                            "{app.cancellationReason || 'No reason specified'}"
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Actions Right Side */}
-                  <div className="flex items-center gap-2 flex-wrap self-start">
+                  <div className="flex items-center gap-2 flex-wrap self-center flex-shrink-0">
                     {app.status === 'PENDING' && (
                       <button onClick={() => updateStatus(app.id, 'REVIEWING')} className="px-3 py-1.5 border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl text-xs font-bold transition-colors flex items-center cursor-pointer">
                         <Eye className="w-3.5 h-3.5 mr-1" /> {language === 'th' ? 'เริ่มตรวจสอบ' : 'Review'}
