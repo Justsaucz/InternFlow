@@ -199,7 +199,7 @@ The Robot runner starts isolated local services with fictional test data. It pro
 
 ## Project Scope
 
-The DES424 version focuses on the internship application, placement, logbook, and evaluation workflow. AI portfolio screening, OCR verification, questionnaires, automated notifications, password recovery, email verification, and paid promotions are not implemented in this version.
+The DES424 version focuses on the internship application, placement, logbook, and evaluation workflow. 
 
 The printable evaluation report records employer feedback; it is not university accreditation or an automatically issued completion certificate. Placement exclusivity applies to activity inside InternFlow and cannot prevent a student from accepting an opportunity outside the platform.
 
