@@ -38,7 +38,7 @@ Frontend source is located in [frontend](frontend), backend source in [backend](
 
 ### Cloud Services Usage
 
-InternFlow is deployed on AWS in the **Asia Pacific (Sydney), ap-southeast-2** Region. Amazon CloudFront provides the public HTTPS endpoint and delivers the React frontend from a private S3 bucket using Origin Access Control (OAC). API and public image requests are forwarded to an Application Load Balancer.
+InternFlow is deployed on AWS in the **Asia Pacific , ap-southeast-2** Region. Amazon CloudFront provides the public HTTPS endpoint and delivers the React frontend from a private S3 bucket using Origin Access Control (OAC). API and public image requests are forwarded to an Application Load Balancer.
 
 The Node.js Express API runs on ECS Fargate in private application subnets. PostgreSQL runs on a private RDS instance, and uploaded files are stored in a separate private S3 bucket. IAM roles control service access, ECR stores container images, and CloudWatch collects application logs.
 
