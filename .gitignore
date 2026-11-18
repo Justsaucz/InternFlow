@@ -23,3 +23,7 @@ deploy/.local-ca.pem
 
 backend/tests/*-results.json
 **/__pycache__/
+
+# Generated declarations for the Prisma CLI configuration
+/backend/prisma.config.d.ts
+/backend/prisma.config.d.ts.map
